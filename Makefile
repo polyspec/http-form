@@ -1,49 +1,25 @@
-# Every check of this repository is a target here. `make conformance` builds the three bindings and runs the cases of
-# contracts/fields.json through each of them, then compares every runner with the expectations and with each other.
+# Every check of this repository is a target here.
+#
+# The bindings are generated from the interface contract (plan G-6); the hand-written bindings in php/, python/ and
+# node/ are not workspace members and are not built, so the targets that ran the cases through them are gone until
+# the generated bindings exist.
 
 CARGO ?= cargo
-PHP ?= php
 PYTHON ?= python3
-NODE ?= node
-RESULTS := target/conformance
 
-.PHONY: build test conformance differential clippy check bench
-
-build:
-	$(CARGO) build --release --locked
-	cp target/release/libhttp_forms_python.so python/http_forms/_http_forms.abi3.so
-	mkdir -p node/lib php/lib
-	cp target/release/libhttp_forms_node.so node/lib/http-forms.linux-x64-gnu.node
-	cp target/release/libhttp_forms_php.so php/lib/http_forms.so
+.PHONY: test clippy check differential
 
 test:
-	$(CARGO) test --locked -p http-forms
+	$(CARGO) test --locked --release -p polyspec-http-forms
 
 clippy:
 	$(CARGO) clippy --locked --all-targets -- -D warnings
 
-conformance: build
-	mkdir -p $(RESULTS)
-	$(PHP) -d extension=$(CURDIR)/php/lib/http_forms.so conformance/php_runner.php contracts/fields.json > $(RESULTS)/php.json
-	PYTHONPATH=python $(PYTHON) conformance/python_runner.py contracts/fields.json > $(RESULTS)/python.json
-	$(NODE) conformance/node_runner.mjs contracts/fields.json $(CURDIR)/node/lib/http-forms.linux-x64-gnu.node > $(RESULTS)/node.json
-	$(PYTHON) conformance/check.py contracts/fields.json php=$(RESULTS)/php.json python=$(RESULTS)/python.json node=$(RESULTS)/node.json
+check: clippy test
 
-# REFERENCE is a directory that holds the package polyspec.hyper of hyper's Python server.
-differential: build
-	test -n "$(REFERENCE)" || (echo "make differential REFERENCE=<directory of polyspec/hyper/*.py>" && exit 2)
-	PYTHONPATH=python $(PYTHON) conformance/differential.py $(REFERENCE) $${BODIES:-200000}
-
-check: clippy test conformance
-
-# HYPER is the directory packages/server of a checkout of hyper. The benchmark times hyper's readers and the bindings on
-# a complex urlencoded form, a complex multipart form and a 50 MiB attachment; it reports and never fails.
-bench: build
-	test -n "$(HYPER)" || (echo "make bench HYPER=<hyper>/packages/server" && exit 2)
-	rm -rf target/bench && mkdir -p target/bench/data target/bench/ts
-	$(PYTHON) bench/generate.py target/bench/data
-	cp $(HYPER)/ts/src/*.ts target/bench/ts/
-	sed -i.orig -E "s#from '\./([a-z-]+)\.js'#from './\1.ts'#" target/bench/ts/*.ts
-	$(PYTHON) bench/bench.py $(HYPER)/python/src target/bench/data
-	$(NODE) --experimental-strip-types --no-warnings bench/bench.mts $(CURDIR)/target/bench/ts target/bench/data $(CURDIR)/node/lib/http-forms.linux-x64-gnu.node
-	$(PHP) -d memory_limit=1G -d extension=$(CURDIR)/php/lib/http_forms.so bench/bench.php $(HYPER)/php/src target/bench/data
+# HYPER is the directory packages/server/python/src of hyper. The test reads a module of hyper that is not public, so
+# its result is a reference only (docs/spec/forms.md, Verification); PYTHONPATH must hold the packages that hyper
+# imports.
+differential:
+	test -n "$(HYPER)" || (echo "make differential HYPER=<hyper>/packages/server/python/src" && exit 2)
+	$(PYTHON) conformance/differential.py $(HYPER) $${BODIES:-200000}
