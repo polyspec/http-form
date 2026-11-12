@@ -38,3 +38,5 @@
   `docs/spec/forms.md`, and their cases are `contracts/fields.json` and `contracts/forms.json`, no longer a copy;
   `sources.json` and its check are gone. A part header longer than 8192 bytes fails with `header_limit` in those cases
   too, and the messages of `moved`, `exists` and `removed` name F-11 and F-10.
+- `polyspec-http-media-type` and `polyspec-bindgen-core` are Git dependencies of the branch `v1/rust-core`, whose
+  commit `Cargo.lock` pins, and no longer paths of another checkout.

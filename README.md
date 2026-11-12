@@ -37,6 +37,6 @@ make differential HYPER=<hyper>/packages/server/python/src   # random bodies aga
 make check         # clippy and test
 ```
 
-Requirements: the Rust toolchain of `rust-toolchain.toml`, and the path dependencies `polyspec-http-media-type` and
-`polyspec-bindgen-core` beside this repository (`../http-media-type`, `../bindgen`). Linux and macOS (docs/spec/forms.md, F-14); Windows is
+Requirements: the Rust toolchain of `rust-toolchain.toml`, and the Git dependencies `polyspec-http-media-type` and
+`polyspec-bindgen-core` (branch `v1/rust-core`, whose commit `Cargo.lock` pins). Linux and macOS (docs/spec/forms.md, F-14); Windows is
 not supported.
