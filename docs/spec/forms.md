@@ -82,12 +82,11 @@ is no path, are the binding's (plan B-2, B-3).
   3. `multipart_boundary(content type)` is, when the type and subtype are `multipart/form-data`, the value of its
      `boundary` parameter after MT-3.4, or `no_boundary` (F-7); for another type or none it is `None` (HY-113.11). A
      parameter given twice, compared without case, fails the media type (MT-3.5), `boundary` included.
-  4. The parameters other than `boundary` of `multipart/form-data`, and every parameter of
-     `application/x-www-form-urlencoded`, change nothing (I-7): the registration of `multipart/form-data` defines
-     `boundary` alone (RFC 7578, section 8), the registration of `application/x-www-form-urlencoded` defines no
-     parameter and its parser reads UTF-8 (WHATWG URL, section 5), and the meaning of a parameter comes from the
-     registration of its type (RFC 9110, section 8.3.1). A `charset` of an urlencoded body therefore does not change
-     how it is read; a body that is not UTF-8 fails with `invalid` (HY-42).
+  4. A parameter that its type does not define changes nothing (I-7), because it does not change how the body is
+     read: `application/x-www-form-urlencoded` defines no parameter, and its parser decodes UTF-8, "only UTF-8 is
+     conforming" (WHATWG URL, section 5, 5.1), so a `charset` changes nothing either and a body that is not UTF-8 fails
+     with `invalid` (HY-42); `multipart/form-data` defines `boundary` alone, its optional parameters being "none"
+     (RFC 7578, section 8).
 
 ## Reading a body
 
@@ -123,10 +122,12 @@ is no path, are the binding's (plan B-2, B-3).
   chunks; it fails with `not_streamed` for a body held as one value, with the first failure of the body, and with
   `not_finished` before `finish()`. A body held as one value gives its bytes as `held()`, which the host reads with
   `read_body`, `fields_from_body` and `files_from_body`.
-- **F-16** Every part of a `multipart/form-data` body has a `Content-Disposition` whose type is `form-data` and which
-  has a `name` parameter (RFC 7578, section 4.2), and no parameter of its `Content-Disposition` is given twice, its name
-  compared without case (RFC 6266, section 4.1: such a value is invalid). A part without `Content-Disposition`, of
-  another disposition type, without `name` or with a parameter given twice fails the body with `invalid` at the byte
+- **F-16** Every part of a `multipart/form-data` body has one `Content-Disposition` line whose type is `form-data`
+  and which has a `name` parameter (RFC 7578, section 4.2), at most one `Content-Type` line, no header line without
+  `:` (RFC 5322, section 2.2: a header field is a name, a colon and a body), and no parameter of its `Content-Disposition` is given twice, its name
+  compared without case (RFC 6266, section 4.1: such a value is invalid). A part without `Content-Disposition`, with
+  two `Content-Disposition` or two `Content-Type` lines (no rule says which one counts), with a line without `:`, of another disposition type, without `name` or with
+  a parameter given twice fails the body with `invalid` at the byte
   of its header lines (F-8). It is no ignored input: ignoring it dropped a part that the client sent (plan P-4). A part
   that fails so has no name, so it counts for no value limit.
 - **F-13** A failure of the sink of a `MultipartReader`, such as a write of a file, is the failure of that call; the
@@ -173,9 +174,9 @@ is no path, are the binding's (plan B-2, B-3).
 | I-1 | HY-131.3 | the bytes before the first delimiter | RFC 2046, section 5.1.1: the preamble is to be ignored | `fields.json` multipart `the_bytes_before_the_first_delimiter_are_ignored` |
 | I-2 | HY-131.4 | the bytes after the `--` that ends the body | RFC 2046, section 5.1.1: the epilogue is to be ignored | `fields.json` multipart `the_bytes_after_the_closing_delimiter_are_ignored` |
 | I-4 | HY-113.7 | the parameter `filename*` of a `Content-Disposition` | RFC 7578, section 4.2: `filename*` must not be used, and the `filename` parameter alone names the file | `forms.json` multipart `a_filename_star_is_ignored` |
-| I-5 | HY-113.12 | header lines other than the first `Content-Disposition` and `Content-Type`, and lines without `:` | RFC 7578, section 4.8: other header fields must be ignored | `fields.json` multipart `a_part_header_of_8192_bytes_is_read`, `forms.json` multipart `a_line_without_a_colon_and_other_header_lines_are_ignored` |
+| I-5 | HY-113.12 | header lines of a name other than `Content-Disposition` and `Content-Type` | RFC 7578, section 4.8: other header fields must be ignored | `fields.json` multipart `a_part_header_of_8192_bytes_is_read`, `forms.json` multipart `other_header_lines_are_ignored` |
 | I-6 | HY-56 | an empty part between two `&` | WHATWG URL, application/x-www-form-urlencoded parsing: an empty sequence is skipped | `fields.json` urlencoded `empty_parts_are_skipped` |
-| I-7 | F-12 | the parameters of a content type other than `boundary` of `multipart/form-data` | RFC 7578, section 8; WHATWG URL, section 5; RFC 9110, section 8.3.1 (F-12) | `forms.json` multipart `the_parameters_of_an_urlencoded_type_are_ignored`, `fields.json` multipart `a_boundary_inside_a_quoted_string_is_no_boundary` |
+| I-7 | F-12 | the parameters that a form type does not define: every parameter of `application/x-www-form-urlencoded`, and those of `multipart/form-data` other than `boundary` | WHATWG URL, section 5: the type has no parameter and its parser decodes UTF-8; RFC 7578, section 8: optional parameters "none" | `forms.json` multipart `the_charset_of_an_urlencoded_type_is_ignored`, `another_parameter_of_an_urlencoded_type_is_ignored`, `fields.json` multipart `a_boundary_inside_a_quoted_string_is_no_boundary` |
 
 The reader of a media type ignores the inputs of the table of http-media-type (MT-1.3, MT-3.2, MT-3.4, MT-2.2):
 whitespace around the value and around `;`, empty parameters, the quotes of a quoted value and the case of names.
@@ -207,8 +208,9 @@ These rules of hyper change with this library; hyper changes its sentences and c
   content type unquotes its quoted pairs (MT-3.4), so a backslash of a quoted boundary is no part of it. Cases: the
   group `content_type` and the replacements of `an_urlencoded_type_followed_by_a_line_feed_is_another_type` and
   `a_body_without_a_type_has_no_values`.
-- HY-113.6, HY-113.13 (F-16): a part without `Content-Disposition`, of another disposition type or without `name` and
-  a parameter given twice fail the body with `invalid`, where they were ignored and the first parameter of a name
+- HY-113.6, HY-113.12, HY-113.13 (F-16): a part without `Content-Disposition`, with two `Content-Disposition` or
+  `Content-Type` lines or a line without `:`, of another disposition type or without `name`, and a parameter given
+  twice fail the body with `invalid`, where they were ignored and the first line and the first parameter of a name
   counted. Cases: the replacements in the group `superseded` whose rule is F-16.
 
 ## API

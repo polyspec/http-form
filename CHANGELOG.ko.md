@@ -15,3 +15,4 @@
 - `Content-Disposition`이 없거나, disposition type이 다르거나, `name`이 없는 part와 `Content-Disposition`에 두 번 준 parameter는 무시하지 않고 본문을 `invalid`로 실패시킨다(F-16).
 - `HEADER_LIMIT`은 `u64`다. `Error`는 `bindgen_core::Kinds`를, `RequestBody`는 `bindgen_core::Cleanup`을 구현한다.
 - 인터페이스 계약은 `packages/rust/interface.json`이다(F-18).
+- `Content-Disposition`이나 `Content-Type` 줄이 둘이거나 `:` 없는 header 줄이 있는 part는 본문을 `invalid`로 실패시킨다(F-16). form type이 정의하지 않은 parameter는 무시한다(I-7).

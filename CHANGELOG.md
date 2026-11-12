@@ -27,3 +27,5 @@
 - `HEADER_LIMIT` is a `u64`. `Error` implements `bindgen_core::Kinds` and `RequestBody` implements
   `bindgen_core::Cleanup`.
 - The interface contract is `packages/rust/interface.json` (F-18).
+- A part with two `Content-Disposition` or two `Content-Type` lines, or with a header line without `:`, fails the
+  body with `invalid` (F-16). The parameters that a form type does not define are ignored (I-7).

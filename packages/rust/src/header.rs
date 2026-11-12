@@ -109,11 +109,42 @@ pub fn form_data(value: &[u8]) -> Result<(Vec<u8>, Parameters), Error> {
     }
 }
 
-/// Returns the value of the first header line of the name, compared without case, without the blanks around it
-/// (HY-113.12). A line without `:` and a later line of the same name are ignored inputs (spec I-5).
-pub fn header_value<'a>(lines: &[&'a [u8]], name: &[u8]) -> Option<&'a [u8]> {
-    lines.iter().find_map(|line| {
+/// The values of the header lines of the name, compared without case, without the blanks around them, in their order
+/// (HY-113.12).
+fn header_values<'a, 'n>(lines: &'n [&'a [u8]], name: &'n [u8]) -> impl Iterator<Item = &'a [u8]> + 'n {
+    lines.iter().filter_map(move |line| {
         let colon = line.iter().position(|&byte| byte == b':')?;
         line[..colon].eq_ignore_ascii_case(name).then(|| trim_blanks(&line[colon + 1..]))
     })
+}
+
+/// The value of the one header line of the name, `None` without one, or `Error::Invalid` for two (F-16).
+fn single<'a>(lines: &[&'a [u8]], name: &[u8]) -> Result<Option<&'a [u8]>, Error> {
+    let mut values = header_values(lines, name);
+    match (values.next(), values.next()) {
+        (first, None) => Ok(first),
+        (Some(_), Some(_)) | (None, Some(_)) => Err(Error::Invalid),
+    }
+}
+
+/// What the header lines of a part give: the `name` and the parameters of its `Content-Disposition` and its
+/// `Content-Type`, if it has one.
+pub struct PartHeader<'a> {
+    pub name: Vec<u8>,
+    pub parameters: Parameters,
+    pub content_type: Option<&'a [u8]>,
+}
+
+/// The header lines of a part (HY-113.12, F-16): the `name` and the parameters of its one `Content-Disposition`
+/// (`form_data`) and the value of its `Content-Type`, which may be absent. A line without `:`, a second
+/// `Content-Disposition` or `Content-Type` and a part without `Content-Disposition` fail with `Error::Invalid`; a
+/// header line of another name is an ignored input (spec I-5).
+pub fn part_header<'a>(lines: &[&'a [u8]]) -> Result<PartHeader<'a>, Error> {
+    if lines.iter().any(|line| !line.contains(&b':')) {
+        return Err(Error::Invalid);
+    }
+    let disposition = single(lines, b"content-disposition")?.ok_or(Error::Invalid)?;
+    let content_type = single(lines, b"content-type")?;
+    let (name, parameters) = form_data(disposition)?;
+    Ok(PartHeader { name, parameters, content_type })
 }

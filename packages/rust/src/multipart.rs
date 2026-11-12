@@ -15,7 +15,7 @@ use std::convert::Infallible;
 
 use memchr::memmem::Finder;
 
-use crate::header::{form_data, header_value, parameter};
+use crate::header::{parameter, part_header, PartHeader};
 use crate::Error;
 
 /// The largest header of a part in bytes (HY-113.16), as the contract type `uint` (design T-1).
@@ -343,28 +343,26 @@ impl MultipartReader {
         sink: &mut impl FnMut(Piece<'_>) -> Result<(), E>,
     ) -> Result<(), ReadError<E>> {
         self.part = Part::None;
-        // F-16: a part has a `Content-Disposition` of the type `form-data` with a `name`, or it fails the body.
-        let parsed = match header_value(lines, b"content-disposition") {
-            Some(value) => form_data(value),
-            None => Err(Error::Invalid),
-        };
+        // F-16: a part has one `Content-Disposition` of the type `form-data` with a `name`, at most one
+        // `Content-Type` and no line without `:`, or it fails the body.
+        let parsed = part_header(lines);
         // H-5: the name of a value counts for the value limit at the end of the header lines, the byte that also
         // reveals any failure of HY-42 of the header lines; at one byte a limit comes before HY-42.
-        if let Ok((raw_name, found)) = &parsed {
-            if parameter(found, b"filename").is_none() {
-                self.add_value_bytes(count(raw_name.len()).map_err(ReadError::Form)?)?;
+        if let Ok(header) = &parsed {
+            if parameter(&header.parameters, b"filename").is_none() {
+                self.add_value_bytes(count(header.name.len()).map_err(ReadError::Form)?)?;
             }
         }
         // HY-131.5: a header line that starts with the delimiter fails the body.
         if lines.iter().any(|line| line.starts_with(&self.delimiter)) {
             return Err(ReadError::Form(Error::Invalid));
         }
-        let (raw_name, found) = parsed.map_err(ReadError::Form)?;
+        let PartHeader { name: raw_name, parameters: found, content_type } = parsed.map_err(ReadError::Form)?;
         let name = utf8(&raw_name).ok_or(ReadError::Form(Error::Invalid))?;
         // HY-113.7: `filename*` is not read; it is an ignored input (spec I-4).
         match parameter(&found, b"filename") {
             Some(filename) => {
-                let content_type = match header_value(lines, b"content-type") {
+                let content_type = match content_type {
                     Some(value) => value,
                     None => b"",
                 };

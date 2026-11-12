@@ -30,7 +30,7 @@ pub fn media_type(content_type: Option<&[u8]>) -> Result<String, Error> {
 }
 
 /// True when the media type is `application/x-www-form-urlencoded` (HY-57.10); a request without `Content-Type` has
-/// another type. The parameters of the type are an ignored input (spec I-7).
+/// another type. The type defines no parameter, so its parameters are an ignored input (spec I-7).
 pub fn is_urlencoded(content_type: Option<&[u8]>) -> Result<bool, Error> {
     match content_type {
         Some(value) => Ok(is(&read(value)?, "application", "x-www-form-urlencoded")),
@@ -40,7 +40,8 @@ pub fn is_urlencoded(content_type: Option<&[u8]>) -> Result<bool, Error> {
 
 /// The boundary of a content type (HY-113.11): `None` for another type or none, and for `multipart/form-data` the
 /// value of its `boundary` parameter (MT-3.4), or `no_boundary` when it has none or an empty one (F-7). A parameter
-/// given twice fails the media type (MT-3.5); every other parameter is an ignored input (spec I-7).
+/// given twice fails the media type (MT-3.5); every other parameter is an ignored input, because the type defines
+/// `boundary` alone (spec I-7).
 pub fn boundary(content_type: Option<&[u8]>) -> Result<Option<Vec<u8>>, Error> {
     let Some(value) = content_type else {
         return Ok(None);
