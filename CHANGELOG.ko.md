@@ -22,3 +22,4 @@
 - `polyspec-http-media-type`과 `polyspec-bindgen-core`는 다른 checkout의 경로가 아니라 branch `v1/rust-core`의 Git 의존이며 `Cargo.lock`이 커밋을 고정한다.
 - `read_held_body(content type, body, limits)`는 한 값으로 보관한 본문을 body 한도와 value 한도에 더해 조각으로 읽는 본문의 part 한도와 file 한도로 읽는다(F-25.6). 경로가 아닌 값의 메시지는 F-11을 가리킨다.
 - 손으로 쓴 바인딩과 그 runner는 `legacy/`에 있고 빌드하거나 배포하지 않는다.
+- 루트 workspace 하나가 코어 crate와 bindgen scaffold가 쓰는 얇은 바인딩 package `packages/ts`, `packages/python`, `packages/php-ext`를 가진다. `make bindings`와 `make bindings-check`가 그것을 생성하고 검사하며, 코어 대상은 코어 crate를 이름으로 지정한다.

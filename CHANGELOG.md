@@ -44,3 +44,6 @@
   of a body read in chunks, as well as its body limit and value limit (F-25.6). The message of a path that is no
   path names F-11.
 - The hand-written bindings and their runners are in `legacy/`, which is not built or released.
+- One root workspace holds the core crate and the thin binding packages `packages/ts`, `packages/python` and
+  `packages/php-ext` that bindgen scaffold writes; `make bindings` and `make bindings-check` generate and check them,
+  and the core targets name the core crate.

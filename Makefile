@@ -5,17 +5,24 @@
 
 CARGO ?= cargo
 PYTHON ?= python3
+NODE ?= node
+# The cli of a bindgen checkout (packages/ts/src/cli.ts), which make bindings and make bindings-check run.
+BINDGEN ?=
 
-.PHONY: test clippy fmt check differential
+# The core crate is named, because the binding crates of the workspace need make bindings first (plan 9c, bindgen L-2).
+CORE := polyspec-http-forms
+BINDING_CRATES := polyspec-http-forms-node polyspec-http-forms-python polyspec-http-forms-php-ext
+
+.PHONY: test clippy fmt check differential bindings bindings-check lint-bindings test-bindings
 
 test:
-	$(CARGO) test --locked --release -p polyspec-http-forms
+	$(CARGO) test --locked --release -p $(CORE)
 
 clippy:
-	$(CARGO) clippy --locked --all-targets -- -D warnings
+	$(CARGO) clippy --locked -p $(CORE) --all-targets -- -D warnings
 
 fmt:
-	$(CARGO) fmt --check
+	$(CARGO) fmt --check -p $(CORE)
 
 check: fmt clippy test
 
@@ -25,3 +32,21 @@ check: fmt clippy test
 differential:
 	test -n "$(HYPER)" || (echo "make differential HYPER=<hyper>/packages/server/python/src" && exit 2)
 	$(PYTHON) conformance/differential.py $(HYPER) $${BODIES:-200000}
+
+# bindings writes the generated folders of packages/ts, packages/python and packages/php-ext, which Git ignores;
+# bindings-check runs the contract check, which also compares the tracked binding packages with what bindgen scaffold
+# writes (bindgen L-2, CK-19) and the polyspec-bindgen-core that Cargo.lock pins with the version of bindgen (CK-20).
+bindings:
+	@test -n "$(BINDGEN)" || { echo "bindings: set BINDGEN to the cli of bindgen"; exit 1; }
+	$(NODE) $(BINDGEN) generate --root $(CURDIR)
+
+bindings-check:
+	@test -n "$(BINDGEN)" || { echo "bindings-check: set BINDGEN to the cli of bindgen"; exit 1; }
+	$(NODE) $(BINDGEN) check $(CURDIR)/packages/rust/interface.json
+
+# The lint and the tests of the binding crates, after make bindings writes their generated folders.
+lint-bindings: bindings
+	$(CARGO) clippy --locked $(foreach crate,$(BINDING_CRATES),-p $(crate)) --all-targets -- -D warnings
+
+test-bindings: bindings
+	$(CARGO) test --locked $(foreach crate,$(BINDING_CRATES),-p $(crate))

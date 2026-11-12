@@ -321,8 +321,11 @@ These are the decisions of a server that uses the library, which no rule of this
   `HTTP_FORMS_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
   fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
-- The interface contract passes `checkContract` of `@polyspec/bindgen` with the contract of `polyspec-http-media-type`
-  as its dependency, with no finding.
+- `make bindings-check BINDGEN=<cli>`: the interface contract passes the contract check of `@polyspec/bindgen` with
+  the contract of `polyspec-http-media-type` as its dependency, and the binding packages `packages/ts`,
+  `packages/python` and `packages/php-ext` are what `bindgen scaffold` writes (bindgen design L-2). `make clippy`,
+  `make fmt` and `make test` name the core crate, and `make lint-bindings` and `make test-bindings` check the binding
+  crates after `make bindings`.
 - `make differential HYPER=<dir> PYTHONPATH=...`: random bodies through the core and through hyper's Python reader. It
   reads a module of hyper that is not public, so its result is a reference only until hyper exports the reader (plan
   H-25); a difference that F-6 or F-7 explains is counted apart.

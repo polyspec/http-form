@@ -6,6 +6,7 @@ same results.
 
 ```
 packages/rust/   the Rust crate polyspec-http-forms: every rule, and interface.json, the interface contract
+packages/ts/ packages/python/ packages/php-ext/   the thin binding packages that bindgen scaffold writes
 docs/spec/       forms.md: the rules, the errors and the API
 contracts/       fields.json and forms.json: the cases of the rules
 conformance/     the differential test against hyper's Python reader
@@ -32,11 +33,13 @@ body.remove(io())?;
 ```
 make test          # the cases in the core, in every division of each body
 make fmt           # the format of rustfmt.toml
+make bindings BINDGEN=<bindgen>/packages/ts/src/cli.ts         # generate the binding sources
+make bindings-check BINDGEN=<bindgen>/packages/ts/src/cli.ts   # the contract and the binding packages
 make clippy        # the lints
 make differential HYPER=<hyper>/packages/server/python/src   # random bodies against hyper's Python reader
 make check         # clippy and test
 ```
 
 Requirements: the Rust toolchain of `rust-toolchain.toml`, and the Git dependencies `polyspec-http-media-type` and
-`polyspec-bindgen-core` (branch `v1/rust-core`, whose commit `Cargo.lock` pins). Linux and macOS (docs/spec/forms.md, F-14); Windows is
-not supported.
+`polyspec-bindgen-core` (branch `v1/rust-core`, whose commit `Cargo.lock` pins). Linux and macOS (docs/spec/forms.md,
+F-14); Windows is not supported.
