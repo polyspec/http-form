@@ -1,4 +1,4 @@
-//! Ordered maps from a name to its values in request order (HF-1, HF-5).
+//! Ordered maps from a name to its values in request order (HY-56, HY-57).
 
 use std::collections::HashMap;
 
@@ -60,10 +60,10 @@ impl<T> Named<T> {
     }
 }
 
-/// Text values by name (HF-1, HF-5).
+/// Text values by name (HY-56, HY-57).
 pub type Fields = Named<String>;
 
-/// Files by name (HF-5).
+/// Files by name (HY-113).
 pub type Files = Named<UploadedFile>;
 
 /// The text fields and the files of a body.
