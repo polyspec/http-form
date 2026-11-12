@@ -21,4 +21,3 @@ tempfile = "3"
 # Only generated code makes a wait token; the tests make it through the feature `construct` (spec F-17).
 polyspec-bindgen-core = { path = "../../../bindgen/packages/core/rust", features = ["construct"] }
 serde_json = "1"
-sha2 = "0.10"

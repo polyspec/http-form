@@ -1,13 +1,13 @@
 # http-forms
 
-The form values and the `multipart/form-data` bodies of hyper, read by one Rust implementation that PHP, Python and
+Form values and `multipart/form-data` bodies, read by one Rust implementation that PHP, Python and
 Node bind. A binding converts types; every rule is in the core, so the three servers run the same code and give the
 same results.
 
 ```
 packages/rust/   the Rust crate polyspec-http-forms: every rule, and interface.json, the interface contract
 docs/spec/       forms.md: the rules, the errors and the API
-contracts/       fields.json (a copy of hyper's, see sources.json) and forms.json (the cases of this library)
+contracts/       fields.json and forms.json: the cases of the rules
 conformance/     the differential test against hyper's Python reader
 php/ python/ node/  hand-written bindings of an earlier API; not built, replaced by generated bindings
 ```

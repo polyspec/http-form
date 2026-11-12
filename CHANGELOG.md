@@ -34,3 +34,7 @@
   limit)` a function; `Collector` collects the pieces of a reader; `held`, `directory` and the names of an
   `UploadedFile` are owned values; `Error::removal_kind` and `removal_errno` give the removal of `partial_target`.
 - The crate needs Rust 1.99.0, the pinned toolchain; `rustfmt.toml` fixes the format, which `make fmt` checks.
+- The rules of reading form values, files and bodies in chunks are the rules F-20 to F-25 and F-27 of
+  `docs/spec/forms.md`, and their cases are `contracts/fields.json` and `contracts/forms.json`, no longer a copy;
+  `sources.json` and its check are gone. A part header longer than 8192 bytes fails with `header_limit` in those cases
+  too, and the messages of `moved`, `exists` and `removed` name F-11 and F-10.

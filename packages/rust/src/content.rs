@@ -1,6 +1,6 @@
 //! The content type of a request (spec F-12): its media type, read by `polyspec_http_media_type::parse` (MT-4), which
-//! gives `mediaType()` (HY-59.11), the comparison of HY-59.7, the urlencoded type (HY-57.10) and the boundary
-//! (HY-113.11). A request without `Content-Type` has no media type; a value that is no media type fails with
+//! gives `media_type()` (F-12.1), which a server compares with its form types, the urlencoded type (F-12.2) and the boundary
+//! (F-12.3). A request without `Content-Type` has no media type; a value that is no media type fails with
 //! `malformed_content_type`.
 
 use polyspec_http_media_type::{parse, MediaType};
@@ -18,7 +18,7 @@ fn is(media_type: &MediaType, r#type: &str, subtype: &str) -> bool {
 }
 
 /// The media type of the content type, its type and subtype in lowercase without parameters, or the empty text for a
-/// request without `Content-Type` (HY-59.11).
+/// request without `Content-Type` (F-12.1).
 pub fn media_type(content_type: Option<&[u8]>) -> Result<String, Error> {
     match content_type {
         Some(value) => {
@@ -29,7 +29,7 @@ pub fn media_type(content_type: Option<&[u8]>) -> Result<String, Error> {
     }
 }
 
-/// True when the media type is `application/x-www-form-urlencoded` (HY-57.10); a request without `Content-Type` has
+/// True when the media type is `application/x-www-form-urlencoded` (F-12.2); a request without `Content-Type` has
 /// another type. The type defines no parameter, so its parameters are an ignored input (spec I-7).
 pub fn is_urlencoded(content_type: Option<&[u8]>) -> Result<bool, Error> {
     match content_type {
@@ -38,7 +38,7 @@ pub fn is_urlencoded(content_type: Option<&[u8]>) -> Result<bool, Error> {
     }
 }
 
-/// The boundary of a content type (HY-113.11): `None` for another type or none, and for `multipart/form-data` the
+/// The boundary of a content type (F-12.3): `None` for another type or none, and for `multipart/form-data` the
 /// value of its `boundary` parameter (MT-3.4), or `no_boundary` when it has none or an empty one (F-7). A parameter
 /// given twice fails the media type (MT-3.5); every other parameter is an ignored input, because the type defines
 /// `boundary` alone (spec I-7).

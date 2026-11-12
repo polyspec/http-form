@@ -1,4 +1,4 @@
-//! The body of a request as its host reads it (HY-59, HY-131): the bytes of a body that is one value, or the parts
+//! The body of a request as its host reads it (F-24, F-25): the bytes of a body that is one value, or the parts
 //! of a `multipart/form-data` body that is read in chunks, whose files are in a directory of the request.
 
 use std::fs::{self, File};
@@ -33,7 +33,7 @@ struct Parts {
 
 impl Parts {
     /// Takes a piece of the reader: a value, or the start, the data or the end of a file, which it writes to a new
-    /// file of the directory (HY-131.13). A piece out of the order of a reader is `internal` (H-8).
+    /// file of the directory (F-10). A piece out of the order of a reader is `internal` (H-8).
     fn take(&mut self, piece: Piece<'_>) -> Result<(), Error> {
         match piece {
             Piece::Field { name, value } => self.fields.push(name, value),
@@ -104,10 +104,10 @@ fn parse_content_length(value: &[u8]) -> Result<Option<u64>, Error> {
     Ok(Some(number))
 }
 
-/// The limits of a body (HY-131.7 to HY-131.12), a record of the contract (design T-4).
+/// The limits of a body (F-25), a record of the contract (design T-4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BodyLimits {
-    /// The body limit in bytes (HY-59.4, HY-131.11).
+    /// The body limit in bytes (F-25.1).
     pub limit: u64,
     /// The value limit: of a body that is one value, and of the names and text values of a body read in chunks.
     pub value_limit: u64,
@@ -135,8 +135,8 @@ impl RequestBody {
     ///
     /// `content_type` is the value of `Content-Type`, or `None` without one. `content_length` is the value of the `Content-Length` field as the host received it, or `None` without one; a
     /// value that is not a number fails with `invalid_content_length`, and a number above the limit fails with
-    /// `body_limit` before any byte is read (HY-131.18). `stream` tells whether a multipart body is read in chunks,
-    /// which it is when `multipart/form-data` is a form type of the application (HY-131.1); such a body needs its
+    /// `body_limit` before any byte is read (F-25.1). `stream` tells whether a multipart body is read in chunks,
+    /// which it is when `multipart/form-data` is a form type of the application (F-24.1); such a body needs its
     /// boundary (H-17, H-18) and gets its directory now. The limits are those of [`BodyLimits`]. It creates the
     /// directory, so it takes the wait token `Io` (spec F-17).
     pub fn new(
@@ -182,8 +182,8 @@ impl RequestBody {
     }
 
     /// Reads the next chunk (H-5). The first failure of the body is its error and the error of every later call, and
-    /// the body then holds no bytes and no open file (HY-131.11): `invalid` and `header_limit` (HY-42, HY-113.16,
-    /// HY-131.5), the limits, and a failure of the file system. The first failure is the one whose byte comes first
+    /// the body then holds no bytes and no open file (F-25): `invalid` and `header_limit` (F-21.5, F-23.4,
+    /// F-24.5), the limits, and a failure of the file system. The first failure is the one whose byte comes first
     /// (spec F-8); the body limit is passed at the byte after `limit` bytes, and a chunk that passes it is read up to
     /// the limit first, so that a failure before that byte is the error. It writes the files of the body, so it takes
     /// the wait token `Io` (spec F-17).
@@ -215,7 +215,7 @@ impl RequestBody {
             Ok(_) | Err(_) => None,
         };
         let (Some(reader), Some(parts)) = (self.reader.as_mut(), self.parts.as_mut()) else {
-            // A body held as one value: the body limit and the value limit (HY-131.7); at one byte the body limit
+            // A body held as one value: the body limit and the value limit (F-25.2); at one byte the body limit
             // comes first.
             let value = match usize::try_from(self.value_limit.saturating_sub(start)) {
                 Ok(value) if value < chunk.len() => Some(value),
@@ -248,7 +248,7 @@ impl RequestBody {
     }
 
     /// Ends the body, as its host calls it after the last chunk (H-4): a body read in chunks that did not end with
-    /// the `--` after a delimiter fails with `invalid` (HY-131.5). A second call gives the result of the first. It
+    /// the `--` after a delimiter fails with `invalid` (F-24.5). A second call gives the result of the first. It
     /// closes the file of a body that failed, so it takes the wait token `Io` (spec F-17).
     pub fn finish(&mut self, _io: Io) -> Result<(), Error> {
         if let Some(failure) = &self.failure {
@@ -312,12 +312,12 @@ impl RequestBody {
         Ok(Form { fields: parts.fields.entries().to_vec(), files: parts.files.entries().to_vec() })
     }
 
-    /// The directory of the files of a body read in chunks, or `None` for a body held as one value (HY-131.13).
+    /// The directory of the files of a body read in chunks, or `None` for a body held as one value (F-10).
     pub fn directory(&self) -> Option<PathBuf> {
         self.parts.as_ref().map(|parts| parts.directory.clone())
     }
 
-    /// Removes the directory with the files that were not moved (HY-131.14, H-20). The directory belongs to this
+    /// Removes the directory with the files that were not moved (F-10, H-20). The directory belongs to this
     /// request only, so a directory that is gone fails with `not_found`; after a removal a second call does nothing.
     /// A stored file of the body is then `removed` (H-16), and a later chunk fails with `removed`. It takes the wait
     /// token `Io` (spec F-17).

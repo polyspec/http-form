@@ -350,7 +350,7 @@
           ],
           "wait": "none",
           "core": "polyspec_http_forms::multipart_boundary",
-          "optional_reason": "HY-113.11"
+          "optional_reason": "F-12.3"
         },
         {
           "id": "forms.read_body",
@@ -856,7 +856,7 @@
           "returns": {
             "optional": "path"
           },
-          "optional_reason": "HY-131.13",
+          "optional_reason": "F-10",
           "raises": [],
           "wait": "none",
           "core": {
@@ -1088,7 +1088,7 @@
     {
       "id": "media-type",
       "rule": "H-28",
-      "reason": "H-28, HY-59.11: the media type of a content type is a function of this library",
+      "reason": "H-28, F-12.1: the media type of a content type is a function of this library",
       "symbol": "media_type",
       "from": {},
       "to": "forms.media_type"
@@ -1176,7 +1176,7 @@
     {
       "id": "header-limit",
       "rule": "U-5",
-      "reason": "U-5: the limit of HY-113.16 is a constant in every language",
+      "reason": "U-5: the limit of F-23.4 is a constant in every language",
       "symbol": "HEADER_LIMIT",
       "from": {
         "php": "Polyspec\\Forms\\header_limit(): int",
@@ -1196,7 +1196,7 @@
     {
       "id": "file-over",
       "rule": "H-27",
-      "reason": "H-27, HY-114.9: whether a file passes a limit is the function file_over of the files",
+      "reason": "H-27, F-27: whether a file passes a limit is the function file_over of the files",
       "symbol": "file_over",
       "from": {},
       "to": "forms.file_over"
@@ -1284,7 +1284,7 @@
     {
       "id": "uploaded-file-new",
       "rule": "H-24",
-      "reason": "H-24, HY-113.3: an application makes a file from bytes",
+      "reason": "H-24, F-22.2: an application makes a file from bytes",
       "symbol": "UploadedFile::__construct",
       "from": {},
       "to": "uploaded_file.new"

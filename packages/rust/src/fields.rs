@@ -1,4 +1,4 @@
-//! The fields and files of a body as lists of a name and its values in request order (HY-56.7, HY-57, HY-113.2), the
+//! The fields and files of a body as lists of a name and its values in request order (F-20.3, F-21, F-22.6), the
 //! form of a body, and the collector that makes it from the pieces of a reader.
 
 use std::collections::HashMap;
@@ -42,11 +42,11 @@ impl<T> Named<T> {
     }
 }
 
-/// Text values: each name, in the order of its first value, with its values in request order (HY-56.7, HY-57); the
+/// Text values: each name, in the order of its first value, with its values in request order (F-20.3, F-21); the
 /// contract type `list<tuple<text, list<text>>>` (design T-2).
 pub type Fields = Vec<(String, Vec<String>)>;
 
-/// Files: each name, in the order of its first file, with its files in request order (HY-113.2); the contract type
+/// Files: each name, in the order of its first file, with its files in request order (F-22.6); the contract type
 /// `list<tuple<text, list<uploaded_file>>>` (design T-2).
 pub type Files = Vec<(String, Vec<UploadedFile>)>;
 
@@ -62,9 +62,9 @@ struct Open {
 /// The text fields and the files of a body: a record of the contract (design T-4).
 #[derive(Debug, Clone, Default)]
 pub struct Form {
-    /// The text fields (HY-57).
+    /// The text fields (F-21).
     pub fields: Fields,
-    /// The files (HY-113).
+    /// The files (F-22).
     pub files: Files,
 }
 
@@ -143,7 +143,7 @@ impl Collector {
 }
 
 /// True when a file has more bytes than `limit`, and false when every file has at most `limit` bytes or there is no
-/// file (HY-114.9).
+/// file (F-27).
 pub fn file_over(files: &[(String, Vec<UploadedFile>)], limit: u64) -> bool {
     files.iter().flat_map(|(_, files)| files.iter()).any(|file| file.size() > limit)
 }

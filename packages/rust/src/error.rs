@@ -86,10 +86,10 @@ impl fmt::Display for IoFailure {
 /// with it, a status (`status()`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    /// `invalid` (400): the body fails with HY-42 or HY-131.5, or a part's `Content-Disposition` has a quoted value
+    /// `invalid` (400): the body fails with F-20.3, F-21.5, F-22.4 or F-24.5, or a part's `Content-Disposition` has a quoted value
     /// without its end (H-18).
     Invalid,
-    /// `header_limit` (400): the header lines of a part are longer than 8192 bytes (HY-113.16).
+    /// `header_limit` (400): the header lines of a part are longer than 8192 bytes (F-23.4).
     HeaderLimit,
     /// `no_boundary` (400): a `multipart/form-data` content type without a boundary or with an empty one (H-17).
     NoBoundary,
@@ -98,13 +98,13 @@ pub enum Error {
     MalformedContentType(polyspec_http_media_type::Error),
     /// `invalid_content_length` (400): a `Content-Length` that is not one or more digits (RFC 9110 8.6).
     InvalidContentLength,
-    /// `body_limit` (413): the body passed the body limit (HY-59.4, HY-131.11, HY-131.18).
+    /// `body_limit` (413): the body passed the body limit (F-25.1).
     BodyLimit,
-    /// `value_limit` (413): the values held as one value passed the value limit (HY-131.7, HY-131.11).
+    /// `value_limit` (413): the values held as one value passed the value limit (F-25.2).
     ValueLimit,
-    /// `part_limit` (413): the body passed the part limit (HY-131.9, HY-131.11).
+    /// `part_limit` (413): the body passed the part limit (F-25.3).
     PartLimit,
-    /// `file_limit` (413): a file passed the file limit (HY-114.7, HY-131.11).
+    /// `file_limit` (413): a file passed the file limit (F-25.4).
     FileLimit,
     /// `not_finished`: the parts of a body whose end the host did not give (H-4).
     NotFinished,
@@ -112,9 +112,9 @@ pub enum Error {
     NotStreamed,
     /// `finished`: a chunk after the end of the body (H-4).
     Finished,
-    /// `moved`: a move or a read of a file that was moved (HY-131.16).
+    /// `moved`: a move or a read of a file that was moved (F-11).
     Moved,
-    /// `exists`: a move to a path that exists (HY-131.16).
+    /// `exists`: a move to a path that exists (F-11).
     Exists,
     /// `removed`: a move or a read of a file whose directory was removed, or a chunk after the removal (H-16).
     Removed,
@@ -258,9 +258,9 @@ impl From<io::Error> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Invalid => f.write_str("the form fails with HY-42"),
-            Error::HeaderLimit => f.write_str("the header lines of a part are longer than 8192 bytes (HY-113.16)"),
-            Error::NoBoundary => f.write_str("a multipart/form-data content type has no boundary (HY-113.11)"),
+            Error::Invalid => f.write_str("the body is no valid form (F-20 to F-24)"),
+            Error::HeaderLimit => f.write_str("the header lines of a part are longer than 8192 bytes (F-23.4)"),
+            Error::NoBoundary => f.write_str("a multipart/form-data content type has no boundary (F-12.3)"),
             Error::MalformedContentType(_) => {
                 f.write_str("the Content-Type is not a media type of RFC 9110, section 8.3.1 (MT-4)")
             }
@@ -272,9 +272,9 @@ impl fmt::Display for Error {
             Error::NotFinished => f.write_str("the end of the body was not read"),
             Error::NotStreamed => f.write_str("the body is held as one value and has no parts"),
             Error::Finished => f.write_str("the end of the body was read"),
-            Error::Moved => f.write_str("the file was moved (HY-131)"),
-            Error::Exists => f.write_str("the path exists (HY-131)"),
-            Error::Removed => f.write_str("the files of the request were removed (HY-131)"),
+            Error::Moved => f.write_str("the file was moved (F-11)"),
+            Error::Exists => f.write_str("the path exists (F-11)"),
+            Error::Removed => f.write_str("the files of the request were removed (F-10)"),
             Error::Io(failure) => write!(f, "{failure}"),
             Error::SourceLeft(failure) => {
                 write!(f, "the file was copied to its new path, and its first path was not removed: {failure}")

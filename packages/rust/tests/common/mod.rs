@@ -35,7 +35,7 @@ pub fn group<'a>(cases: &'a Value, name: &str) -> &'a [Value] {
     }
 }
 
-/// A text of a case whose characters U+0000 to U+00FF are bytes (HY-42.6).
+/// A text of a case whose characters U+0000 to U+00FF are bytes (F-4).
 pub fn latin1(value: &Value) -> Vec<u8> {
     let Some(text) = value.as_str() else { panic!("{value} is no text") };
     text.chars().map(|c| u8::try_from(u32::from(c)).unwrap_or_else(|_| panic!("{c:?} is no byte"))).collect()

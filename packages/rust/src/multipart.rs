@@ -1,11 +1,11 @@
-//! The state machine that reads a `multipart/form-data` body in chunks (HY-131) and the rules of its parts
-//! (HY-113).
+//! The state machine that reads a `multipart/form-data` body in chunks (F-24) and the rules of its parts
+//! (F-22).
 //!
 //! The reader finds the delimiters and gives the header lines and the content of each part to its sink. Besides one
 //! chunk it holds at most the delimiter or the header lines of one part, and it reads a chunk in place: the data of a
 //! file reaches the sink as a slice of the chunk.
 //!
-//! The result does not depend on the chunks (HY-131.6), also when the body fails: every failure is found at the byte
+//! The result does not depend on the chunks (F-24.6), also when the body fails: every failure is found at the byte
 //! that reveals it, the first byte after which the bytes read so far determine it, and when one chunk reveals more than
 //! one failure the reader gives the one whose byte comes first (spec F-8). A byte that may start a delimiter is held
 //! until a later byte shows whether it does, so it counts for a limit, and for the UTF-8 of a value, at that later
@@ -18,7 +18,7 @@ use memchr::memmem::Finder;
 use crate::header::{parameter, part_header, PartHeader};
 use crate::Error;
 
-/// The largest header of a part in bytes (HY-113.16), as the contract type `uint` (design T-1).
+/// The largest header of a part in bytes (F-23.4), as the contract type `uint` (design T-1).
 pub const HEADER_LIMIT: u64 = 8192;
 
 /// `HEADER_LIMIT` as an index of the bytes that the reader holds.
@@ -28,7 +28,7 @@ const _: () = assert!(HEADER_LIMIT == 8192 && HEADER_BYTES == 8192);
 /// The empty line that ends the header lines of a part.
 const HEADER_END: &[u8] = b"\r\n\r\n";
 
-/// The limits of a body read in chunks; `None` is no limit (HY-131.7 to HY-131.12).
+/// The limits of a body read in chunks; `None` is no limit (F-25).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Limits {
     /// The largest number of bytes of the names and the contents of the text values together.
@@ -52,7 +52,7 @@ pub enum Piece<'a> {
     FileEnd,
 }
 
-/// What the reader found, as owned values (HY-131.13).
+/// What the reader found, as owned values (F-10).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
     Field { name: String, value: String },
@@ -138,7 +138,7 @@ pub struct MultipartReader {
 }
 
 impl MultipartReader {
-    /// A reader of a body with the boundary (HY-113.11) and the limits.
+    /// A reader of a body with the boundary (F-12.3) and the limits.
     pub fn new(boundary: &[u8], limits: Limits) -> Self {
         let mut delimiter = b"--".to_vec();
         delimiter.extend_from_slice(boundary);
@@ -160,7 +160,7 @@ impl MultipartReader {
     }
 
     /// Reads the next chunk and returns what it found as owned values. After an error every call returns that error,
-    /// and after the `--` that ends the body the rest is ignored (HY-131.4, HY-131.5).
+    /// and after the `--` that ends the body the rest is ignored (F-24.4, F-24.5).
     pub fn feed(&mut self, chunk: &[u8]) -> Result<Vec<Event>, Error> {
         let mut events = Vec::new();
         let result = self.feed_with(chunk, |piece| {
@@ -176,7 +176,7 @@ impl MultipartReader {
     }
 
     /// Reads the next chunk and gives each piece to the sink as it finds it. A failure of the sink stops the reader,
-    /// which then gives `SinkFailed` (H-6); a failure of the body is the error of every later call (HY-131.11).
+    /// which then gives `SinkFailed` (H-6); a failure of the body is the error of every later call (F-25).
     pub fn feed_with<E>(
         &mut self,
         chunk: &[u8],
@@ -187,7 +187,7 @@ impl MultipartReader {
             Some(Stopped::Sink) => return Err(ReadError::SinkFailed),
             None => {}
         }
-        // HY-131.4: the bytes after the `--` that ends the body are an ignored input (spec I-2).
+        // F-24.4: the bytes after the `--` that ends the body are an ignored input (spec I-2).
         if self.state == State::Done {
             return Ok(());
         }
@@ -213,7 +213,7 @@ impl MultipartReader {
         result
     }
 
-    /// Ends the body: a body that did not end with the `--` after a delimiter fails (HY-131.5).
+    /// Ends the body: a body that did not end with the `--` after a delimiter fails (F-24.5).
     pub fn finish(&mut self) -> Result<(), ReadError<Infallible>> {
         match &self.stopped {
             Some(Stopped::Form(error)) => return Err(ReadError::Form(error.clone())),
@@ -230,7 +230,7 @@ impl MultipartReader {
         Ok(())
     }
 
-    /// True when the body ended with the `--` after a delimiter (HY-131.4).
+    /// True when the body ended with the `--` after a delimiter (F-24.4).
     pub fn closed(&self) -> bool {
         self.state == State::Done
     }
@@ -240,7 +240,7 @@ impl MultipartReader {
         self.buffer.len()
     }
 
-    /// The number of parts that were read, also those that are neither a value nor a file (HY-131.12).
+    /// The number of parts that were read, also those that are neither a value nor a file (F-25.3).
     pub fn parts(&self) -> u64 {
         self.part_count
     }
@@ -276,11 +276,11 @@ impl MultipartReader {
                         self.state = State::Delimiter;
                         continue;
                     }
-                    // HY-131.3: the bytes before the first delimiter are an ignored input (spec I-1).
+                    // F-24.3: the bytes before the first delimiter are an ignored input (spec I-1).
                     return Ok(at + length - pending(rest, self.separator.needle()));
                 }
                 State::Delimiter => {
-                    // HY-131.4, HY-131.5: `--` or CRLF; any other first byte fails at once.
+                    // F-24.4, F-24.5: `--` or CRLF; any other first byte fails at once.
                     match rest.first() {
                         None => return Ok(at),
                         Some(b'-' | b'\r') => {}
@@ -297,7 +297,7 @@ impl MultipartReader {
                         b"\r\n" => {
                             at += 2;
                             self.state = State::Headers;
-                            // HY-131.12: a part counts from the CRLF after its delimiter.
+                            // F-25.3: a part counts from the CRLF after its delimiter.
                             self.part_count =
                                 self.part_count.checked_add(1).ok_or(ReadError::Form(Error::Internal("parts")))?;
                             if let Some(limit) = self.limits.parts {
@@ -353,26 +353,26 @@ impl MultipartReader {
         // `Content-Type` and no line without `:`, or it fails the body.
         let parsed = part_header(lines);
         // H-5: the name of a value counts for the value limit at the end of the header lines, the byte that also
-        // reveals any failure of HY-42 of the header lines; at one byte a limit comes before HY-42.
+        // reveals any failure of the header lines (F-8); at one byte a limit comes before such a failure.
         if let Ok(header) = &parsed {
             if parameter(&header.parameters, b"filename").is_none() {
                 self.add_value_bytes(count(header.name.len()).map_err(ReadError::Form)?)?;
             }
         }
-        // HY-131.5: a header line that starts with the delimiter fails the body.
+        // F-24.5: a header line that starts with the delimiter fails the body.
         if lines.iter().any(|line| line.starts_with(&self.delimiter)) {
             return Err(ReadError::Form(Error::Invalid));
         }
         let PartHeader { name: raw_name, parameters: found, content_type } = parsed.map_err(ReadError::Form)?;
         let name = utf8(&raw_name).ok_or(ReadError::Form(Error::Invalid))?;
-        // HY-113.7: `filename*` is not read; it is an ignored input (spec I-4).
+        // F-22.5: `filename*` is not read; it is an ignored input (spec I-4).
         match parameter(&found, b"filename") {
             Some(filename) => {
                 let content_type = match content_type {
                     Some(value) => value,
                     None => b"",
                 };
-                // HY-113.5: the filename and the content type of a file are UTF-8.
+                // F-22.4: the filename and the content type of a file are UTF-8.
                 let (Some(filename), Some(content_type)) = (utf8(filename), utf8(content_type)) else {
                     return Err(ReadError::Form(Error::Invalid));
                 };
@@ -455,7 +455,7 @@ impl MultipartReader {
         match std::mem::replace(&mut self.part, Part::None) {
             Part::None => Err(ReadError::Form(Error::Internal("the end of no part"))),
             Part::Value { name, content, valid } => {
-                // HY-57.5: a value whose content ends inside a UTF-8 sequence fails at the end of its content.
+                // F-21.5: a value whose content ends inside a UTF-8 sequence fails at the end of its content.
                 if valid != content.len() {
                     return Err(ReadError::Form(Error::Invalid));
                 }
@@ -512,7 +512,7 @@ fn reveal(bytes: &[u8], needle: &[u8], index: usize) -> usize {
 }
 
 /// The length of the start of `bytes` that is UTF-8 text or the start of one more character, or the index of the
-/// byte after which the bytes are no start of UTF-8 text (HY-57.5).
+/// byte after which the bytes are no start of UTF-8 text (F-21.5).
 fn utf8_prefix(bytes: &[u8]) -> Result<usize, usize> {
     match std::str::from_utf8(bytes) {
         Ok(_) => Ok(bytes.len()),
@@ -533,7 +533,7 @@ fn utf8_prefix(bytes: &[u8]) -> Result<usize, usize> {
 }
 
 /// True when the header lines that `bytes` starts with are longer than `HEADER_LIMIT` whatever bytes follow: no empty
-/// line starts at an index up to `HEADER_LIMIT`, and none can start there with later bytes (HY-113.16).
+/// line starts at an index up to `HEADER_LIMIT`, and none can start there with later bytes (F-23.4).
 fn header_too_long(bytes: &[u8]) -> bool {
     if bytes.len() <= HEADER_BYTES {
         return false;

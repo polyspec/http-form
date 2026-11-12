@@ -1,6 +1,6 @@
 //! Runs the cases of `contracts/forms.json`, the cases of the rules of this library (docs/spec/forms.md). A body is
 //! read whole, byte by byte and in two chunks divided at every position, and every division must give the result of
-//! the case (HY-131.6).
+//! the case (F-24.6).
 
 mod common;
 
@@ -73,7 +73,7 @@ fn multipart() {
     failures.check("multipart");
 }
 
-/// HY-59.11, HY-57.10, HY-113.11, spec F-12: the media type, the urlencoded type and the boundary of a content type,
+/// F-12.1, F-12.2, F-12.3, spec F-12: the media type, the urlencoded type and the boundary of a content type,
 /// which `null` leaves out; a case with `raises` fails in all three.
 #[test]
 fn content_type() {
@@ -158,7 +158,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     let mut failed = None;
     for chunk in chunks {
         if let Err(error) = read.feed(io(), chunk) {
-            // HY-131.11: every later call gives the same error.
+            // F-25: every later call gives the same error.
             assert_eq!(read.feed(io(), b"more"), Err(error.clone()), "{label}");
             failed = Some(("feed", error));
             break;

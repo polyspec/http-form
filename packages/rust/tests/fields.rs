@@ -1,11 +1,8 @@
-//! Runs the cases of `contracts/fields.json`, the copy of hyper's file (V-1, `contracts/sources.json`), as hyper's
-//! runners do: a urlencoded text is the UTF-8 encoding of its JSON string, and a content type and a body are texts
-//! whose characters are their bytes.
-//!
-//! A case whose rule this library changed is listed in the group `superseded` of `contracts/forms.json` with the rule
-//! and the case of this library that replaces it; the runner checks that the replacing case reads the same input and
-//! runs that case in `forms.rs`. A case that only a binding can run, because its input is no value of the core's
-//! types, is listed in the group `binding` with its rule.
+//! Runs the cases of `contracts/fields.json`: urlencoded text (F-20), multipart bodies (F-21 to F-24), bodies read in
+//! chunks with their limits and files (F-9, F-10, F-11, F-25) and files made from bytes (F-22.2). A urlencoded text is
+//! the UTF-8 encoding of its JSON string, and a content type and a body are texts whose characters are their bytes. A
+//! case with `raises` gives that failure. A case that only a binding can run, because its input is no value of the
+//! core's types, is listed in the group `binding` of `contracts/forms.json` with its rule.
 
 mod common;
 
@@ -13,46 +10,29 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use common::{contract, fields_json, files_json, group, id, io, latin1, number, string, text, Failures};
+use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
 use polyspec_http_forms::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form,
     Limits, MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
 };
 use serde_json::{json, Value};
 
-/// The ids of the cases of a group of fields.json that another rule replaces or that a binding runs.
-fn listed(kind: &str, source_group: &str) -> BTreeMap<String, Value> {
+/// The ids of the cases of a group of fields.json that a binding runs.
+fn binding_cases(source_group: &str) -> BTreeMap<String, Value> {
     let forms = contract("forms.json");
-    group(&forms, kind)
+    group(&forms, "binding")
         .iter()
         .filter(|entry| entry["source"] == json!("fields.json") && entry["group"] == json!(source_group))
         .map(|entry| (string(entry, "id").to_owned(), entry.clone()))
         .collect()
 }
 
-/// The superseded cases of a group, which must name an existing case of forms.json with the same input.
-fn superseded(source_group: &str, cases: &[Value]) -> BTreeMap<String, Value> {
-    let forms = contract("forms.json");
-    let list = listed("superseded", source_group);
-    for (key, entry) in &list {
-        let Some(case) = cases.iter().find(|case| id(case) == key) else {
-            panic!("superseded {key} is no case of fields.json/{source_group}");
-        };
-        let target = string(entry, "replacement");
-        let Some((target_group, target_id)) = target.split_once('/') else { panic!("{target}: group/id") };
-        let Some(replacement) = group(&forms, target_group).iter().find(|other| id(other) == target_id) else {
-            panic!("{key}: the replacement {target} is no case of forms.json");
-        };
-        for input in ["type", "body", "text"] {
-            assert_eq!(
-                case.get(input),
-                replacement.get(input),
-                "{key}: the replacement {target} reads another {input}"
-            );
-        }
-        assert!(!string(entry, "rule").is_empty(), "{key}: no rule");
+/// The failure of a case, or `null` (plan F-3).
+fn failed(error: Option<&Error>) -> Value {
+    match error {
+        Some(error) => raises(error),
+        None => Value::Null,
     }
-    list
 }
 
 fn outcome(form: Result<Form, Error>) -> (Value, Value) {
@@ -94,10 +74,10 @@ fn read_chunks(boundary: &[u8], chunks: &[&[u8]], bound: usize, label: &str) -> 
 fn urlencoded() {
     let cases = contract("fields.json");
     let list = group(&cases, "urlencoded");
-    let replaced = superseded("urlencoded", list);
     let mut failures = Failures::default();
-    for case in list.iter().filter(|case| !replaced.contains_key(id(case))) {
+    for case in list {
         let read = parse_urlencoded(string(case, "text").as_bytes());
+        failures.compare(case, "raises", &failed(read.as_ref().err()));
         let (fields, names) = match &read {
             Ok(fields) => (fields_json(fields), json!(fields.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>())),
             Err(_) => (Value::Null, Value::Null),
@@ -112,13 +92,13 @@ fn urlencoded() {
 fn multipart() {
     let cases = contract("fields.json");
     let list = group(&cases, "multipart");
-    let replaced = superseded("multipart", list);
     let mut failures = Failures::default();
-    for case in list.iter().filter(|case| !replaced.contains_key(id(case))) {
+    for case in list {
         let label = id(case);
         let kind = latin1(&case["type"]);
         let kind = Some(kind.as_slice());
         let body = latin1(&case["body"]);
+        failures.compare(case, "raises", &failed(fields_from_body(kind, &body).err().as_ref()));
         let whole = (
             match fields_from_body(kind, &body) {
                 Ok(fields) => fields_json(&fields),
@@ -130,7 +110,7 @@ fn multipart() {
             },
         );
         let mut result = whole.clone();
-        // HY-131.6: two chunks divided at every position, and every byte alone, give the result of the whole body,
+        // F-24.6: two chunks divided at every position, and every byte alone, give the result of the whole body,
         // and the reader holds between two chunks at most its bound.
         if let Ok(Some(boundary)) = multipart_boundary(kind) {
             let header = usize::try_from(HEADER_LIMIT).unwrap_or_else(|error| panic!("{label}: {error}"));
@@ -174,7 +154,7 @@ fn entries(directory: &Option<PathBuf>) -> Value {
     }
 }
 
-/// The class of HY-46.2 is the category `value` (plan F-3).
+/// The category of `moved`, `exists` and `removed` is `value` (plan F-3).
 fn failure(error: &Error) -> (String, &'static str) {
     (error.to_string(), common::category(error.kind()))
 }
@@ -183,10 +163,9 @@ fn failure(error: &Error) -> (String, &'static str) {
 fn streamed() {
     let cases = contract("fields.json");
     let list = group(&cases, "streamed");
-    let replaced = superseded("streamed", list);
-    let binding = listed("binding", "streamed");
+    let binding = binding_cases("streamed");
     let mut failures = Failures::default();
-    for case in list.iter().filter(|case| !replaced.contains_key(id(case))) {
+    for case in list {
         let label = id(case);
         if binding.contains_key(label) {
             // A path of another type than a path is refused by the binding before the core (plan B-3).
@@ -224,18 +203,17 @@ fn streamed() {
             None => read.finish(io()).err(),
         };
         let held = read.held().to_vec();
-        let (fields, files) = if read.streamed() {
-            match read.parts() {
-                Ok(form) => (Some(form.fields), Some(form.files)),
-                Err(_) => (None, None),
-            }
-        } else if stopped.is_some() || finished.is_some() {
-            (None, None)
+        let read_parts = if let Some(error) = stopped.as_ref().or(finished.as_ref()) {
+            Err(error.clone())
+        } else if read.streamed() {
+            read.parts().map(|form| (form.fields, form.files))
         } else {
-            match (fields_from_body(kind, &held), files_from_body(kind, &held)) {
-                (Ok(fields), Ok(files)) => (Some(fields), Some(files)),
-                (Err(_), _) | (_, Err(_)) => (None, None),
-            }
+            fields_from_body(kind, &held).and_then(|fields| Ok((fields, files_from_body(kind, &held)?)))
+        };
+        failures.compare(case, "raises", &failed(read_parts.as_ref().err()));
+        let (fields, files) = match read_parts {
+            Ok((fields, files)) => (Some(fields), Some(files)),
+            Err(_) => (None, None),
         };
         let directory = read.directory();
         let exceeded = stopped.as_ref().is_some_and(|error| error.status() == Some(413));
@@ -296,7 +274,7 @@ fn uploaded() {
     let mut failures = Failures::default();
     for case in list {
         let label = id(case);
-        // HY-113.3, H-24: the content is bytes, as the characters of the text are.
+        // F-22.2, H-24: the content is bytes, as the characters of the text are.
         let file = UploadedFile::from_value(
             string(case, "name").to_owned(),
             string(case, "filename").to_owned(),

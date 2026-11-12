@@ -1,5 +1,5 @@
 //! The files of a request: a directory below the temporary directory of the system for the user of the server only,
-//! the files that the server writes into it, their moves and the removal of the directory (HY-131.13 to HY-131.16).
+//! the files that the server writes into it, their moves and the removal of the directory (F-10 to F-11).
 
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
@@ -14,7 +14,7 @@ use crate::{Error, IoFailure};
 #[cfg(not(any(target_os = "linux", target_vendor = "apple")))]
 compile_error!("http-forms moves a file without replacing its target on Linux and macOS only (spec F-14)");
 
-/// Creates a new directory below the temporary directory of the system that only its user can open (HY-131.13). The
+/// Creates a new directory below the temporary directory of the system that only its user can open (F-10). The
 /// name is `http-forms-` and random characters, which `tempfile` draws again when the name exists.
 pub(crate) fn create_directory() -> Result<PathBuf, Error> {
     let mut builder = tempfile::Builder::new();
@@ -103,7 +103,7 @@ struct Shared {
     content: Mutex<Content>,
 }
 
-/// A file that a request sent in a file part (HY-113.3): its name, its filename, its content type and its bytes,
+/// A file that a request sent in a file part (F-22.2): its name, its filename, its content type and its bytes,
 /// which are a value or a file of the directory of the request. A clone is the same file: every clone sees a move
 /// and the removal of the directory (H-16).
 #[derive(Debug, Clone)]
@@ -112,7 +112,7 @@ pub struct UploadedFile {
 }
 
 impl UploadedFile {
-    /// A file whose bytes are a value, as an application makes one (HY-113.3); its size is the number of its bytes.
+    /// A file whose bytes are a value, as an application makes one (F-22.2); its size is the number of its bytes.
     pub fn from_value(name: String, filename: String, content_type: String, content: Vec<u8>) -> Result<Self, Error> {
         let size = count(content.len())?;
         Ok(UploadedFile::make(name, filename, content_type, size, Content::Value(content)))
@@ -136,7 +136,7 @@ impl UploadedFile {
         self.shared.name.clone()
     }
 
-    /// The `filename` parameter of the part, as it was sent (HY-113.14).
+    /// The `filename` parameter of the part, as it was sent (F-6).
     pub fn filename(&self) -> String {
         self.shared.filename.clone()
     }
@@ -146,7 +146,7 @@ impl UploadedFile {
         self.shared.content_type.clone()
     }
 
-    /// The number of bytes of the part (HY-131.15).
+    /// The number of bytes of the part (F-11).
     pub fn size(&self) -> u64 {
         self.shared.size
     }
@@ -161,7 +161,7 @@ impl UploadedFile {
     }
 
     /// The bytes of the part as one value. A stored file must hold the number of bytes that were written (H-22).
-    /// Fails with `moved` after a move (HY-131.16) and with `removed` after the removal of the directory (H-16). It
+    /// Fails with `moved` after a move (F-11) and with `removed` after the removal of the directory (H-16). It
     /// reads a stored file, so it takes the wait token `Io` (spec F-17).
     pub fn content(&self, _io: Io) -> Result<Vec<u8>, Error> {
         let content = self.lock()?;
@@ -173,7 +173,7 @@ impl UploadedFile {
         }
     }
 
-    /// Moves the file to the path without replacing a file there (HY-131.15, spec F-11): a stored file by a rename,
+    /// Moves the file to the path without replacing a file there (F-11, spec F-11): a stored file by a rename,
     /// or by a copy and a removal when the path is on another file system, and a value by a write. Fails with
     /// `exists` when the path exists, `moved` when the file was moved and `removed` when its directory was removed. It
     /// takes the wait token `Io` (spec F-17).

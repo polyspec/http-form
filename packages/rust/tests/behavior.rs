@@ -18,7 +18,7 @@ const TYPE: &[u8] = b"multipart/form-data; boundary=X";
 const BIG: u64 = 1 << 20;
 const LIMITS: BodyLimits = BodyLimits { limit: BIG, value_limit: BIG, part_limit: BIG, file_limit: BIG };
 
-/// The last file of a name (HY-113.2).
+/// The last file of a name (F-22.6).
 fn last<'a>(files: &'a Files, name: &str) -> Option<&'a UploadedFile> {
     files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
 }
@@ -86,7 +86,7 @@ fn the_directory_of_a_request() {
             Ok(metadata) => metadata.permissions().mode(),
             Err(error) => panic!("{error}"),
         };
-        assert_eq!(mode & 0o777, 0o700, "HY-131.13: for the user of the server only");
+        assert_eq!(mode & 0o777, 0o700, "F-10: for the user of the server only");
     }
     assert_eq!(read.remove(io()), Ok(()));
     assert!(!path.exists());
@@ -283,7 +283,7 @@ fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
     result
 }
 
-/// HY-131.6, H-5: on random bodies and limits, every division of a body gives the result of the body read byte by
+/// F-24.6, H-5: on random bodies and limits, every division of a body gives the result of the body read byte by
 /// byte, the first failure included.
 #[test]
 fn random_bodies_do_not_depend_on_their_chunks() {

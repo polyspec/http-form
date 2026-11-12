@@ -1,4 +1,4 @@
-//! Header lines and the parameters of a `Content-Disposition` (HY-113.12 to HY-113.14, spec F-6, F-16). A content type
+//! Header lines and the parameters of a `Content-Disposition` (F-23, F-6, F-16). A content type
 //! is a media type, which `content.rs` reads with `polyspec-http-media-type` (spec F-12).
 //!
 //! Every function reads bytes. A blank is a space or a tab; no other byte, such as a no-break space, separates
@@ -37,14 +37,14 @@ fn head(text: &[u8]) -> &[u8] {
 }
 
 /// The text before the first `;` without the spaces and tabs at both ends, with the ASCII letters in lower case: the
-/// type of a `Content-Disposition` (HY-113.13).
+/// type of a `Content-Disposition` (F-23.2).
 fn disposition_type(value: &[u8]) -> Vec<u8> {
     trim_blanks(head(value)).to_ascii_lowercase()
 }
 
 /// Returns the parameters of a header value after the first `;` in their order: each follows a `;` and blanks, its name runs up to its
 /// `=`, and its value is a quoted string without its quotes or the text up to the next `;`, space or tab
-/// (HY-113.13, HY-113.14). A text before a `;` without a `=` is no parameter. A quoted value without its end (F-6) and
+/// (F-23.2, F-6). A text before a `;` without a `=` is no parameter. A quoted value without its end (F-6) and
 /// a parameter whose name, compared without case, a parameter before it has (F-16) fail with `None`.
 fn parameters(text: &[u8]) -> Option<Parameters> {
     let length = text.len();
@@ -95,7 +95,7 @@ pub fn parameter<'a>(parameters: &'a Parameters, name: &[u8]) -> Option<&'a [u8]
     parameters.iter().find(|(known, _)| known == name).map(|(_, value)| value.as_slice())
 }
 
-/// The `name` and the parameters of the `Content-Disposition` of a part (HY-113.13, F-16): its type is `form-data`
+/// The `name` and the parameters of the `Content-Disposition` of a part (F-23.2, F-16): its type is `form-data`
 /// and it has a `name` parameter, or the part fails with `Error::Invalid` (RFC 7578, section 4.2); a quoted value
 /// without its end (F-6) and a parameter given twice (F-16) fail likewise.
 pub fn form_data(value: &[u8]) -> Result<(Vec<u8>, Parameters), Error> {
@@ -110,7 +110,7 @@ pub fn form_data(value: &[u8]) -> Result<(Vec<u8>, Parameters), Error> {
 }
 
 /// The values of the header lines of the name, compared without case, without the blanks around them, in their order
-/// (HY-113.12).
+/// (F-23.1).
 fn header_values<'a, 'n>(lines: &'n [&'a [u8]], name: &'n [u8]) -> impl Iterator<Item = &'a [u8]> + 'n {
     lines.iter().filter_map(move |line| {
         let colon = line.iter().position(|&byte| byte == b':')?;
@@ -135,7 +135,7 @@ pub struct PartHeader<'a> {
     pub content_type: Option<&'a [u8]>,
 }
 
-/// The header lines of a part (HY-113.12, F-16): the `name` and the parameters of its one `Content-Disposition`
+/// The header lines of a part (F-23.1, F-16): the `name` and the parameters of its one `Content-Disposition`
 /// (`form_data`) and the value of its `Content-Type`, which may be absent. A line without `:`, a second
 /// `Content-Disposition` or `Content-Type` and a part without `Content-Disposition` fail with `Error::Invalid`; a
 /// header line of another name is an ignored input (spec I-5).
