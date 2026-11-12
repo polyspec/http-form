@@ -235,7 +235,7 @@ impl Error {
 }
 
 /// The kind interface that generated code reads (design I-2 (3), E-3).
-impl bindgen_core::Kinds for Error {
+impl binding_core::Kinds for Error {
     fn kind(&self) -> &'static str {
         Error::kind(self)
     }

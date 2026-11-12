@@ -238,8 +238,8 @@ is no path, are the binding's (plan B-2, B-3).
 - **F-15** `std` does not report a failure of `close(2)`, so the core checks sizes instead (H-22): the size of a written
   file before it is closed, and the number of bytes that `content()` reads, are the number of bytes that were written;
   another number fails with `io` without `errno`. Every number of bytes is converted with a range check.
-- **F-17** A public function that does blocking I/O takes the wait token `bindgen_core::Io` of the dependency
-  `polyspec-bindgen-core` as its first argument (bindgen design I-2 (4), plan B-5 (a)): `RequestBody::new` (it creates
+- **F-17** A public function that does blocking I/O takes the wait token `binding_core::Io` of the dependency
+  `polyspec-binding-core` as its first argument (binding design I-2 (4), plan B-5 (a)): `RequestBody::new` (it creates
   the directory), `feed` (it writes files), `finish` (it closes the file of a failed body), `remove`,
   `UploadedFile::content` and `UploadedFile::move_to`. Only generated code makes a token, through the feature
   `construct`, which the tests of this crate enable as a dev-dependency. No other public function does I/O. `Drop` of
@@ -297,8 +297,8 @@ These are the decisions of a server that uses the library, which no rule of this
 
 ## Interface contract
 
-- **F-18** The interface contract is `packages/rust/interface.json` (bindgen design I-1), in the schema of
-  `@polyspec/bindgen`. It declares the members of the table above that a host uses (the functions, `Form`,
+- **F-18** The interface contract is `packages/rust/interface.json` (binding design I-1), in the schema of
+  `@polyspec/binding`. It declares the members of the table above that a host uses (the functions, `Form`,
   `RequestBody`, `UploadedFile`), the error classes `HttpFormValueError`, `HttpFormTypeError`, `HttpFormIoError`,
   `HttpFormStoreError`, `HttpFormBusyError` and `HttpFormInternalError` of the categories of the table of Errors
   (design E-2), the error class `PartialTargetError` of `partial_target`, and the differences from the earlier bindings
@@ -306,8 +306,8 @@ These are the decisions of a server that uses the library, which no rule of this
   `MultipartReader`, `parse_multipart` and `parse_multipart_chunks` stay Rust API (F-3). `malformed_content_type` is a
   kind of this library, with the status 400 that a request with such a `Content-Type` gets; its error holds the failure
   of http-media-type (F-12), so the contract names no kind of that library and forwards no property of it. `RequestBody`
-  implements `bindgen_core::Cleanup` (its cleanup call is `remove`) and `Error` implements `bindgen_core::Kinds`.
-  1. The core functions take and return the Rust types of the contract types (bindgen design I-2 (1), T-1, T-2): a
+  implements `binding_core::Cleanup` (its cleanup call is `remove`) and `Error` implements `binding_core::Kinds`.
+  1. The core functions take and return the Rust types of the contract types (binding design I-2 (1), T-1, T-2): a
      result is an owned value (`String`, `Vec<u8>`, `PathBuf`, `Vec`), `Fields` and `Files` are the lists
      `list<tuple<text, list<…>>>`, and `Form` and `BodyLimits` are records (design T-4), so `file_over` is a function of
      the files and not a member of `Form`. Every member of the contract is a function of the core, the properties
@@ -322,9 +322,9 @@ These are the decisions of a server that uses the library, which no rule of this
   `HTTP_FORM_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
   fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
-- `make bindings-check BINDGEN=<cli>`: the interface contract passes the contract check of `@polyspec/bindgen` with
+- `make bindings-check BINDING=<cli>`: the interface contract passes the contract check of `@polyspec/binding` with
   the contract of `polyspec-http-media-type` as its dependency, and the binding packages `packages/ts`,
-  `packages/python` and `packages/php-ext` are what `bindgen scaffold` writes (bindgen design L-2). `make clippy`,
+  `packages/python` and `packages/php-ext` are what `binding scaffold` writes (binding design L-2). `make clippy`,
   `make fmt` and `make test` name the core crate, and `make lint-bindings` and `make test-bindings` check the binding
   crates after `make bindings`.
 - `make differential HYPER=<dir> PYTHONPATH=...`: random bodies through the core and through hyper's Python reader. It

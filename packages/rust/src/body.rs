@@ -5,7 +5,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 
-use bindgen_core::Io;
+use binding_core::Io;
 
 use crate::fields::Named;
 use crate::multipart::count;
@@ -359,4 +359,4 @@ impl Drop for RequestBody {
 }
 
 /// `remove` is the cleanup call of a body (design U-1 `cleanup`, plan B-10, spec F-10).
-impl bindgen_core::Cleanup for RequestBody {}
+impl binding_core::Cleanup for RequestBody {}

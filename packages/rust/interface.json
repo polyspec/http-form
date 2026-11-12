@@ -39,32 +39,32 @@
     "classes": {
       "value": {
         "php": "Polyspec\\HttpForm\\HttpFormValueError",
-        "python": "HttpFormValueError",
+        "python": "HTTPFormValueError",
         "node": "HttpFormValueError"
       },
       "type": {
         "php": "Polyspec\\HttpForm\\HttpFormTypeError",
-        "python": "HttpFormTypeError",
+        "python": "HTTPFormTypeError",
         "node": "HttpFormTypeError"
       },
       "io": {
         "php": "Polyspec\\HttpForm\\HttpFormIoError",
-        "python": "HttpFormIoError",
+        "python": "HTTPFormIoError",
         "node": "HttpFormIoError"
       },
       "store": {
         "php": "Polyspec\\HttpForm\\HttpFormStoreError",
-        "python": "HttpFormStoreError",
+        "python": "HTTPFormStoreError",
         "node": "HttpFormStoreError"
       },
       "busy": {
         "php": "Polyspec\\HttpForm\\HttpFormBusyError",
-        "python": "HttpFormBusyError",
+        "python": "HTTPFormBusyError",
         "node": "HttpFormBusyError"
       },
       "internal": {
         "php": "Polyspec\\HttpForm\\HttpFormInternalError",
-        "python": "HttpFormInternalError",
+        "python": "HTTPFormInternalError",
         "node": "HttpFormInternalError"
       }
     },
@@ -1378,7 +1378,7 @@
     {
       "id": "errors",
       "rule": "E-2",
-      "reason": "E-2, B-4: every error is a class of its category, HttpFormValueError to HttpFormInternalError (the <Library> of a class is the PascalCase of the repository name), with kind, status and errno",
+      "reason": "E-2, B-4: every error is a class of its category, HttpFormValueError to HttpFormInternalError in PHP and Node and HTTPFormValueError to HTTPFormInternalError in Python (the <Library> of a class is the repository name in the class form of each language, N-2), with kind, status and errno",
       "symbol": "FormError",
       "from": {
         "php": "InvalidArgumentException, RuntimeException",

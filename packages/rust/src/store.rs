@@ -6,7 +6,7 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use bindgen_core::Io;
+use binding_core::Io;
 
 use crate::multipart::count;
 use crate::{Error, IoFailure};

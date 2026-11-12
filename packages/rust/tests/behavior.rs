@@ -4,7 +4,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bindgen_core::Io;
+use binding_core::Io;
 use polyspec_http_form::{
     BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile,
 };

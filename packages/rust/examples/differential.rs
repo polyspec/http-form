@@ -10,8 +10,8 @@ use polyspec_http_form::{
 use serde_json::{json, Value};
 
 /// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
-fn io() -> bindgen_core::Io {
-    bindgen_core::Io::for_generated_call()
+fn io() -> binding_core::Io {
+    binding_core::Io::for_generated_call()
 }
 
 fn hex(bytes: &[u8]) -> String {

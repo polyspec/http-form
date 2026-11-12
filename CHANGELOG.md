@@ -1,8 +1,7 @@
 
-- The repository is http-form: a repository is named after what it handles, in the singular, with the prefix `http-`
-  for a part of an HTTP message (plan N-1, N-2). Every name follows it (design P-1, E-2): the crate `polyspec-http-form`,
-  the Composer package `polyspec/http-form` with the namespace `Polyspec\HttpForm` and the extension
-  `polyspec_http_form`, the PyPI package `polyspec-http-form` with the module `polyspec.http_form`, the npm package
-  `@polyspec/http-form` and the error classes `HttpForm<Category>Error`; the directory of a request starts with
-  `http-form-` (F-10), and the test settings are `HTTP_FORM_ROUNDS` and `HTTP_FORM_OTHER_FS`. The contract records the
-  change in `changes`. The hand-written bindings under `legacy/` keep their names.
+- The repository depends on `polyspec-binding-core` of the repository binding (`binding_core`, the Git dependency
+  `https://github.com/polyspec/binding.git`, which `Cargo.lock` pins), the new name of bindgen; `make bindings` and
+  `make bindings-check` take the cli of binding in `BINDING`, and the binding packages are those that `binding
+  scaffold` writes. `Cargo.lock` takes the commit of `polyspec-http-media-type` on the same `binding_core`. The Python
+  error classes are `HTTPForm<Category>Error`, the class form of the repository name in Python (design N-2: an acronym
+  word is all capitals in Python and one capital word in PHP and Node, which keep `HttpForm<Category>Error`).
