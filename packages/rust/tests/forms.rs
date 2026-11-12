@@ -6,8 +6,8 @@ mod common;
 
 use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
 use polyspec_http_forms::{
-    file_over, is_urlencoded, media_type, multipart_boundary, read_body, BodyLimits, Collector, Error, Form, Limits,
-    MultipartReader, ReadError, RequestBody,
+    file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, BodyLimits, Collector, Error,
+    Form, Limits, MultipartReader, ReadError, RequestBody,
 };
 use serde_json::{json, Value};
 
@@ -101,6 +101,29 @@ fn content_type() {
         }
     }
     failures.check("content_type");
+}
+
+/// F-25.6: a body held as one value with the limits of a body.
+#[test]
+fn held() {
+    let cases = contract("forms.json");
+    let mut failures = Failures::default();
+    for case in group(&cases, "held") {
+        let limits = BodyLimits {
+            limit: number(case, "limit"),
+            value_limit: number(case, "valueLimit"),
+            part_limit: number(case, "partLimit"),
+            file_limit: number(case, "fileLimit"),
+        };
+        let result = form_result(read_held_body(Some(&latin1(&case["type"])), &latin1(&case["body"]), limits));
+        for key in ["fields", "files", "raises"] {
+            failures.compare(case, key, &result[key]);
+        }
+        if case.get("raises").is_none() {
+            assert!(result.get("raises").is_none(), "{}: failed with {result}", id(case));
+        }
+    }
+    failures.check("held");
 }
 
 #[test]

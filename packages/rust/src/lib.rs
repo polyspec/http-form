@@ -55,7 +55,16 @@ pub fn parse_multipart(body: &[u8], boundary: &[u8]) -> Result<Form, Error> {
 /// Reads a `multipart/form-data` body given in chunks without limits; the result does not depend on the chunks
 /// (F-24.6).
 pub fn parse_multipart_chunks<'a>(chunks: impl IntoIterator<Item = &'a [u8]>, boundary: &[u8]) -> Result<Form, Error> {
-    let mut reader = MultipartReader::new(boundary, Limits::default());
+    read_multipart(chunks, boundary, Limits::default())
+}
+
+/// Reads a `multipart/form-data` body in chunks with the limits of a reader.
+fn read_multipart<'a>(
+    chunks: impl IntoIterator<Item = &'a [u8]>,
+    boundary: &[u8],
+    limits: Limits,
+) -> Result<Form, Error> {
+    let mut reader = MultipartReader::new(boundary, limits);
     let mut form = Collector::default();
     for chunk in chunks {
         let result = reader.feed_with(chunk, |piece| form.take(piece));
@@ -82,6 +91,36 @@ pub fn read_body(content_type: Option<&[u8]>, body: &[u8]) -> Result<Form, Error
     }
     match multipart_boundary(content_type)? {
         Some(boundary) => parse_multipart(body, &boundary),
+        None => Ok(Form::default()),
+    }
+}
+
+/// The fields and the files of a body held as one value with the limits of a body (F-25.6): the body limit and the
+/// value limit bound its bytes, as they bound a body that `RequestBody` holds (at one byte the body limit comes first),
+/// and the part limit, the file limit and the value limit bound the parts, the files and the text values that a
+/// `multipart/form-data` body gives. Its files are values.
+pub fn read_held_body(content_type: Option<&[u8]>, body: &[u8], limits: BodyLimits) -> Result<Form, Error> {
+    let length = multipart::count(body.len())?;
+    let over_body = length > limits.limit;
+    let over_value = length > limits.value_limit;
+    if over_body && (!over_value || limits.limit <= limits.value_limit) {
+        return Err(Error::BodyLimit);
+    }
+    if over_value {
+        return Err(Error::ValueLimit);
+    }
+    if is_urlencoded(content_type)? {
+        return Ok(Form { fields: parse_urlencoded(body)?, files: Files::new() });
+    }
+    match multipart_boundary(content_type)? {
+        Some(boundary) => {
+            let reader_limits = Limits {
+                value: Some(limits.value_limit),
+                parts: Some(limits.part_limit),
+                file: Some(limits.file_limit),
+            };
+            read_multipart([body], &boundary, reader_limits)
+        }
         None => Ok(Form::default()),
     }
 }

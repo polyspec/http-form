@@ -161,6 +161,13 @@ is no path, are the binding's (plan B-2, B-3).
      temporary storage of one file (F-10), not its memory. A file is never truncated and never passed in part: a file
      within the limit is passed whole.
   5. F-25.5 The reader stops at the first failure of the body (F-8, F-9).
+  6. F-25.6 A body that a server holds as one value, such as the body of a request that an application or a test
+     builds from bytes, is read by `read_held_body(content type, body, limits)` with the limits of F-25: the body limit
+     and the value limit bound its bytes, as they bound a body that `RequestBody` holds (at one byte the body limit
+     comes first), and the part limit, the file limit and the value limit bound the parts, the files and the text
+     values of a `multipart/form-data` body as they bound a body read in chunks. Its files are values. A server reads
+     a held body so when `multipart/form-data` is one of its form types (F-25 is a rule of the body, not of the way
+     the server received it).
 
 - **F-8** The first failure of a body is the failure whose byte comes first (F-24.6). The byte of a failure is the first
   byte after which the bytes read so far determine it:
@@ -279,6 +286,7 @@ These are the decisions of a server that uses the library, which no rule of this
 | `is_urlencoded(content type)` | F-12.2 |
 | `multipart_boundary(content type)` | F-7, F-12.3 |
 | `read_body(content type, body)`, `fields_from_body`, `files_from_body` | F-21, F-22: a body held as one value |
+| `read_held_body(content type, body, limits)` | F-25.6 |
 | `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)`, `Collector`: `take`, `collect`, `into_form` | F-24 |
 | `MultipartReader::new(boundary, limits)`: `feed`, `feed_with`, `finish`, `closed`, `buffered`, `parts` | F-24, F-25, F-8, F-13 |
 | `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |

@@ -393,6 +393,60 @@
           "core": "polyspec_http_forms::read_body"
         },
         {
+          "id": "forms.read_held_body",
+          "name": [
+            "read",
+            "held",
+            "body"
+          ],
+          "kind": "function",
+          "visibility": "public",
+          "parameters": [
+            {
+              "name": [
+                "content",
+                "type"
+              ],
+              "type": {
+                "optional": "latin1"
+              },
+              "required": true
+            },
+            {
+              "name": [
+                "body"
+              ],
+              "type": "bytes",
+              "required": true
+            },
+            {
+              "name": [
+                "limits"
+              ],
+              "type": {
+                "unit": "body_limits"
+              },
+              "required": true
+            }
+          ],
+          "returns": {
+            "unit": "form"
+          },
+          "raises": [
+            "polyspec_http_forms::Error::BodyLimit",
+            "polyspec_http_forms::Error::ValueLimit",
+            "polyspec_http_forms::Error::PartLimit",
+            "polyspec_http_forms::Error::FileLimit",
+            "polyspec_http_forms::Error::MalformedContentType",
+            "polyspec_http_forms::Error::NoBoundary",
+            "polyspec_http_forms::Error::Invalid",
+            "polyspec_http_forms::Error::HeaderLimit",
+            "polyspec_http_forms::Error::Internal"
+          ],
+          "wait": "none",
+          "core": "polyspec_http_forms::read_held_body"
+        },
+        {
           "id": "forms.fields_from_body",
           "name": [
             "fields",
@@ -1150,6 +1204,14 @@
       "to": "forms.read_body"
     },
     {
+      "id": "read-held-body",
+      "rule": "F-25.6",
+      "reason": "F-25.6: a body held as one value is read with the limits of a body",
+      "symbol": "read_held_body",
+      "from": {},
+      "to": "forms.read_held_body"
+    },
+    {
       "id": "parse-multipart-chunks",
       "rule": "F-3",
       "reason": "F-3: a host reads a body in chunks through RequestBody and a body held as one value through read_body",
@@ -1361,6 +1423,11 @@
       "member": "forms.read_body",
       "file": "contracts/forms.json",
       "group": "multipart"
+    },
+    {
+      "member": "forms.read_held_body",
+      "file": "contracts/forms.json",
+      "group": "held"
     },
     {
       "member": "forms.file_over",

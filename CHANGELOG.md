@@ -40,3 +40,6 @@
   too, and the messages of `moved`, `exists` and `removed` name F-11 and F-10.
 - `polyspec-http-media-type` and `polyspec-bindgen-core` are Git dependencies of the branch `v1/rust-core`, whose
   commit `Cargo.lock` pins, and no longer paths of another checkout.
+- `read_held_body(content type, body, limits)` reads a body held as one value with the part limit and the file limit
+  of a body read in chunks, as well as its body limit and value limit (F-25.6). The message of a path that is no
+  path names F-11.
