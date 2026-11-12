@@ -7,7 +7,7 @@
 CARGO ?= cargo
 PYTHON ?= python3
 
-.PHONY: test clippy check differential
+.PHONY: test clippy fmt check differential
 
 test:
 	$(CARGO) test --locked --release -p polyspec-http-forms
@@ -15,7 +15,10 @@ test:
 clippy:
 	$(CARGO) clippy --locked --all-targets -- -D warnings
 
-check: clippy test
+fmt:
+	$(CARGO) fmt --check
+
+check: fmt clippy test
 
 # HYPER is the directory packages/server/python/src of hyper. The test reads a module of hyper that is not public, so
 # its result is a reference only (docs/spec/forms.md, Verification); PYTHONPATH must hold the packages that hyper

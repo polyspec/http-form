@@ -7,9 +7,9 @@ use std::path::PathBuf;
 
 use bindgen_core::Io;
 
+use crate::fields::Named;
 use crate::multipart::count;
 use crate::store::{create_directory, create_file};
-use crate::fields::Named;
 use crate::{content, Error, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
 
 /// The file part that is written.

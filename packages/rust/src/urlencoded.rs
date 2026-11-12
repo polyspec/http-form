@@ -30,18 +30,16 @@ fn decode(text: &[u8]) -> Vec<u8> {
                 bytes.push(b' ');
                 index += 1;
             }
-            b'%' => {
-                match (hex(text.get(index + 1)), hex(text.get(index + 2))) {
-                    (Some(high), Some(low)) => {
-                        bytes.push(high << 4 | low);
-                        index += 3;
-                    }
-                    _ => {
-                        bytes.push(b'%');
-                        index += 1;
-                    }
+            b'%' => match (hex(text.get(index + 1)), hex(text.get(index + 2))) {
+                (Some(high), Some(low)) => {
+                    bytes.push(high << 4 | low);
+                    index += 3;
                 }
-            }
+                _ => {
+                    bytes.push(b'%');
+                    index += 1;
+                }
+            },
             byte => {
                 bytes.push(byte);
                 index += 1;

@@ -38,9 +38,7 @@ pub fn group<'a>(cases: &'a Value, name: &str) -> &'a [Value] {
 /// A text of a case whose characters U+0000 to U+00FF are bytes (HY-42.6).
 pub fn latin1(value: &Value) -> Vec<u8> {
     let Some(text) = value.as_str() else { panic!("{value} is no text") };
-    text.chars()
-        .map(|c| u8::try_from(u32::from(c)).unwrap_or_else(|_| panic!("{c:?} is no byte")))
-        .collect()
+    text.chars().map(|c| u8::try_from(u32::from(c)).unwrap_or_else(|_| panic!("{c:?} is no byte"))).collect()
 }
 
 /// Bytes as a text whose characters are the bytes.
@@ -75,8 +73,18 @@ pub fn id(case: &Value) -> &str {
 /// The category of a kind (plan F-3; the table of docs/spec/forms.md, Errors).
 pub fn category(kind: &str) -> &'static str {
     match kind {
-        "invalid" | "header_limit" | "no_boundary" | "malformed_content_type" | "invalid_content_length"
-        | "body_limit" | "value_limit" | "part_limit" | "file_limit" | "moved" | "exists" | "removed"
+        "invalid"
+        | "header_limit"
+        | "no_boundary"
+        | "malformed_content_type"
+        | "invalid_content_length"
+        | "body_limit"
+        | "value_limit"
+        | "part_limit"
+        | "file_limit"
+        | "moved"
+        | "exists"
+        | "removed"
         | "invalid_number" => "value",
         "not_finished" | "not_streamed" | "finished" => "type",
         "not_found" | "permission_denied" | "cross_device" | "storage_full" | "io" | "source_left"

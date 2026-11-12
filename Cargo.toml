@@ -8,7 +8,7 @@ members = ["packages/rust"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-rust-version = "1.85"
+rust-version = "1.99.0"
 
 # R-1: a failure reaches its caller as an error with a kind (P-2), and no input becomes a plausible value (P-3). Every
 # remaining use carries `#[allow(..., reason = "<rule id>")]`. The methods that turn an absence or a failure into a

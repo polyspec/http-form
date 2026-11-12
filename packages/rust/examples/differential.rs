@@ -4,7 +4,9 @@
 
 use std::io::{self, BufRead, Write};
 
-use polyspec_http_forms::{fields_from_body, files_from_body, multipart_boundary, parse_multipart_chunks, Fields, Files};
+use polyspec_http_forms::{
+    fields_from_body, files_from_body, multipart_boundary, parse_multipart_chunks, Fields, Files,
+};
 use serde_json::{json, Value};
 
 /// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.

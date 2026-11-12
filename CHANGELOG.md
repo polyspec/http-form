@@ -33,3 +33,4 @@
   `BodyLimits`; `Fields` and `Files` are lists of a name and its values; `Form` is a record and `file_over(files,
   limit)` a function; `Collector` collects the pieces of a reader; `held`, `directory` and the names of an
   `UploadedFile` are owned values; `Error::removal_kind` and `removal_errno` give the removal of `partial_target`.
+- The crate needs Rust 1.99.0, the pinned toolchain; `rustfmt.toml` fixes the format, which `make fmt` checks.

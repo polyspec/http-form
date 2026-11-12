@@ -13,12 +13,10 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use common::{
-    contract, io, fields_json, files_json, group, id, latin1, number, string, text, Failures,
-};
+use common::{contract, fields_json, files_json, group, id, io, latin1, number, string, text, Failures};
 use polyspec_http_forms::{
-    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form, Limits,
-    MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
+    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form,
+    Limits, MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
 };
 use serde_json::{json, Value};
 
@@ -46,7 +44,11 @@ fn superseded(source_group: &str, cases: &[Value]) -> BTreeMap<String, Value> {
             panic!("{key}: the replacement {target} is no case of forms.json");
         };
         for input in ["type", "body", "text"] {
-            assert_eq!(case.get(input), replacement.get(input), "{key}: the replacement {target} reads another {input}");
+            assert_eq!(
+                case.get(input),
+                replacement.get(input),
+                "{key}: the replacement {target} reads another {input}"
+            );
         }
         assert!(!string(entry, "rule").is_empty(), "{key}: no rule");
     }
@@ -97,10 +99,7 @@ fn urlencoded() {
     for case in list.iter().filter(|case| !replaced.contains_key(id(case))) {
         let read = parse_urlencoded(string(case, "text").as_bytes());
         let (fields, names) = match &read {
-            Ok(fields) => (
-                fields_json(fields),
-                json!(fields.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>()),
-            ),
+            Ok(fields) => (fields_json(fields), json!(fields.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>())),
             Err(_) => (Value::Null, Value::Null),
         };
         failures.compare(case, "fields", &fields);

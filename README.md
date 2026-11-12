@@ -31,6 +31,7 @@ body.remove(io())?;
 
 ```
 make test          # the cases in the core, in every division of each body
+make fmt           # the format of rustfmt.toml
 make clippy        # the lints
 make differential HYPER=<hyper>/packages/server/python/src   # random bodies against hyper's Python reader
 make check         # clippy and test

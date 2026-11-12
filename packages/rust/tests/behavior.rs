@@ -5,7 +5,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use bindgen_core::Io;
-use polyspec_http_forms::{BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile};
+use polyspec_http_forms::{
+    BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile,
+};
 
 /// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
 fn io() -> Io {
@@ -189,9 +191,30 @@ impl Random {
 }
 
 const PIECES: &[&[u8]] = &[
-    b"--X", b"--X--", b"\r\n", b"\r", b"\n", b"--", b"-", b"X", b"Content-Disposition: ", b"form-data", b"; ",
-    b"name=", b"name=\"a\"", b"filename=\"f\"", b"\"", b"\xff", b"\xc3\xa9", b"\xe2\x80", b"value", b"\r\n\r\n",
-    b"--X\r\n", b"\r\n--X", b"\r\n--", b"\x00",
+    b"--X",
+    b"--X--",
+    b"\r\n",
+    b"\r",
+    b"\n",
+    b"--",
+    b"-",
+    b"X",
+    b"Content-Disposition: ",
+    b"form-data",
+    b"; ",
+    b"name=",
+    b"name=\"a\"",
+    b"filename=\"f\"",
+    b"\"",
+    b"\xff",
+    b"\xc3\xa9",
+    b"\xe2\x80",
+    b"value",
+    b"\r\n\r\n",
+    b"--X\r\n",
+    b"\r\n--X",
+    b"\r\n--",
+    b"\x00",
 ];
 
 const HEADERS: &[&[u8]] = &[
@@ -274,7 +297,8 @@ fn random_bodies_do_not_depend_on_their_chunks() {
     for _ in 0..rounds {
         let data = random_body(&mut random);
         let length = u64::try_from(data.len()).unwrap_or(u64::MAX);
-        let mut limit = || if random.below(3) == 0 { u64::try_from(random.below(data.len() + 2)).unwrap_or(0) } else { BIG };
+        let mut limit =
+            || if random.below(3) == 0 { u64::try_from(random.below(data.len() + 2)).unwrap_or(0) } else { BIG };
         let limits = (limit(), limit(), limit(), limit());
         let bytes: Vec<&[u8]> = data.chunks(1).collect();
         let expected = outcome(&bytes, limits);

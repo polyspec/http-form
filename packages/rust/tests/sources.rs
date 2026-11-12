@@ -19,6 +19,12 @@ fn copies_have_the_sha256_of_their_source() {
             Err(error) => panic!("{file}: {error}"),
         };
         let digest: String = Sha256::digest(&bytes).iter().map(|byte| format!("{byte:02x}")).collect();
-        assert_eq!(digest, string(entry, "sha256"), "{file} differs from {} {}", string(entry, "repository"), string(entry, "path"));
+        assert_eq!(
+            digest,
+            string(entry, "sha256"),
+            "{file} differs from {} {}",
+            string(entry, "repository"),
+            string(entry, "path")
+        );
     }
 }

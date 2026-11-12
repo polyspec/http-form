@@ -105,8 +105,14 @@ enum Part {
     /// No part: before the header lines of a part are read (F-16: every part is a value or a file).
     None,
     /// A text value, and the length of its content that is known to be the start of UTF-8 text.
-    Value { name: String, content: Vec<u8>, valid: usize },
-    File { size: u64 },
+    Value {
+        name: String,
+        content: Vec<u8>,
+        valid: usize,
+    },
+    File {
+        size: u64,
+    },
 }
 
 /// A number of bytes as `u64`, which holds every `usize` of the supported targets (H-22).
@@ -427,7 +433,8 @@ impl MultipartReader {
                     (Some(_), None) => Err(ReadError::Form(Error::ValueLimit)),
                     (None, Some(_)) => Err(ReadError::Form(Error::Invalid)),
                     (None, None) => {
-                        self.value_bytes = self.value_bytes.checked_add(length).ok_or(ReadError::Form(Error::ValueLimit))?;
+                        self.value_bytes =
+                            self.value_bytes.checked_add(length).ok_or(ReadError::Form(Error::ValueLimit))?;
                         Ok(())
                     }
                 }

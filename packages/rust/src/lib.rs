@@ -16,9 +16,9 @@ mod multipart;
 mod store;
 mod urlencoded;
 
+pub use body::BodyLimits;
 pub use body::RequestBody;
 pub use error::{Error, IoFailure, IoKind};
-pub use body::BodyLimits;
 pub use fields::{file_over, Collector, Fields, Files, Form};
 pub use multipart::{Event, Limits, MultipartReader, Piece, ReadError, HEADER_LIMIT};
 pub use store::UploadedFile;
@@ -54,10 +54,7 @@ pub fn parse_multipart(body: &[u8], boundary: &[u8]) -> Result<Form, Error> {
 
 /// Reads a `multipart/form-data` body given in chunks without limits; the result does not depend on the chunks
 /// (HY-131.6).
-pub fn parse_multipart_chunks<'a>(
-    chunks: impl IntoIterator<Item = &'a [u8]>,
-    boundary: &[u8],
-) -> Result<Form, Error> {
+pub fn parse_multipart_chunks<'a>(chunks: impl IntoIterator<Item = &'a [u8]>, boundary: &[u8]) -> Result<Form, Error> {
     let mut reader = MultipartReader::new(boundary, Limits::default());
     let mut form = Collector::default();
     for chunk in chunks {
