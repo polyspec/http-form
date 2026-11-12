@@ -1,2 +1,2 @@
 
-- K-1: 여러 호출의 시나리오(`forms.json`의 `body`와 `file_over_binding`, `fields.json`의 `streamed`)는 코어 시험만 읽고 인터페이스 계약이 연결하지 않는 규칙 corpus이며 `contracts/README.md`가 이를 적는다. `RequestBody.remove`와 `UploadedFile.moveTo`는 호출 하나의 group을 가진다.
+- `Cargo.lock`은 같은 라이브러리 묶음의 모든 레포가 고정하는 binding 9de9d03과 그 위의 `polyspec-http-media-type` 커밋을 고정한다(CK-20). 그 scaffold는 같은 바인딩 package를 쓴다.

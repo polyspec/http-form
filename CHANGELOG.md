@@ -1,4 +1,3 @@
 
-- K-1: the scenarios of more than one call (`body` and `file_over_binding` of `forms.json`, `streamed` of
-  `fields.json`) are a rule corpus that only the tests of the core read, which the interface contract does not link, as
-  `contracts/README.md` states; `RequestBody.remove` and `UploadedFile.moveTo` have groups of one call.
+- `Cargo.lock` pins binding at 9de9d03, the commit that every repository of the library family pins (CK-20), and the
+  commit of `polyspec-http-media-type` on it; its scaffold writes the same binding packages.
