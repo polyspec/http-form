@@ -87,5 +87,11 @@
     { "id": "a_file_made_by_an_application_holds_its_four_parts", "label": "a file that an application makes holds its name, its filename, its content type and its bytes, and its size is the number of its bytes (F-22.2)", "name": "upload", "filename": "a.txt", "content_type": "text/plain", "content": {"hex": "68656c6c6f"}, "file": {"name": "upload", "filename": "a.txt", "contentType": "text/plain", "size": 5, "content": "hello"} },
     { "id": "a_file_made_with_bytes_that_are_no_text_keeps_them", "label": "a file made with the bytes FF 00 80 has the size 3 and returns the same bytes", "name": "f", "filename": "b.bin", "content_type": "application/octet-stream", "content": {"hex": "ff0080"}, "file": {"name": "f", "filename": "b.bin", "contentType": "application/octet-stream", "size": 3, "content": "ÿ\u0000"} },
     { "id": "a_file_made_without_a_content_type_and_without_bytes_is_empty", "label": "a file made with the empty content type and no bytes has the size 0", "name": "f", "filename": "", "content_type": "", "content": {"hex": ""}, "file": {"name": "f", "filename": "", "contentType": "", "size": 0, "content": ""} }
+  ],
+  "uploaded_file.move_to": [
+    { "id": "a_file_made_by_an_application_moves_to_a_new_path", "label": "a file that an application makes moves to a path that does not exist (F-11)", "rules": ["F-11"], "name": "upload", "filename": "a.txt", "content_type": "text/plain", "content": {"hex": "68656c6c6f"}, "path": "moved.txt" }
+  ],
+  "request_body.remove": [
+    { "id": "a_new_streamed_body_is_removed", "label": "a streamed body that was just made removes its directory (F-10)", "rules": ["F-10"], "content_type": "multipart/form-data; boundary=XyZ", "content_length": null, "stream": true, "limits": {"limit": 1000, "value_limit": 1000, "part_limit": 10, "file_limit": 1000} }
   ]
 }

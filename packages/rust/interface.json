@@ -1437,7 +1437,7 @@
     {
       "member": "request_body.remove",
       "file": "contracts/fields.json",
-      "group": "streamed"
+      "group": "request_body.remove"
     },
     {
       "member": "uploaded_file.new",
@@ -1452,7 +1452,7 @@
     {
       "member": "uploaded_file.move_to",
       "file": "contracts/fields.json",
-      "group": "streamed"
+      "group": "uploaded_file.move_to"
     },
     {
       "member": "forms.multipart_boundary",

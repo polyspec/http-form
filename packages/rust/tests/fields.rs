@@ -286,3 +286,37 @@ fn uploaded() {
     }
     failures.check("uploaded");
 }
+
+/// F-11, F-10: one call of the members whose other cases are scenarios of `streamed`: a file that an application makes
+/// moves to a path that does not exist, under a scratch directory, and a body that was just made is removed.
+#[test]
+fn one_call() {
+    let cases = contract("fields.json");
+    for case in group(&cases, "uploaded_file.move_to") {
+        let label = id(case);
+        let file = UploadedFile::from_value(
+            string(case, "name").to_owned(),
+            string(case, "filename").to_owned(),
+            string(case, "content_type").to_owned(),
+            bytes(&case["content"]),
+        )
+        .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let place = scratch(label);
+        let target = place.join(string(case, "path"));
+        file.move_to(io(), &target).unwrap_or_else(|error| panic!("{label}: {error}"));
+        let moved = fs::read(&target).unwrap_or_else(|error| panic!("{label}: {error}"));
+        assert_eq!(moved, bytes(&case["content"]), "{label}: the moved bytes");
+        fs::remove_dir_all(&place).unwrap_or_else(|error| panic!("{label}: {error}"));
+    }
+    for case in group(&cases, "request_body.remove") {
+        let label = id(case);
+        let mut read =
+            RequestBody::new(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
+                .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let directory = read.directory();
+        read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
+        if let Some(directory) = directory {
+            assert!(!directory.exists(), "{label}: the directory was removed");
+        }
+    }
+}
