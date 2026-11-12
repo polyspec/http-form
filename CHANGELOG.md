@@ -24,3 +24,6 @@
   arguments are `Option<&[u8]>`, where `None` is a request without `Content-Type`.
 - A part without `Content-Disposition`, of another disposition type or without `name`, and a parameter given twice in
   a `Content-Disposition`, fail the body with `invalid` instead of being ignored (F-16).
+- `HEADER_LIMIT` is a `u64`. `Error` implements `bindgen_core::Kinds` and `RequestBody` implements
+  `bindgen_core::Cleanup`.
+- The interface contract is `packages/rust/interface.json` (F-18).

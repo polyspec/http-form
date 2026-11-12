@@ -350,3 +350,6 @@ impl Drop for RequestBody {
         }
     }
 }
+
+/// `remove` is the cleanup call of a body (design U-1 `cleanup`, plan B-10, spec F-10).
+impl bindgen_core::Cleanup for RequestBody {}

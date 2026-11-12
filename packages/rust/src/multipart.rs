@@ -18,8 +18,12 @@ use memchr::memmem::Finder;
 use crate::header::{form_data, header_value, parameter};
 use crate::Error;
 
-/// The largest header of a part in bytes (HY-113.16).
-pub const HEADER_LIMIT: usize = 8192;
+/// The largest header of a part in bytes (HY-113.16), as the contract type `uint` (design T-1).
+pub const HEADER_LIMIT: u64 = 8192;
+
+/// `HEADER_LIMIT` as an index of the bytes that the reader holds.
+const HEADER_BYTES: usize = 8192;
+const _: () = assert!(HEADER_LIMIT == 8192 && HEADER_BYTES == 8192);
 
 /// The empty line that ends the header lines of a part.
 const HEADER_END: &[u8] = b"\r\n\r\n";
@@ -308,7 +312,7 @@ impl MultipartReader {
                     let Some(end) = end else {
                         return if header_too_long(rest) { Err(ReadError::Form(Error::HeaderLimit)) } else { Ok(at) };
                     };
-                    if end > HEADER_LIMIT {
+                    if end > HEADER_BYTES {
                         return Err(ReadError::Form(Error::HeaderLimit));
                     }
                     let lines: Vec<&[u8]> = if empty { Vec::new() } else { split_lines(&rest[..end]) };
@@ -526,11 +530,11 @@ fn utf8_prefix(bytes: &[u8]) -> Result<usize, usize> {
 /// True when the header lines that `bytes` starts with are longer than `HEADER_LIMIT` whatever bytes follow: no empty
 /// line starts at an index up to `HEADER_LIMIT`, and none can start there with later bytes (HY-113.16).
 fn header_too_long(bytes: &[u8]) -> bool {
-    if bytes.len() <= HEADER_LIMIT {
+    if bytes.len() <= HEADER_BYTES {
         return false;
     }
     let low = bytes.len().saturating_sub(HEADER_END.len() - 1);
-    (low..=HEADER_LIMIT).all(|start| !HEADER_END.starts_with(&bytes[start..]))
+    (low..=HEADER_BYTES).all(|start| !HEADER_END.starts_with(&bytes[start..]))
 }
 
 fn utf8(bytes: &[u8]) -> Option<String> {

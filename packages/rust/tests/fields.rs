@@ -134,7 +134,8 @@ fn multipart() {
         // HY-131.6: two chunks divided at every position, and every byte alone, give the result of the whole body,
         // and the reader holds between two chunks at most its bound.
         if let Ok(Some(boundary)) = multipart_boundary(kind) {
-            let bound = (HEADER_LIMIT + 3).max(boundary.len() + 3);
+            let header = usize::try_from(HEADER_LIMIT).unwrap_or_else(|error| panic!("{label}: {error}"));
+            let bound = (header + 3).max(boundary.len() + 3);
             let bytes: Vec<&[u8]> = body.chunks(1).collect();
             let mut divisions: Vec<Vec<&[u8]>> = vec![bytes];
             for at in 0..=body.len() {

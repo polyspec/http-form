@@ -216,6 +216,21 @@ impl Error {
     }
 }
 
+/// The kind interface that generated code reads (design I-2 (3), E-3).
+impl bindgen_core::Kinds for Error {
+    fn kind(&self) -> &'static str {
+        Error::kind(self)
+    }
+
+    fn status(&self) -> Option<u16> {
+        Error::status(self)
+    }
+
+    fn errno(&self) -> Option<i32> {
+        Error::errno(self)
+    }
+}
+
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
         Error::Io(IoFailure::from(error))

@@ -13,3 +13,5 @@
 - `RequestBody::new`, `feed`, `finish`, `remove`, `UploadedFile::content`, `move_to`는 첫 인자로 기다림 토큰 `bindgen_core::Io`를 받는다(F-17).
 - `Content-Type`은 `polyspec-http-media-type`이 media type으로 읽는다(F-12). `media_type()`이 `mediaType()`을 준다. 앞뒤에 줄바꿈이나 A0 바이트가 있는 값, 닫히지 않은 따옴표, 두 번 준 parameter, 빈 값처럼 media type이 아닌 값은 `malformed_content_type`(400)로 실패하며 media type의 실패를 담는다. urlencoded type 앞의 공백은 무시한다. 따옴표 boundary의 quoted pair는 그 바이트가 된다. content type 인자는 `Option<&[u8]>`이고 `None`은 `Content-Type`이 없는 요청이다.
 - `Content-Disposition`이 없거나, disposition type이 다르거나, `name`이 없는 part와 `Content-Disposition`에 두 번 준 parameter는 무시하지 않고 본문을 `invalid`로 실패시킨다(F-16).
+- `HEADER_LIMIT`은 `u64`다. `Error`는 `bindgen_core::Kinds`를, `RequestBody`는 `bindgen_core::Cleanup`을 구현한다.
+- 인터페이스 계약은 `packages/rust/interface.json`이다(F-18).

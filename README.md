@@ -5,7 +5,7 @@ Node bind. A binding converts types; every rule is in the core, so the three ser
 same results.
 
 ```
-packages/rust/   the Rust crate polyspec-http-forms: every rule
+packages/rust/   the Rust crate polyspec-http-forms: every rule, and interface.json, the interface contract
 docs/spec/       forms.md: the rules, the errors and the API
 contracts/       fields.json (a copy of hyper's, see sources.json) and forms.json (the cases of this library)
 conformance/     the differential test against hyper's Python reader
