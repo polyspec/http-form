@@ -4,10 +4,14 @@ This library reads the form values and the `multipart/form-data` bodies of hyper
 document names them by hyper's identifiers rather than repeating them: HY-56 (query and urlencoded values), HY-57
 (form values), HY-113 (file parts, header lines and parameters), HY-114 (file limit) and HY-131 (reading in chunks,
 limits, the files of a request). Where this library changes one of those rules, the change is a rule of this document
-(F-n) and the section "Changes to hyper's rules" lists it.
+(F-n) and the section "Changes to hyper's rules" lists it. A content type is a media type, whose grammar is the rules
+MT-1 to MT-9 of the dependency `polyspec-http-media-type` (RFC 9110, sections 8.3.1 and 5.6.6); this document names
+them by those identifiers.
 
 `contracts/fields.json` is a copy of hyper's `contracts/fields.json`; `contracts/sources.json` holds its source and
-sha256, which `tests/sources.rs` checks. `contracts/forms.json` holds the cases of the rules of this library.
+sha256, which `tests/sources.rs` checks. `contracts/forms.json` holds the cases of the rules of this library. A case of
+`fields.json` that a rule of this document changes is listed in the group `superseded` of `forms.json` with that rule
+and the case that replaces it, which reads the same input; the runner checks that input and runs the replacing case.
 
 ## One implementation
 
@@ -36,10 +40,10 @@ a server answers. The category is the error class of the binding (plan F-3).
 
 | Kind | Status | Category | Failure |
 |---|---|---|---|
-| `invalid` | 400 | value | HY-42, HY-113.5, HY-131.5; a quoted parameter value of a `Content-Disposition` without its end (F-6) |
+| `invalid` | 400 | value | HY-42, HY-113.5, HY-131.5; a quoted parameter value of a `Content-Disposition` without its end (F-6); a part that is no `form-data` part with a name, or that gives a parameter twice (F-16) |
 | `header_limit` | 400 | value | header lines of a part longer than 8192 bytes (HY-113.16) |
 | `no_boundary` | 400 | value | a `multipart/form-data` content type without a boundary or with an empty one (F-7) |
-| `malformed_content_type` | 400 | value | a quoted parameter value of a `multipart/form-data` content type without its end (F-6) |
+| `malformed_content_type` | 400 | value | a `Content-Type` that is no media type (F-12) |
 | `invalid_content_length` | 400 | value | a `Content-Length` that is not one or more digits (RFC 9110, section 8.6) |
 | `body_limit` | 413 | value | the body limit (HY-59.4, HY-131.11, HY-131.18) |
 | `value_limit` | 413 | value | the value limit (HY-131.7) |
@@ -61,15 +65,29 @@ is no path, are the binding's (plan B-2, B-3).
 
 ## Content types and parameters
 
-- **F-6** A quoted parameter value is the text between its `"` and the next `"` (HY-113.14). A quoted value without its
-  next `"` fails: in a `Content-Disposition` with `invalid`, and in the parameters of a `multipart/form-data` content
-  type with `malformed_content_type`. A browser sends a `"` of a filename as `%22`, so no client of a form sends such a
-  value; reading it to the end of the text gave a value that the client did not send (plan P-3).
+- **F-6** A quoted parameter value of a `Content-Disposition` is the text between its `"` and the next `"` (HY-113.14).
+  A quoted value without its next `"` fails with `invalid`. A browser sends a `"` of a filename as `%22`, so no client
+  of a form sends such a value; reading it to the end of the text gave a value that the client did not send (plan
+  P-3). A quoted value of a content type follows MT-3.3 and MT-3.4 (F-12).
 - **F-7** A `multipart/form-data` content type without a `boundary` parameter, or with an empty one, fails with
   `no_boundary` (400). Such a body cannot be read, and reading it as a body of another type dropped it (plan P-4).
-- **F-12** The grammar of a media type (RFC 9110, sections 8.3.1 and 5.6.6) belongs to the library `http-media-type`.
-  Until this library reads a content type with it, the content type keeps HY-57.10 and HY-113.11, and `mediaType()`
-  (HY-59.11) is not part of this library.
+- **F-12** The value of `Content-Type` is read by `polyspec_http_media_type::parse` (MT-4), and by no other reader of
+  this library. A value that is no media type, the empty value included, fails with `malformed_content_type` (400);
+  the error holds the failure of `parse` as its source, whose kind `malformed_media_type` has no status because its
+  caller decides it (MT-8.1). A request without `Content-Type` has no media type (F-4).
+  1. `media_type(content type)` is the type, `/` and the subtype in lowercase (MT-1.2), without the parameters, and the
+     empty text for a request without `Content-Type` (HY-59.11). HY-59.7 compares it with the form types.
+  2. `is_urlencoded(content type)` is true when the type and subtype are `application/x-www-form-urlencoded`, and false
+     for another type or none (HY-57.10).
+  3. `multipart_boundary(content type)` is, when the type and subtype are `multipart/form-data`, the value of its
+     `boundary` parameter after MT-3.4, or `no_boundary` (F-7); for another type or none it is `None` (HY-113.11). A
+     parameter given twice, compared without case, fails the media type (MT-3.5), `boundary` included.
+  4. The parameters other than `boundary` of `multipart/form-data`, and every parameter of
+     `application/x-www-form-urlencoded`, change nothing (I-7): the registration of `multipart/form-data` defines
+     `boundary` alone (RFC 7578, section 8), the registration of `application/x-www-form-urlencoded` defines no
+     parameter and its parser reads UTF-8 (WHATWG URL, section 5), and the meaning of a parameter comes from the
+     registration of its type (RFC 9110, section 8.3.1). A `charset` of an urlencoded body therefore does not change
+     how it is read; a body that is not UTF-8 fails with `invalid` (HY-42).
 
 ## Reading a body
 
@@ -85,7 +103,7 @@ is no path, are the binding's (plan B-2, B-3).
   | `value_limit`, `file_limit` of content | the content byte past the limit |
   | `invalid` of a value that is not UTF-8 | the byte after which the content is no start of UTF-8 text, or the end of the content for a sequence that the end cuts off |
   | `invalid` after a delimiter | the first byte that is neither the `-` nor the CR of `--` and CRLF, or the second byte that does not complete them |
-  | `invalid` of header lines (HY-113.5, HY-131.5, F-6) | the last byte of the empty line that ends them |
+  | `invalid` of header lines (HY-113.5, HY-131.5, F-6, F-16) | the last byte of the empty line that ends them |
   | `header_limit` | the byte after which no empty line can start within 8192 bytes of the header lines |
   | `invalid` of a body without its end | the end of the body (`finish()`) |
 
@@ -105,6 +123,12 @@ is no path, are the binding's (plan B-2, B-3).
   chunks; it fails with `not_streamed` for a body held as one value, with the first failure of the body, and with
   `not_finished` before `finish()`. A body held as one value gives its bytes as `held()`, which the host reads with
   `read_body`, `fields_from_body` and `files_from_body`.
+- **F-16** Every part of a `multipart/form-data` body has a `Content-Disposition` whose type is `form-data` and which
+  has a `name` parameter (RFC 7578, section 4.2), and no parameter of its `Content-Disposition` is given twice, its name
+  compared without case (RFC 6266, section 4.1: such a value is invalid). A part without `Content-Disposition`, of
+  another disposition type, without `name` or with a parameter given twice fails the body with `invalid` at the byte
+  of its header lines (F-8). It is no ignored input: ignoring it dropped a part that the client sent (plan P-4). A part
+  that fails so has no name, so it counts for no value limit.
 - **F-13** A failure of the sink of a `MultipartReader`, such as a write of a file, is the failure of that call; the
   reader then reads nothing and every later call gives `SinkFailed`. It is not a failure of the body (H-6).
 
@@ -132,6 +156,13 @@ is no path, are the binding's (plan B-2, B-3).
 - **F-15** `std` does not report a failure of `close(2)`, so the core checks sizes instead (H-22): the size of a
   written file before it is closed, and the number of bytes that `content()` reads, are the number of bytes that were
   written; another number fails with `io` without `errno`. Every number of bytes is converted with a range check.
+- **F-17** A public function that does blocking I/O takes the wait token `bindgen_core::Io` of the dependency
+  `polyspec-bindgen-core` as its first argument (bindgen design I-2 (4), plan B-5 (a)): `RequestBody::new` (it creates
+  the directory), `feed` (it writes files), `finish` (it closes the file of a failed body), `remove`,
+  `UploadedFile::content` and `UploadedFile::move_to`. Only generated code makes a token, through the feature
+  `construct`, which the tests of this crate enable as a dev-dependency. No other public function does I/O. `Drop` of
+  `RequestBody` removes the directory of a body whose host did not call `remove` (F-10) without a token, because
+  `Drop` takes no argument; it is the safety net of a missing cleanup call, which the binding reports (plan B-10).
 - **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate builds for Linux and macOS only
   (plan T-2).
 
@@ -141,10 +172,14 @@ is no path, are the binding's (plan B-2, B-3).
 |---|---|---|---|---|
 | I-1 | HY-131.3 | the bytes before the first delimiter | RFC 2046, section 5.1.1: the preamble is to be ignored | `fields.json` multipart `the_bytes_before_the_first_delimiter_are_ignored` |
 | I-2 | HY-131.4 | the bytes after the `--` that ends the body | RFC 2046, section 5.1.1: the epilogue is to be ignored | `fields.json` multipart `the_bytes_after_the_closing_delimiter_are_ignored` |
-| I-3 | HY-113.6 | a part without `Content-Disposition`, without `name`, or of another disposition type, with its content | none: RFC 7578, section 4.2 requires `form-data` and `name`, so such a part is malformed; see "Decisions" | `fields.json` multipart `a_part_without_a_name_is_neither_a_value_nor_a_file`, `a_disposition_of_another_type_is_neither_a_value_nor_a_file`, `a_part_without_header_lines_is_neither_a_value_nor_a_file` |
-| I-4 | HY-113.13, HY-113.7 | a later parameter of a name, and `filename*` | RFC 7578, section 4.2 forbids `filename*`; RFC 6266, section 4.1 makes a repeated parameter invalid, see "Decisions" | `fields.json` multipart `the_first_parameter_of_a_name_counts` |
-| I-5 | HY-113.12 | header lines other than the first `Content-Disposition` and `Content-Type`, and lines without `:` | RFC 7578, section 4.8: other header fields must be ignored | `fields.json` multipart `a_part_header_of_8192_bytes_is_read`, `a_lone_carriage_return_does_not_end_a_header_line` |
+| I-4 | HY-113.7 | the parameter `filename*` of a `Content-Disposition` | RFC 7578, section 4.2: `filename*` must not be used, and the `filename` parameter alone names the file | `forms.json` multipart `a_filename_star_is_ignored` |
+| I-5 | HY-113.12 | header lines other than the first `Content-Disposition` and `Content-Type`, and lines without `:` | RFC 7578, section 4.8: other header fields must be ignored | `fields.json` multipart `a_part_header_of_8192_bytes_is_read`, `forms.json` multipart `a_line_without_a_colon_and_other_header_lines_are_ignored` |
 | I-6 | HY-56 | an empty part between two `&` | WHATWG URL, application/x-www-form-urlencoded parsing: an empty sequence is skipped | `fields.json` urlencoded `empty_parts_are_skipped` |
+| I-7 | F-12 | the parameters of a content type other than `boundary` of `multipart/form-data` | RFC 7578, section 8; WHATWG URL, section 5; RFC 9110, section 8.3.1 (F-12) | `forms.json` multipart `the_parameters_of_an_urlencoded_type_are_ignored`, `fields.json` multipart `a_boundary_inside_a_quoted_string_is_no_boundary` |
+
+The reader of a media type ignores the inputs of the table of http-media-type (MT-1.3, MT-3.2, MT-3.4, MT-2.2):
+whitespace around the value and around `;`, empty parameters, the quotes of a quoted value and the case of names.
+I-3, a part that is no `form-data` part with a name, is no row: such a part fails (F-16).
 
 The code marks each place with its id.
 
@@ -164,22 +199,46 @@ These rules of hyper change with this library; hyper changes its sentences and c
   boolean, and `parts()` fails instead of returning null (H-4).
 - HY-131.16 (F-10): a stored file fails with `removed` after the removal of its directory.
 - HY-131.21 (plan H-12): replaced by the Node host rule of plan H-12.
-- HY-59.11, HY-57.10, HY-59.7: wait for `http-media-type` (F-12).
+- HY-59.11, HY-59.7, HY-57.10, HY-113.11 (F-12): the media type of `Content-Type` is read by MT-4. `mediaType()` is a
+  function of this library. A `Content-Type` that is no media type fails with `malformed_content_type` (400), where
+  HY-59.7 answered 415 and HY-57.10 and HY-113.11 gave a body of another type: a line feed or the byte A0 around the
+  value, a byte that is no token character in a name, an unclosed quoted value, a parameter given twice, and the empty
+  value. SP and HTAB before the media type are ignored also for HY-57.10, which refused them. A quoted value of a
+  content type unquotes its quoted pairs (MT-3.4), so a backslash of a quoted boundary is no part of it. Cases: the
+  group `content_type` and the replacements of `an_urlencoded_type_followed_by_a_line_feed_is_another_type` and
+  `a_body_without_a_type_has_no_values`.
+- HY-113.6, HY-113.13 (F-16): a part without `Content-Disposition`, of another disposition type or without `name` and
+  a parameter given twice fail the body with `invalid`, where they were ignored and the first parameter of a name
+  counted. Cases: the replacements in the group `superseded` whose rule is F-16.
 
 ## API
 
 | Core | Purpose |
 |---|---|
 | `parse_urlencoded(text)` | HY-56: the fields, or `invalid` |
-| `is_urlencoded(content type)` | HY-57.10 |
-| `multipart_boundary(content type)` | HY-113.11, F-6, F-7 |
+| `media_type(content type)` | HY-59.11, F-12 |
+| `is_urlencoded(content type)` | HY-57.10, F-12 |
+| `multipart_boundary(content type)` | HY-113.11, F-7, F-12 |
 | `read_body(content type, body)`, `fields_from_body`, `files_from_body` | HY-57, HY-113: a body held as one value |
 | `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)` | HY-131.6 |
 | `MultipartReader::new(boundary, limits)`: `feed`, `feed_with`, `finish`, `closed`, `buffered`, `parts` | HY-131, F-8, F-13 |
-| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove` | F-9, F-10 |
+| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove` | F-9, F-10, F-17 |
 | `Form`: `fields`, `files`, `file_over(limit)` | HY-114.9: true when a file has more than `limit` bytes |
-| `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | HY-113.3, HY-131.15, F-11 |
+| `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | HY-113.3, HY-131.15, F-11, F-17 |
 | `Error`: `kind`, `status`, `errno`, `removal` | the table of Errors |
+
+## Interface contract
+
+- **F-18** The interface contract is `packages/rust/interface.json` (bindgen design I-1), in the schema of
+  `@polyspec/bindgen`. It declares the members of the table above that a host uses (the functions, `Form`,
+  `RequestBody`, `UploadedFile`), the error classes `FormsValueError`, `FormsTypeError`, `FormsIoError`,
+  `FormsStoreError`, `FormsBusyError` and `FormsInternalError` of the categories of the table of Errors (design E-2),
+  the error class `PartialTargetError` of `partial_target`, and the differences from the earlier bindings in `changes`.
+  `MultipartReader`, `parse_multipart` and `parse_multipart_chunks` stay Rust API (F-3). `malformed_content_type` is a
+  kind of this library, with the status 400 that a request with such a `Content-Type` gets; its error holds the
+  failure of http-media-type (F-12), so the contract names no kind of that library and forwards no property of it.
+  `RequestBody` implements `bindgen_core::Cleanup` (its cleanup call is `remove`) and `Error` implements
+  `bindgen_core::Kinds`.
 
 ## Verification
 
@@ -190,6 +249,8 @@ These rules of hyper change with this library; hyper changes its sentences and c
   `HTTP_FORMS_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
   fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
+- The interface contract passes `checkContract` of `@polyspec/bindgen` with the contract of `polyspec-http-media-type`
+  as its dependency, with no finding.
 - `make differential HYPER=<dir> PYTHONPATH=...`: random bodies through the core and through hyper's Python reader. It
   reads a module of hyper that is not public, so its result is a reference only until hyper exports the reader (plan
   H-25); a difference that F-6 or F-7 explains is counted apart.
