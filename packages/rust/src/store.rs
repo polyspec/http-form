@@ -132,18 +132,18 @@ impl UploadedFile {
     }
 
     /// The `name` parameter of the part.
-    pub fn name(&self) -> &str {
-        &self.shared.name
+    pub fn name(&self) -> String {
+        self.shared.name.clone()
     }
 
     /// The `filename` parameter of the part, as it was sent (HY-113.14).
-    pub fn filename(&self) -> &str {
-        &self.shared.filename
+    pub fn filename(&self) -> String {
+        self.shared.filename.clone()
     }
 
     /// The `Content-Type` header of the part as it was sent, or the empty text.
-    pub fn content_type(&self) -> &str {
-        &self.shared.content_type
+    pub fn content_type(&self) -> String {
+        self.shared.content_type.clone()
     }
 
     /// The number of bytes of the part (HY-131.15).
@@ -466,6 +466,11 @@ mod tests {
         let error = file.move_with(&faulty(&steps), &place.target()).unwrap_err();
         assert_eq!((error.kind(), error.errno()), ("partial_target", Some(EIO)));
         assert_eq!(error.removal().map(IoFailure::errno), Some(Some(EACCES)));
+        // F-11: the properties of the class of partial_target, which another kind does not have.
+        assert_eq!(error.removal_kind(), Ok("permission_denied".to_owned()));
+        assert_eq!(error.removal_errno(), Ok(Some(i64::from(EACCES))));
+        assert!(matches!(Error::Exists.removal_kind(), Err(Error::Internal(_))));
+        assert!(matches!(Error::Exists.removal_errno(), Err(Error::Internal(_))));
         assert_eq!(file.content(Io::for_generated_call()).unwrap(), b"payload");
     }
 

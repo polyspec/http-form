@@ -4,12 +4,10 @@
 
 mod common;
 
-use std::path::Path;
-
 use common::{contract, io, fields_json, files_json, group, id, latin1, number, raises, string, text, Failures};
 use polyspec_http_forms::{
-    is_urlencoded, media_type, multipart_boundary, read_body, Error, Form, Limits, MultipartReader, ReadError,
-    RequestBody,
+    file_over, is_urlencoded, media_type, multipart_boundary, read_body, BodyLimits, Collector, Error, Form, Limits,
+    MultipartReader, ReadError, RequestBody,
 };
 use serde_json::{json, Value};
 
@@ -31,7 +29,7 @@ fn form_result(result: Result<Form, Error>) -> Value {
 
 fn read_divided(boundary: &[u8], chunks: &[&[u8]]) -> Result<Form, Error> {
     let mut reader = MultipartReader::new(boundary, Limits::default());
-    let mut form = Form::default();
+    let mut form = Collector::default();
     for chunk in chunks {
         match reader.feed_with(chunk, |piece| form.take(piece)) {
             Ok(()) => {}
@@ -40,7 +38,7 @@ fn read_divided(boundary: &[u8], chunks: &[&[u8]]) -> Result<Form, Error> {
         }
     }
     match reader.finish() {
-        Ok(()) => Ok(form),
+        Ok(()) => form.into_form(),
         Err(ReadError::Form(error)) => Err(error),
         Err(ReadError::Sink(never)) => match never {},
         Err(ReadError::SinkFailed) => Err(Error::Internal("a sink failed")),
@@ -106,7 +104,7 @@ fn content_type() {
 }
 
 #[test]
-fn file_over() {
+fn files_over_a_limit() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
     for case in group(&cases, "file_over") {
@@ -127,7 +125,7 @@ fn file_over() {
         let over: Vec<bool> = limits
             .iter()
             .map(|limit| match limit.as_u64() {
-                Some(limit) => form.file_over(limit),
+                Some(limit) => file_over(&form.files, limit),
                 None => panic!("{label}: {limit}"),
             })
             .collect();
@@ -144,16 +142,18 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
         io(),
         Some(&latin1(&case["type"])),
         content_length.as_deref(),
-        number(case, "limit"),
         case["stream"] == json!(true),
-        number(case, "valueLimit"),
-        number(case, "partLimit"),
-        number(case, "fileLimit"),
+        BodyLimits {
+            limit: number(case, "limit"),
+            value_limit: number(case, "valueLimit"),
+            part_limit: number(case, "partLimit"),
+            file_limit: number(case, "fileLimit"),
+        },
     ) {
         Ok(read) => read,
         Err(error) => return json!({"stage": "new", "raises": raises(&error)}),
     };
-    let directory = read.directory().map(Path::to_path_buf);
+    let directory = read.directory();
     let mut result = json!({});
     let mut failed = None;
     for chunk in chunks {
@@ -169,7 +169,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
             failed = Some(("finish", error));
         }
     }
-    result["held"] = json!(text(read.held()));
+    result["held"] = json!(text(&read.held()));
     if failed.is_none() && (read.streamed() || case.get("parts") == Some(&json!(true))) {
         match read.parts() {
             Ok(form) => {
@@ -180,7 +180,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
                         panic!("{label}: {error}");
                     }
                     let mut after = Vec::new();
-                    for (_, files) in form.files.entries() {
+                    for (_, files) in &form.files {
                         for file in files {
                             after.push(file.content(io()).map_err(|error| raises(&error)));
                             let target = std::env::temp_dir().join(format!("http-forms-after-{}", std::process::id()));

@@ -1,11 +1,12 @@
 //! `name=value&name=value` (HY-56).
 
+use crate::fields::Named;
 use crate::{Error, Fields};
 
 /// Splits at every `&`, skips an empty part, separates the name at the first `=`, and decodes `+` to a space and
 /// `%XX` with two hexadecimal digits to its byte; any other `%` stays. Names and values must be UTF-8 (HY-42).
 pub fn parse(text: &[u8]) -> Result<Fields, Error> {
-    let mut fields = Fields::default();
+    let mut fields = Named::default();
     for part in text.split(|&byte| byte == b'&') {
         // HY-56: an empty part between two `&` is an ignored input (spec I-6).
         if part.is_empty() {
@@ -17,7 +18,7 @@ pub fn parse(text: &[u8]) -> Result<Fields, Error> {
         };
         fields.push(utf8(decode(name))?, utf8(decode(value))?);
     }
-    Ok(fields)
+    Ok(fields.into_entries())
 }
 
 fn decode(text: &[u8]) -> Vec<u8> {

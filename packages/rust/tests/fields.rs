@@ -11,14 +11,14 @@ mod common;
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use common::{
     contract, io, fields_json, files_json, group, id, latin1, number, string, text, Failures,
 };
 use polyspec_http_forms::{
-    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Error, Form, Limits, MultipartReader,
-    ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
+    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form, Limits,
+    MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
 };
 use serde_json::{json, Value};
 
@@ -63,7 +63,7 @@ fn outcome(form: Result<Form, Error>) -> (Value, Value) {
 /// Reads a body through a reader in the given chunks, collecting its pieces.
 fn read_chunks(boundary: &[u8], chunks: &[&[u8]], bound: usize, label: &str) -> Result<Form, Error> {
     let mut reader = MultipartReader::new(boundary, Limits::default());
-    let mut form = Form::default();
+    let mut form = Collector::default();
     let mut failure = None;
     for chunk in chunks {
         let result = reader.feed_with(chunk, |piece| form.take(piece));
@@ -81,7 +81,7 @@ fn read_chunks(boundary: &[u8], chunks: &[&[u8]], bound: usize, label: &str) -> 
         return Err(error);
     }
     match reader.finish() {
-        Ok(()) => Ok(form),
+        Ok(()) => form.into_form(),
         Err(ReadError::Form(error)) => Err(error),
         Err(ReadError::Sink(never)) => match never {},
         Err(ReadError::SinkFailed) => panic!("{label}: a sink failed"),
@@ -99,7 +99,7 @@ fn urlencoded() {
         let (fields, names) = match &read {
             Ok(fields) => (
                 fields_json(fields),
-                json!(fields.entries().iter().map(|(name, _)| name.clone()).collect::<Vec<_>>()),
+                json!(fields.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>()),
             ),
             Err(_) => (Value::Null, Value::Null),
         };
@@ -202,11 +202,13 @@ fn streamed() {
             io(),
             kind,
             None,
-            number(case, "limit"),
             case["stream"] == json!(true),
-            number(case, "valueLimit"),
-            number(case, "partLimit"),
-            number(case, "fileLimit"),
+            BodyLimits {
+                limit: number(case, "limit"),
+                value_limit: number(case, "valueLimit"),
+                part_limit: number(case, "partLimit"),
+                file_limit: number(case, "fileLimit"),
+            },
         )
         .unwrap_or_else(|error| panic!("{label}: {error}"));
         let place = scratch(label);
@@ -236,7 +238,7 @@ fn streamed() {
                 (Err(_), _) | (_, Err(_)) => (None, None),
             }
         };
-        let directory = read.directory().map(Path::to_path_buf);
+        let directory = read.directory();
         let exceeded = stopped.as_ref().is_some_and(|error| error.status() == Some(413));
         failures.compare(case, "stopped", &json!(stopped.is_some()));
         failures.compare(case, "exceeded", &json!(exceeded));
@@ -244,7 +246,7 @@ fn streamed() {
         failures.compare(case, "fields", &Value::from(fields.as_ref().map(fields_json)));
         failures.compare(case, "files", &Value::from(files.as_ref().map(|f| files_json(f, true))));
         failures.compare(case, "entries", &entries(&directory));
-        let first = files.as_ref().and_then(|f| f.entries().first().and_then(|(_, items)| items.first().cloned()));
+        let first = files.as_ref().and_then(|f| f.first().and_then(|(_, items)| items.first().cloned()));
         let movement = string(case, "move");
         match (movement, first) {
             ("none", _) | (_, None) => failures.compare(case, "moved", &Value::Null),

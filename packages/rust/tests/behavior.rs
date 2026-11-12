@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use bindgen_core::Io;
-use polyspec_http_forms::{Error, Form, Limits, MultipartReader, Piece, ReadError, RequestBody};
+use polyspec_http_forms::{BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile};
 
 /// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
 fn io() -> Io {
@@ -14,9 +14,15 @@ fn io() -> Io {
 
 const TYPE: &[u8] = b"multipart/form-data; boundary=X";
 const BIG: u64 = 1 << 20;
+const LIMITS: BodyLimits = BodyLimits { limit: BIG, value_limit: BIG, part_limit: BIG, file_limit: BIG };
+
+/// The last file of a name (HY-113.2).
+fn last<'a>(files: &'a Files, name: &str) -> Option<&'a UploadedFile> {
+    files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
+}
 
 fn body(content_type: &[u8], stream: bool) -> RequestBody {
-    match RequestBody::new(io(), Some(content_type), None, BIG, stream, BIG, BIG, BIG) {
+    match RequestBody::new(io(), Some(content_type), None, stream, LIMITS) {
         Ok(body) => body,
         Err(error) => panic!("{error}"),
     }
@@ -24,7 +30,7 @@ fn body(content_type: &[u8], stream: bool) -> RequestBody {
 
 fn directory(body: &RequestBody) -> PathBuf {
     match body.directory() {
-        Some(directory) => directory.to_path_buf(),
+        Some(directory) => directory,
         None => panic!("a streamed body has a directory"),
     }
 }
@@ -43,12 +49,13 @@ fn a_failing_sink_stops_the_reader() {
 /// H-8: pieces out of the order of a reader are `internal`.
 #[test]
 fn pieces_out_of_order_are_internal() {
-    let mut form = Form::default();
+    let mut form = Collector::default();
     assert!(matches!(form.take(Piece::FileData(b"x")), Err(Error::Internal(_))));
     assert!(matches!(form.take(Piece::FileEnd), Err(Error::Internal(_))));
     let start = || Piece::FileStart { name: "f".into(), filename: "f".into(), content_type: String::new() };
     assert_eq!(form.take(start()), Ok(()));
     assert!(matches!(form.take(start()), Err(Error::Internal(_))));
+    assert!(matches!(form.into_form(), Err(Error::Internal(_))), "a file that did not end");
 }
 
 /// H-4: the order of the calls on a body.
@@ -124,7 +131,7 @@ fn a_move_to_another_file_system_copies() {
         Ok(form) => form,
         Err(error) => panic!("{error}"),
     };
-    let Some(file) = form.files.last("f") else { panic!("no file") };
+    let Some(file) = last(&form.files, "f") else { panic!("no file") };
     let target = other.join(format!("http-forms-move-{}", std::process::id()));
     assert_eq!(file.move_to(io(), &target), Ok(()));
     assert_eq!(fs::read(&target).map_err(|error| error.kind()), Ok(b"payload".to_vec()));
@@ -133,7 +140,7 @@ fn a_move_to_another_file_system_copies() {
         Err(error) => panic!("{error}"),
     }
     assert_eq!(file.move_to(io(), &target), Err(Error::Moved));
-    let again = form.files.last("f").map(|file| file.content(io()));
+    let again = last(&form.files, "f").map(|file| file.content(io()));
     assert_eq!(again, Some(Err(Error::Moved)));
     if let Err(error) = fs::remove_file(&target) {
         panic!("{error}");
@@ -145,7 +152,7 @@ fn a_move_to_another_file_system_copies() {
         Ok(form) => form,
         Err(error) => panic!("{error}"),
     };
-    let Some(file) = form.files.last("f") else { panic!("no file") };
+    let Some(file) = last(&form.files, "f") else { panic!("no file") };
     if let Err(error) = fs::write(&target, b"taken") {
         panic!("{error}");
     }
@@ -218,7 +225,8 @@ fn random_body(random: &mut Random) -> Vec<u8> {
 
 /// The result of a body read in the chunks: the stage and the kind of its first failure, or its values and files.
 fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
-    let mut read = match RequestBody::new(io(), Some(TYPE), None, limits.0, true, limits.1, limits.2, limits.3) {
+    let limits = BodyLimits { limit: limits.0, value_limit: limits.1, part_limit: limits.2, file_limit: limits.3 };
+    let mut read = match RequestBody::new(io(), Some(TYPE), None, true, limits) {
         Ok(read) => read,
         Err(error) => return format!("new {}", error.kind()),
     };
@@ -237,11 +245,10 @@ fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
                 Ok(form) => {
                     let files: Vec<(String, Result<Vec<u8>, Error>)> = form
                         .files
-                        .entries()
                         .iter()
-                        .flat_map(|(_, files)| files.iter().map(|file| (file.filename().to_owned(), file.content(io()))))
+                        .flat_map(|(_, files)| files.iter().map(|file| (file.filename(), file.content(io()))))
                         .collect();
-                    format!("{:?} {files:?}", form.fields.entries())
+                    format!("{:?} {files:?}", form.fields)
                 }
                 Err(error) => format!("parts {}", error.kind()),
             },

@@ -192,7 +192,9 @@
           "kind": "property",
           "visibility": "public",
           "returns": "text",
-          "raises": [],
+          "raises": [
+            "polyspec_http_forms::Error::Internal"
+          ],
           "wait": "none",
           "core": {
             "path": "polyspec_http_forms::Error::removal_kind",
@@ -211,7 +213,9 @@
             "optional": "int"
           },
           "optional_reason": "F-11",
-          "raises": [],
+          "raises": [
+            "polyspec_http_forms::Error::Internal"
+          ],
           "wait": "none",
           "core": {
             "path": "polyspec_http_forms::Error::removal_errno",
@@ -487,6 +491,46 @@
           "core": "polyspec_http_forms::files_from_body"
         },
         {
+          "id": "forms.file_over",
+          "name": [
+            "file",
+            "over"
+          ],
+          "kind": "function",
+          "visibility": "public",
+          "parameters": [
+            {
+              "name": [
+                "files"
+              ],
+              "type": {
+                "list": {
+                  "tuple": [
+                    "text",
+                    {
+                      "list": {
+                        "unit": "uploaded_file"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": true
+            },
+            {
+              "name": [
+                "limit"
+              ],
+              "type": "uint",
+              "required": true
+            }
+          ],
+          "returns": "bool",
+          "raises": [],
+          "wait": "none",
+          "core": "polyspec_http_forms::file_over"
+        },
+        {
           "id": "forms.header_limit",
           "name": [
             "header",
@@ -506,20 +550,16 @@
         "form"
       ],
       "module": "forms",
-      "kind": "class",
+      "kind": "record",
       "visibility": "public",
       "origin": "generated",
       "core_type": "polyspec_http_forms::Form",
-      "constructible": false,
-      "members": [
+      "fields": [
         {
-          "id": "form.fields",
           "name": [
             "fields"
           ],
-          "kind": "property",
-          "visibility": "public",
-          "returns": {
+          "type": {
             "list": {
               "tuple": [
                 "text",
@@ -529,21 +569,13 @@
               ]
             }
           },
-          "raises": [],
-          "wait": "none",
-          "core": {
-            "path": "polyspec_http_forms::Form::fields",
-            "receiver": "&self"
-          }
+          "required": true
         },
         {
-          "id": "form.files",
           "name": [
             "files"
           ],
-          "kind": "property",
-          "visibility": "public",
-          "returns": {
+          "type": {
             "list": {
               "tuple": [
                 "text",
@@ -555,37 +587,52 @@
               ]
             }
           },
-          "raises": [],
-          "wait": "none",
-          "core": {
-            "path": "polyspec_http_forms::Form::files",
-            "receiver": "&self"
-          }
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "body_limits",
+      "name": [
+        "body",
+        "limits"
+      ],
+      "module": "body",
+      "kind": "record",
+      "visibility": "public",
+      "origin": "generated",
+      "core_type": "polyspec_http_forms::BodyLimits",
+      "fields": [
+        {
+          "name": [
+            "limit"
+          ],
+          "type": "uint",
+          "required": true
         },
         {
-          "id": "form.file_over",
+          "name": [
+            "value",
+            "limit"
+          ],
+          "type": "uint",
+          "required": true
+        },
+        {
+          "name": [
+            "part",
+            "limit"
+          ],
+          "type": "uint",
+          "required": true
+        },
+        {
           "name": [
             "file",
-            "over"
+            "limit"
           ],
-          "kind": "method",
-          "visibility": "public",
-          "parameters": [
-            {
-              "name": [
-                "limit"
-              ],
-              "type": "uint",
-              "required": true
-            }
-          ],
-          "returns": "bool",
-          "raises": [],
-          "wait": "none",
-          "core": {
-            "path": "polyspec_http_forms::Form::file_over",
-            "receiver": "&self"
-          }
+          "type": "uint",
+          "required": true
         }
       ]
     },
@@ -632,13 +679,6 @@
             },
             {
               "name": [
-                "limit"
-              ],
-              "type": "uint",
-              "required": true
-            },
-            {
-              "name": [
                 "stream"
               ],
               "type": "bool",
@@ -646,26 +686,11 @@
             },
             {
               "name": [
-                "value",
-                "limit"
+                "limits"
               ],
-              "type": "uint",
-              "required": true
-            },
-            {
-              "name": [
-                "part",
-                "limit"
-              ],
-              "type": "uint",
-              "required": true
-            },
-            {
-              "name": [
-                "file",
-                "limit"
-              ],
-              "type": "uint",
+              "type": {
+                "unit": "body_limits"
+              },
               "required": true
             }
           ],
@@ -1162,16 +1187,24 @@
     },
     {
       "id": "form",
-      "rule": "H-4",
-      "reason": "H-4, HY-114.9: the fields and files of a body are a Form with file_over instead of a pair",
+      "rule": "T-4",
+      "reason": "T-4, H-4: the fields and files of a body are the record Form instead of a pair",
       "symbol": "Form",
       "from": {},
       "to": "form"
     },
     {
+      "id": "file-over",
+      "rule": "H-27",
+      "reason": "H-27, HY-114.9: whether a file passes a limit is the function file_over of the files",
+      "symbol": "file_over",
+      "from": {},
+      "to": "forms.file_over"
+    },
+    {
       "id": "request-body-new",
       "rule": "F-9",
-      "reason": "F-9, H-5: the body takes the Content-Length, an absent content type (F-4) and limits that are uint (B-2); it does blocking I/O (F-17)",
+      "reason": "F-9, H-5, T-4: the body takes the Content-Length, an absent content type (F-4) and the record of its limits, which are uint (B-2); it does blocking I/O (F-17)",
       "symbol": "RequestBody::__construct",
       "from": {
         "php": "Polyspec\\Forms\\RequestBody::__construct(string $content_type, int $limit, bool $stream, int $value_limit, int $part_limit, int $file_limit)",
@@ -1330,7 +1363,7 @@
       "group": "multipart"
     },
     {
-      "member": "form.file_over",
+      "member": "forms.file_over",
       "file": "contracts/forms.json",
       "group": "file_over"
     },

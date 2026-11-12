@@ -18,7 +18,8 @@ mod urlencoded;
 
 pub use body::RequestBody;
 pub use error::{Error, IoFailure, IoKind};
-pub use fields::{Fields, Files, Form, Named};
+pub use body::BodyLimits;
+pub use fields::{file_over, Collector, Fields, Files, Form};
 pub use multipart::{Event, Limits, MultipartReader, Piece, ReadError, HEADER_LIMIT};
 pub use store::UploadedFile;
 
@@ -58,7 +59,7 @@ pub fn parse_multipart_chunks<'a>(
     boundary: &[u8],
 ) -> Result<Form, Error> {
     let mut reader = MultipartReader::new(boundary, Limits::default());
-    let mut form = Form::default();
+    let mut form = Collector::default();
     for chunk in chunks {
         let result = reader.feed_with(chunk, |piece| form.take(piece));
         match result {
@@ -68,7 +69,7 @@ pub fn parse_multipart_chunks<'a>(
         }
     }
     match reader.finish() {
-        Ok(()) => Ok(form),
+        Ok(()) => form.into_form(),
         Err(ReadError::Form(error)) => Err(error),
         Err(ReadError::Sink(never)) => match never {},
         Err(ReadError::SinkFailed) => Err(Error::Internal("the body ended after a failure")),
@@ -80,7 +81,7 @@ pub fn parse_multipart_chunks<'a>(
 /// (HY-57.4).
 pub fn read_body(content_type: Option<&[u8]>, body: &[u8]) -> Result<Form, Error> {
     if is_urlencoded(content_type)? {
-        return Ok(Form::new(parse_urlencoded(body)?, Files::default()));
+        return Ok(Form { fields: parse_urlencoded(body)?, files: Files::new() });
     }
     match multipart_boundary(content_type)? {
         Some(boundary) => parse_multipart(body, &boundary),
@@ -98,6 +99,6 @@ pub fn fields_from_body(content_type: Option<&[u8]>, body: &[u8]) -> Result<Fiel
 pub fn files_from_body(content_type: Option<&[u8]>, body: &[u8]) -> Result<Files, Error> {
     match multipart_boundary(content_type)? {
         Some(boundary) => Ok(parse_multipart(body, &boundary)?.files),
-        None => Ok(Files::default()),
+        None => Ok(Files::new()),
     }
 }

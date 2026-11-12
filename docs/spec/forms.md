@@ -111,8 +111,8 @@ is no path, are the binding's (plan B-2, B-3).
   one byte, a limit (413) comes before a failure of HY-42 (400), and `body_limit` before the other limits. A chunk that
   passes the body limit is read up to the limit, and `body_limit` is its failure only when those bytes do not fail.
   The result therefore does not depend on the chunks, also when the body fails.
-- **F-9** `RequestBody::new(content type, Content-Length, limit, stream, value limit, part limit, file limit)` starts
-  a body. A `Content-Length` that is no number fails with `invalid_content_length`, and one above the limit fails with
+- **F-9** `RequestBody::new(content type, Content-Length, stream, limits)` starts a body; `limits` is the record
+  `BodyLimits` of the body limit, the value limit, the part limit and the file limit. A `Content-Length` that is no number fails with `invalid_content_length`, and one above the limit fails with
   `body_limit` before a byte is read (HY-131.18); a number of more digits than 64 bits hold is above every limit. A
   body read in chunks (`stream` and the type `multipart/form-data`) needs its boundary (F-6, F-7) and gets its
   directory. `feed(chunk)` reads the next chunk; its first failure (F-8) is the error of that call and of every later
@@ -222,12 +222,13 @@ These rules of hyper change with this library; hyper changes its sentences and c
 | `is_urlencoded(content type)` | HY-57.10, F-12 |
 | `multipart_boundary(content type)` | HY-113.11, F-7, F-12 |
 | `read_body(content type, body)`, `fields_from_body`, `files_from_body` | HY-57, HY-113: a body held as one value |
-| `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)` | HY-131.6 |
+| `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)`, `Collector`: `take`, `collect`, `into_form` | HY-131.6 |
 | `MultipartReader::new(boundary, limits)`: `feed`, `feed_with`, `finish`, `closed`, `buffered`, `parts` | HY-131, F-8, F-13 |
-| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove` | F-9, F-10, F-17 |
-| `Form`: `fields`, `files`, `file_over(limit)` | HY-114.9: true when a file has more than `limit` bytes |
+| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |
+| `Form`: `fields`, `files`; `Fields`, `Files`: lists of a name and its values (HY-56.7) | HY-57, HY-113.2 |
+| `file_over(files, limit)` | HY-114.9: true when a file has more than `limit` bytes |
 | `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | HY-113.3, HY-131.15, F-11, F-17 |
-| `Error`: `kind`, `status`, `errno`, `removal` | the table of Errors |
+| `Error`: `kind`, `status`, `errno`, `removal`, `removal_kind`, `removal_errno` | the table of Errors, F-11 |
 
 ## Interface contract
 
@@ -241,6 +242,11 @@ These rules of hyper change with this library; hyper changes its sentences and c
   failure of http-media-type (F-12), so the contract names no kind of that library and forwards no property of it.
   `RequestBody` implements `bindgen_core::Cleanup` (its cleanup call is `remove`) and `Error` implements
   `bindgen_core::Kinds`.
+  1. The core functions take and return the Rust types of the contract types (bindgen design I-2 (1), T-1, T-2): a
+     result is an owned value (`String`, `Vec<u8>`, `PathBuf`, `Vec`), `Fields` and `Files` are the lists
+     `list<tuple<text, list<…>>>`, and `Form` and `BodyLimits` are records (design T-4), so `file_over` is a function
+     of the files and not a member of `Form`. Every member of the contract is a function of the core, the properties
+     `removalKind` and `removalErrno` of `PartialTargetError` included, which fail with `internal` on another kind.
 
 ## Verification
 

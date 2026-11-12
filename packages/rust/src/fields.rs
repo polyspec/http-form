@@ -1,12 +1,14 @@
-//! Ordered maps from a name to its values in request order (HY-56, HY-57, HY-113.2) and the form of a body.
+//! The fields and files of a body as lists of a name and its values in request order (HY-56.7, HY-57, HY-113.2), the
+//! form of a body, and the collector that makes it from the pieces of a reader.
 
 use std::collections::HashMap;
 
 use crate::{Error, Event, Piece, UploadedFile};
 
-/// An ordered map from each name, in the order of its first occurrence, to its values in request order.
+/// An ordered map from each name, in the order of its first occurrence, to its values in request order: the builder of
+/// [`Fields`] and [`Files`].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Named<T> {
+pub(crate) struct Named<T> {
     entries: Vec<(String, Vec<T>)>,
     index: HashMap<String, usize>,
 }
@@ -38,36 +40,15 @@ impl<T> Named<T> {
     pub fn into_entries(self) -> Vec<(String, Vec<T>)> {
         self.entries
     }
-
-    /// The values of a name in request order; a name without a value has none (HY-56).
-    pub fn get(&self, name: &str) -> &[T] {
-        match self.index.get(name) {
-            Some(&position) => &self.entries[position].1,
-            None => &[],
-        }
-    }
-
-    /// The last value of a name, or `None` for a name without a value (HY-113.2).
-    pub fn last(&self, name: &str) -> Option<&T> {
-        self.get(name).last()
-    }
-
-    /// The number of names.
-    pub fn len(&self) -> usize {
-        self.entries.len()
-    }
-
-    /// True when no name has a value.
-    pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
 }
 
-/// Text values by name (HY-56, HY-57).
-pub type Fields = Named<String>;
+/// Text values: each name, in the order of its first value, with its values in request order (HY-56.7, HY-57); the
+/// contract type `list<tuple<text, list<text>>>` (design T-2).
+pub type Fields = Vec<(String, Vec<String>)>;
 
-/// Files by name (HY-113).
-pub type Files = Named<UploadedFile>;
+/// Files: each name, in the order of its first file, with its files in request order (HY-113.2); the contract type
+/// `list<tuple<text, list<uploaded_file>>>` (design T-2).
+pub type Files = Vec<(String, Vec<UploadedFile>)>;
 
 /// A file part that started and did not end.
 #[derive(Debug, Clone)]
@@ -78,20 +59,24 @@ struct Open {
     content: Vec<u8>,
 }
 
-/// The text fields and the files of a body.
+/// The text fields and the files of a body: a record of the contract (design T-4).
 #[derive(Debug, Clone, Default)]
 pub struct Form {
+    /// The text fields (HY-57).
     pub fields: Fields,
+    /// The files (HY-113).
     pub files: Files,
+}
+
+/// Collects the pieces or the events of a reader into a [`Form`] whose files are values.
+#[derive(Debug, Default)]
+pub struct Collector {
+    fields: Named<String>,
+    files: Named<UploadedFile>,
     open: Option<Open>,
 }
 
-impl Form {
-    /// A form of fields and files.
-    pub fn new(fields: Fields, files: Files) -> Self {
-        Form { fields, files, open: None }
-    }
-
+impl Collector {
     /// Adds a piece of a reader, as `collect` adds an event. A piece out of the order of a reader is `internal`
     /// (H-8).
     pub fn take(&mut self, piece: Piece<'_>) -> Result<(), Error> {
@@ -147,9 +132,18 @@ impl Form {
         Ok(())
     }
 
-    /// True when a file of the form has more bytes than `limit`, and false when every file has at most `limit` bytes
-    /// or the form has no file (HY-114.9).
-    pub fn file_over(&self, limit: u64) -> bool {
-        self.files.entries().iter().flat_map(|(_, files)| files.iter()).any(|file| file.size() > limit)
+    /// The form of the pieces; a file that started and did not end is `internal` (H-8), because a reader ends every
+    /// file before the end of a body.
+    pub fn into_form(self) -> Result<Form, Error> {
+        if self.open.is_some() {
+            return Err(Error::Internal("a file started and did not end"));
+        }
+        Ok(Form { fields: self.fields.into_entries(), files: self.files.into_entries() })
     }
+}
+
+/// True when a file has more bytes than `limit`, and false when every file has at most `limit` bytes or there is no
+/// file (HY-114.9).
+pub fn file_over(files: &[(String, Vec<UploadedFile>)], limit: u64) -> bool {
+    files.iter().flat_map(|(_, files)| files.iter()).any(|file| file.size() > limit)
 }

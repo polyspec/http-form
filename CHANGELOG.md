@@ -29,3 +29,7 @@
 - The interface contract is `packages/rust/interface.json` (F-18).
 - A part with two `Content-Disposition` or two `Content-Type` lines, or with a header line without `:`, fails the
   body with `invalid` (F-16). The parameters that a form type does not define are ignored (I-7).
+- The core takes and returns the types of the interface contract: `RequestBody::new` takes the limits as the record
+  `BodyLimits`; `Fields` and `Files` are lists of a name and its values; `Form` is a record and `file_over(files,
+  limit)` a function; `Collector` collects the pieces of a reader; `held`, `directory` and the names of an
+  `UploadedFile` are owned values; `Error::removal_kind` and `removal_errno` give the removal of `partial_target`.

@@ -98,13 +98,13 @@ pub fn raises(error: &Error) -> Value {
 
 /// Fields as pairs of a name and its values.
 pub fn fields_json(fields: &Fields) -> Value {
-    Value::Array(fields.entries().iter().map(|(name, values)| json!([name, values])).collect())
+    Value::Array(fields.iter().map(|(name, values)| json!([name, values])).collect())
 }
 
 /// Files in request order, with their size when `size` is true.
 pub fn files_json(files: &Files, size: bool) -> Value {
     let mut list = Vec::new();
-    for (_, items) in files.entries() {
+    for (_, items) in files {
         for item in items {
             let content = match item.content(io()) {
                 Ok(bytes) => text(&bytes),

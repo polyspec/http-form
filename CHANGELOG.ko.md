@@ -16,3 +16,4 @@
 - `HEADER_LIMIT`은 `u64`다. `Error`는 `bindgen_core::Kinds`를, `RequestBody`는 `bindgen_core::Cleanup`을 구현한다.
 - 인터페이스 계약은 `packages/rust/interface.json`이다(F-18).
 - `Content-Disposition`이나 `Content-Type` 줄이 둘이거나 `:` 없는 header 줄이 있는 part는 본문을 `invalid`로 실패시킨다(F-16). form type이 정의하지 않은 parameter는 무시한다(I-7).
+- 코어는 인터페이스 계약의 타입을 받고 돌려준다. `RequestBody::new`는 한도를 record `BodyLimits`로 받는다. `Fields`와 `Files`는 이름과 그 값의 목록이다. `Form`은 record이고 `file_over(files, limit)`는 함수다. `Collector`가 reader의 조각을 모은다. `held`, `directory`, `UploadedFile`의 이름들은 소유 값이다. `Error::removal_kind`와 `removal_errno`가 `partial_target`의 삭제 실패를 준다.

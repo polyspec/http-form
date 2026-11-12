@@ -16,7 +16,8 @@ php/ python/ node/  hand-written bindings of an earlier API; not built, replaced
 
 ```rust
 // `io()` is the wait token `bindgen_core::Io` of one blocking call, which generated code makes (F-17).
-let mut body = RequestBody::new(io(), content_type, content_length, limit, true, value_limit, part_limit, file_limit)?;
+let limits = BodyLimits { limit, value_limit, part_limit, file_limit };
+let mut body = RequestBody::new(io(), content_type, content_length, true, limits)?;
 for chunk in chunks {
     body.feed(io(), chunk)?; // the first failure of the body, with its kind and status
 }

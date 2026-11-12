@@ -27,13 +27,12 @@ fn unhex(text: &str) -> Vec<u8> {
 }
 
 fn fields(fields: &Fields) -> Value {
-    Value::Array(fields.entries().iter().map(|(name, values)| json!([name, values])).collect())
+    Value::Array(fields.iter().map(|(name, values)| json!([name, values])).collect())
 }
 
 fn files(files: &Files) -> Value {
     Value::Array(
         files
-            .entries()
             .iter()
             .map(|(name, items)| {
                 let items: Vec<Value> = items

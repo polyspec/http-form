@@ -214,6 +214,24 @@ impl Error {
             _ => None,
         }
     }
+
+    /// The kind of the failure of the removal of the new file of `partial_target` (spec F-11), the property
+    /// `removalKind` of its error class; `internal` for another kind, whose class has no such property.
+    pub fn removal_kind(&self) -> Result<String, Error> {
+        match self.removal() {
+            Some(removal) => Ok(removal.io_kind().kind().to_owned()),
+            None => Err(Error::Internal("the removal of a failure that is not partial_target")),
+        }
+    }
+
+    /// The `errno` of the failure of the removal of the new file of `partial_target` (spec F-11), the property
+    /// `removalErrno` of its error class: `None` when the system gave none; `internal` for another kind.
+    pub fn removal_errno(&self) -> Result<Option<i64>, Error> {
+        match self.removal() {
+            Some(removal) => Ok(removal.errno().map(i64::from)),
+            None => Err(Error::Internal("the removal of a failure that is not partial_target")),
+        }
+    }
 }
 
 /// The kind interface that generated code reads (design I-2 (3), E-3).

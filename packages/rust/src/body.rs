@@ -3,13 +3,14 @@
 
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use bindgen_core::Io;
 
 use crate::multipart::count;
 use crate::store::{create_directory, create_file};
-use crate::{content, Error, Fields, Files, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
+use crate::fields::Named;
+use crate::{content, Error, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
 
 /// The file part that is written.
 struct Target {
@@ -24,8 +25,8 @@ struct Target {
 /// The parts of a body read in chunks, with the file that is written.
 struct Parts {
     directory: PathBuf,
-    fields: Fields,
-    files: Files,
+    fields: Named<String>,
+    files: Named<UploadedFile>,
     target: Option<Target>,
     stored: u64,
 }
@@ -103,6 +104,19 @@ fn parse_content_length(value: &[u8]) -> Result<Option<u64>, Error> {
     Ok(Some(number))
 }
 
+/// The limits of a body (HY-131.7 to HY-131.12), a record of the contract (design T-4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BodyLimits {
+    /// The body limit in bytes (HY-59.4, HY-131.11).
+    pub limit: u64,
+    /// The value limit: of a body that is one value, and of the names and text values of a body read in chunks.
+    pub value_limit: u64,
+    /// The part limit of a body read in chunks.
+    pub part_limit: u64,
+    /// The file limit of each file of a body read in chunks.
+    pub file_limit: u64,
+}
+
 /// Reads the chunks of a request body.
 pub struct RequestBody {
     limit: u64,
@@ -117,29 +131,22 @@ pub struct RequestBody {
 }
 
 impl RequestBody {
-    /// Starts the body of the content type with the body limit.
+    /// Starts the body of the content type with its limits.
     ///
     /// `content_type` is the value of `Content-Type`, or `None` without one. `content_length` is the value of the `Content-Length` field as the host received it, or `None` without one; a
     /// value that is not a number fails with `invalid_content_length`, and a number above the limit fails with
     /// `body_limit` before any byte is read (HY-131.18). `stream` tells whether a multipart body is read in chunks,
     /// which it is when `multipart/form-data` is a form type of the application (HY-131.1); such a body needs its
-    /// boundary (H-17, H-18) and gets its directory now. The value limit bounds a body that is one value and the text
-    /// values of a body read in chunks, the part limit its parts and the file limit each of its files (HY-131.7 to
-    /// HY-131.12). It creates the directory, so it takes the wait token `Io` (spec F-17).
-    #[allow(
-        clippy::too_many_arguments,
-        reason = "I-2: the wait token comes first, before the seven values that a host gives for a body"
-    )]
+    /// boundary (H-17, H-18) and gets its directory now. The limits are those of [`BodyLimits`]. It creates the
+    /// directory, so it takes the wait token `Io` (spec F-17).
     pub fn new(
         _io: Io,
         content_type: Option<&[u8]>,
         content_length: Option<&[u8]>,
-        limit: u64,
         stream: bool,
-        value_limit: u64,
-        part_limit: u64,
-        file_limit: u64,
+        limits: BodyLimits,
     ) -> Result<Self, Error> {
+        let BodyLimits { limit, value_limit, part_limit, file_limit } = limits;
         if let Some(value) = content_length {
             match parse_content_length(value)? {
                 Some(length) if length <= limit => {}
@@ -152,8 +159,8 @@ impl RequestBody {
                 let limits = Limits { value: Some(value_limit), parts: Some(part_limit), file: Some(file_limit) };
                 let parts = Parts {
                     directory: create_directory()?,
-                    fields: Fields::default(),
-                    files: Files::default(),
+                    fields: Named::default(),
+                    files: Named::default(),
                     target: None,
                     stored: 0,
                 };
@@ -280,8 +287,8 @@ impl RequestBody {
     }
 
     /// The body as one value: no bytes for a body read in chunks, and none after a failure.
-    pub fn held(&self) -> &[u8] {
-        &self.chunks
+    pub fn held(&self) -> Vec<u8> {
+        self.chunks.clone()
     }
 
     /// True when the body is read in chunks.
@@ -302,12 +309,12 @@ impl RequestBody {
         if !self.finished {
             return Err(Error::NotFinished);
         }
-        Ok(Form::new(parts.fields.clone(), parts.files.clone()))
+        Ok(Form { fields: parts.fields.entries().to_vec(), files: parts.files.entries().to_vec() })
     }
 
     /// The directory of the files of a body read in chunks, or `None` for a body held as one value (HY-131.13).
-    pub fn directory(&self) -> Option<&Path> {
-        self.parts.as_ref().map(|parts| parts.directory.as_path())
+    pub fn directory(&self) -> Option<PathBuf> {
+        self.parts.as_ref().map(|parts| parts.directory.clone())
     }
 
     /// Removes the directory with the files that were not moved (HY-131.14, H-20). The directory belongs to this
