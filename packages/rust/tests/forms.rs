@@ -4,10 +4,13 @@
 
 mod common;
 
-use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
+use common::{
+    bytes, content_type, contract, fields_json, files_json, group, id, io, latin1, limits, raises, string, text,
+    Failures,
+};
 use polyspec_http_form::{
-    file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, BodyLimits, Collector, Error,
-    Form, Limits, MultipartReader, ReadError, RequestBody,
+    file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, Collector, Error, Form,
+    Limits, MultipartReader, ReadError, RequestBody,
 };
 use serde_json::{json, Value};
 
@@ -51,9 +54,9 @@ fn multipart() {
     let mut failures = Failures::default();
     for case in group(&cases, "multipart") {
         let label = id(case);
-        let kind = latin1(&case["type"]);
-        let kind = Some(kind.as_slice());
-        let body = latin1(&case["body"]);
+        let kind = content_type(case);
+        let kind = kind.as_deref();
+        let body = bytes(&case["body"]);
         let whole = form_result(read_body(kind, &body));
         if let Ok(Some(boundary)) = multipart_boundary(kind) {
             for chunks in divisions(&body) {
@@ -76,15 +79,12 @@ fn multipart() {
 /// F-12.1, F-12.2, F-12.3, spec F-12: the media type, the urlencoded type and the boundary of a content type,
 /// which `null` leaves out; a case with `raises` fails in all three.
 #[test]
-fn content_type() {
+fn content_type_cases() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
     for case in group(&cases, "content_type") {
         let label = id(case);
-        let value = match &case["type"] {
-            Value::Null => None,
-            other => Some(latin1(other)),
-        };
+        let value = content_type(case);
         let value = value.as_deref();
         let results = [
             ("mediaType", media_type(value).map(Value::from)),
@@ -109,13 +109,8 @@ fn held() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
     for case in group(&cases, "held") {
-        let limits = BodyLimits {
-            limit: number(case, "limit"),
-            value_limit: number(case, "valueLimit"),
-            part_limit: number(case, "partLimit"),
-            file_limit: number(case, "fileLimit"),
-        };
-        let result = form_result(read_held_body(Some(&latin1(&case["type"])), &latin1(&case["body"]), limits));
+        let kind = content_type(case);
+        let result = form_result(read_held_body(kind.as_deref(), &bytes(&case["body"]), limits(case)));
         for key in ["fields", "files", "raises"] {
             failures.compare(case, key, &result[key]);
         }
@@ -133,15 +128,7 @@ fn files_over_a_limit() {
     for case in group(&cases, "file_over") {
         let label = id(case);
         let Some(limits) = case["limits"].as_array() else { panic!("{label}: limits") };
-        if case.get("layer") == Some(&json!("binding")) {
-            // B-2: a limit that is no u64 is refused by the binding with invalid_number before the core.
-            for limit in limits {
-                assert!(limit.as_u64().is_none(), "{label}: {limit} is a u64, which the core reads");
-            }
-            assert_eq!(case["raises"]["kind"], json!("invalid_number"), "{label}");
-            continue;
-        }
-        let form = match read_body(Some(&latin1(&case["type"])), &latin1(&case["body"])) {
+        let form = match read_body(content_type(case).as_deref(), &bytes(&case["body"])) {
             Ok(form) => form,
             Err(error) => panic!("{label}: {error}"),
         };
@@ -160,18 +147,17 @@ fn files_over_a_limit() {
 /// The result of a body read in the given chunks: where it failed and with what, or its parts.
 fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     let label = id(case);
-    let content_length = case.get("contentLength").map(latin1);
+    let content_length = match &case["content_length"] {
+        Value::Null => None,
+        given => Some(latin1(given)),
+    };
+    let kind = content_type(case);
     let mut read = match RequestBody::new(
         io(),
-        Some(&latin1(&case["type"])),
+        kind.as_deref(),
         content_length.as_deref(),
         case["stream"] == json!(true),
-        BodyLimits {
-            limit: number(case, "limit"),
-            value_limit: number(case, "valueLimit"),
-            part_limit: number(case, "partLimit"),
-            file_limit: number(case, "fileLimit"),
-        },
+        limits(case),
     ) {
         Ok(read) => read,
         Err(error) => return json!({"stage": "new", "raises": raises(&error)}),
@@ -242,29 +228,117 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     result
 }
 
+/// The scenarios of a body read in chunks, `body`, and the cases of one call of RequestBody: `request_body.new` fails
+/// before the body, `request_body.feed` at a chunk (its chunk is the body, read in every division), and
+/// `request_body.finish` and `request_body.parts` right after the body is made (G-5).
 #[test]
 fn bodies() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
-    for case in group(&cases, "body") {
-        let label = id(case);
-        let body = latin1(&case["body"]);
-        let all = divisions(&body);
-        let whole = run_body(case, &all[0]);
-        for chunks in &all[1..] {
-            let divided = run_body(case, chunks);
-            if divided != whole {
-                failures.push(format!("{label}: {} chunks give {divided}, one chunk {whole}", chunks.len()));
-                break;
+    for (name, stage) in [("body", None), ("request_body.new", Some("new")), ("request_body.feed", Some("feed"))] {
+        for case in group(&cases, name) {
+            let label = id(case);
+            let body = match (case.get("body"), case.get("chunk")) {
+                (Some(body), _) | (None, Some(body)) => bytes(body),
+                (None, None) => Vec::new(),
+            };
+            let all = divisions(&body);
+            let whole = run_body(case, &all[0]);
+            for chunks in &all[1..] {
+                let divided = run_body(case, chunks);
+                if divided != whole {
+                    failures.push(format!("{label}: {} chunks give {divided}, one chunk {whole}", chunks.len()));
+                    break;
+                }
             }
+            for key in ["raises", "fields", "files", "afterRemoval"] {
+                failures.compare(case, key, &whole[key]);
+            }
+            match stage {
+                Some(stage) => failures.compare(&json!({"id": label, "stage": stage}), "stage", &whole["stage"]),
+                None => failures.compare(case, "stage", &whole["stage"]),
+            }
+            if let Some(held) = case.get("held") {
+                failures.compare(&json!({"id": label, "held": text(&bytes(held))}), "held", &whole["held"]);
+            }
+            if case.get("raises").is_none() {
+                assert!(whole.get("raises").is_none(), "{label}: failed with {whole}");
+            }
+            assert!(!string(case, "label").is_empty(), "{label}");
         }
-        for key in ["stage", "raises", "held", "fields", "files", "afterRemoval"] {
-            failures.compare(case, key, &whole[key]);
-        }
-        if case.get("raises").is_none() {
-            assert!(whole.get("raises").is_none(), "{label}: failed with {whole}");
-        }
-        assert!(!string(case, "label").is_empty(), "{label}");
     }
     failures.check("body");
+}
+
+/// A RequestBody made from the keys of its constructor (G-5).
+fn made(case: &Value) -> RequestBody {
+    let kind = content_type(case);
+    let content_length = match &case["content_length"] {
+        Value::Null => None,
+        given => Some(latin1(given)),
+    };
+    match RequestBody::new(
+        io(),
+        kind.as_deref(),
+        content_length.as_deref(),
+        case["stream"] == json!(true),
+        limits(case),
+    ) {
+        Ok(read) => read,
+        Err(error) => panic!("{}: {error}", id(case)),
+    }
+}
+
+/// F-24.4, F-9: finish and parts called on a body that was just made; the properties of a new body.
+#[test]
+fn one_call() {
+    let cases = contract("forms.json");
+    let mut failures = Failures::default();
+    for case in group(&cases, "request_body.finish") {
+        let mut read = made(case);
+        failures.compare(case, "raises", &failure(read.finish(io()).err()));
+        cleanup(read, case);
+    }
+    for case in group(&cases, "request_body.parts") {
+        let read = made(case);
+        failures.compare(case, "raises", &failure(read.parts().err()));
+        cleanup(read, case);
+    }
+    for case in group(&cases, "request_body.properties") {
+        let read = made(case);
+        failures.compare(
+            case,
+            "held",
+            &json!({"hex": read.held().iter().map(|b| format!("{b:02x}")).collect::<String>()}),
+        );
+        failures.compare(case, "size", &json!(read.size()));
+        failures.compare(case, "streamed", &json!(read.streamed()));
+        failures.compare(case, "directory", &json!(read.directory().map(|path| path.display().to_string())));
+        cleanup(read, case);
+    }
+    failures.check("one call");
+}
+
+fn failure(error: Option<Error>) -> Value {
+    match error {
+        Some(error) => raises(&error),
+        None => Value::Null,
+    }
+}
+
+/// F-12.3: a multipart type without a boundary, or with an empty one, fails multipartBoundary with no_boundary.
+#[test]
+fn boundary() {
+    let cases = contract("forms.json");
+    let mut failures = Failures::default();
+    for case in group(&cases, "boundary") {
+        failures.compare(case, "raises", &failure(multipart_boundary(content_type(case).as_deref()).err()));
+    }
+    failures.check("boundary");
+}
+
+fn cleanup(mut read: RequestBody, case: &Value) {
+    if let Err(error) = read.remove(io()) {
+        panic!("{}: {error}", id(case));
+    }
 }

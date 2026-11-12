@@ -10,7 +10,12 @@ content type is a media type, whose grammar is the rules MT-1 to MT-9 of the dep
 
 `contracts/fields.json` and `contracts/forms.json` hold the cases of these rules; `fields.json` holds the cases of
 urlencoded text, multipart bodies, bodies read in chunks and files made from bytes, and `forms.json` the cases of the
-other rules.
+other rules. A case follows the case convention of binding (G-5): its keys are the parameter names of the member that
+its group names in the interface contract, bytes are `{"hex": ...}`, a content type is a text whose characters are its
+bytes, and the limits are the record `limits`. A method of `RequestBody` takes its receiver from the keys of the
+constructor, so `request_body.feed` holds the failures of one chunk, `request_body.finish` and `request_body.parts` the
+failures of a body that was just made. A scenario of more than one call (`body` of `forms.json`, `streamed` of
+`fields.json`) is a case of the core's tests only.
 
 ## One implementation
 

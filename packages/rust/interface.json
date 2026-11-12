@@ -1435,26 +1435,6 @@
       "group": "file_over"
     },
     {
-      "member": "request_body.new",
-      "file": "contracts/forms.json",
-      "group": "body"
-    },
-    {
-      "member": "request_body.feed",
-      "file": "contracts/forms.json",
-      "group": "body"
-    },
-    {
-      "member": "request_body.finish",
-      "file": "contracts/forms.json",
-      "group": "body"
-    },
-    {
-      "member": "request_body.parts",
-      "file": "contracts/forms.json",
-      "group": "body"
-    },
-    {
       "member": "request_body.remove",
       "file": "contracts/fields.json",
       "group": "streamed"
@@ -1473,6 +1453,71 @@
       "member": "uploaded_file.move_to",
       "file": "contracts/fields.json",
       "group": "streamed"
+    },
+    {
+      "member": "forms.multipart_boundary",
+      "file": "contracts/forms.json",
+      "group": "boundary"
+    },
+    {
+      "member": "request_body.new",
+      "file": "contracts/forms.json",
+      "group": "request_body.new"
+    },
+    {
+      "member": "request_body.feed",
+      "file": "contracts/forms.json",
+      "group": "request_body.feed"
+    },
+    {
+      "member": "request_body.finish",
+      "file": "contracts/forms.json",
+      "group": "request_body.finish"
+    },
+    {
+      "member": "request_body.parts",
+      "file": "contracts/forms.json",
+      "group": "request_body.parts"
+    },
+    {
+      "member": "request_body.held",
+      "file": "contracts/forms.json",
+      "group": "request_body.properties"
+    },
+    {
+      "member": "request_body.size",
+      "file": "contracts/forms.json",
+      "group": "request_body.properties"
+    },
+    {
+      "member": "request_body.streamed",
+      "file": "contracts/forms.json",
+      "group": "request_body.properties"
+    },
+    {
+      "member": "request_body.directory",
+      "file": "contracts/forms.json",
+      "group": "request_body.properties"
+    },
+    {
+      "member": "uploaded_file.name",
+      "file": "contracts/fields.json",
+      "group": "uploaded"
+    },
+    {
+      "member": "uploaded_file.filename",
+      "file": "contracts/fields.json",
+      "group": "uploaded"
+    },
+    {
+      "member": "uploaded_file.content_type",
+      "file": "contracts/fields.json",
+      "group": "uploaded"
+    },
+    {
+      "member": "uploaded_file.size",
+      "file": "contracts/fields.json",
+      "group": "uploaded"
     }
   ]
 }

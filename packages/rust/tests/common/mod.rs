@@ -41,6 +41,38 @@ pub fn latin1(value: &Value) -> Vec<u8> {
     text.chars().map(|c| u8::try_from(u32::from(c)).unwrap_or_else(|_| panic!("{c:?} is no byte"))).collect()
 }
 
+/// Bytes of a case in the case convention of binding (G-5): `{"hex": ...}`.
+pub fn bytes(value: &Value) -> Vec<u8> {
+    let Some(hex) = value.get("hex").and_then(Value::as_str) else { panic!("{value} is no {{\"hex\"}}") };
+    (0..hex.len())
+        .step_by(2)
+        .map(|at| match hex.get(at..at + 2).map(|pair| u8::from_str_radix(pair, 16)) {
+            Some(Ok(byte)) => byte,
+            _ => panic!("{hex} is no hex"),
+        })
+        .collect()
+}
+
+/// The content type of a case, `null` for none (an `optional<latin1>` of G-5).
+pub fn content_type(case: &Value) -> Option<Vec<u8>> {
+    match case.get("content_type") {
+        Some(Value::Null) => None,
+        Some(value) => Some(latin1(value)),
+        None => panic!("{}: no content_type", id(case)),
+    }
+}
+
+/// The record `limits` of a case (T-4).
+pub fn limits(case: &Value) -> polyspec_http_form::BodyLimits {
+    let limits = &case["limits"];
+    polyspec_http_form::BodyLimits {
+        limit: number(limits, "limit"),
+        value_limit: number(limits, "value_limit"),
+        part_limit: number(limits, "part_limit"),
+        file_limit: number(limits, "file_limit"),
+    }
+}
+
 /// Bytes as a text whose characters are the bytes.
 pub fn text(bytes: &[u8]) -> String {
     bytes.iter().map(|&b| char::from(b)).collect()

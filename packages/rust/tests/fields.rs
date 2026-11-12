@@ -1,19 +1,22 @@
 //! Runs the cases of `contracts/fields.json`: urlencoded text (F-20), multipart bodies (F-21 to F-24), bodies read in
-//! chunks with their limits and files (F-9, F-10, F-11, F-25) and files made from bytes (F-22.2). A urlencoded text is
-//! the UTF-8 encoding of its JSON string, and a content type and a body are texts whose characters are their bytes. A
-//! case with `raises` gives that failure. A case that only a binding can run, because its input is no value of the
-//! core's types, is listed in the group `binding` of `contracts/forms.json` with its rule.
-
+//! chunks with their limits and files (F-9, F-10, F-11, F-25) and files made from bytes (F-22.2). A urlencoded text and
+//! a body are bytes in the case convention of binding (G-5, `{"hex": ...}`), a content type is a text whose characters
+//! are its bytes, and the limits are the record `limits`. A case with `raises` gives that failure. A case that only a
+//! binding can run, because its input is no value of the core's types, is listed in the group `binding` of
+//! `contracts/forms.json` with its rule.
 mod common;
 
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
+use common::{
+    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raises, string, text,
+    Failures,
+};
 use polyspec_http_form::{
-    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form,
-    Limits, MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
+    fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Collector, Error, Form, Limits,
+    MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
 };
 use serde_json::{json, Value};
 
@@ -76,7 +79,7 @@ fn urlencoded() {
     let list = group(&cases, "urlencoded");
     let mut failures = Failures::default();
     for case in list {
-        let read = parse_urlencoded(string(case, "text").as_bytes());
+        let read = parse_urlencoded(&bytes(&case["text"]));
         failures.compare(case, "raises", &failed(read.as_ref().err()));
         let (fields, names) = match &read {
             Ok(fields) => (fields_json(fields), json!(fields.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>())),
@@ -95,9 +98,9 @@ fn multipart() {
     let mut failures = Failures::default();
     for case in list {
         let label = id(case);
-        let kind = latin1(&case["type"]);
-        let kind = Some(kind.as_slice());
-        let body = latin1(&case["body"]);
+        let kind = content_type(case);
+        let kind = kind.as_deref();
+        let body = bytes(&case["body"]);
         failures.compare(case, "raises", &failed(fields_from_body(kind, &body).err().as_ref()));
         let whole = (
             match fields_from_body(kind, &body) {
@@ -172,23 +175,12 @@ fn streamed() {
             assert_eq!(case["move"], json!("type"), "{label}: only a path of another type is a binding case");
             continue;
         }
-        let kind = latin1(&case["type"]);
-        let kind = Some(kind.as_slice());
-        let body = latin1(&case["body"]);
+        let kind = content_type(case);
+        let kind = kind.as_deref();
+        let body = bytes(&case["body"]);
         let chunk = usize::try_from(number(case, "chunk")).unwrap_or_else(|_| panic!("{label}: chunk"));
-        let mut read = RequestBody::new(
-            io(),
-            kind,
-            None,
-            case["stream"] == json!(true),
-            BodyLimits {
-                limit: number(case, "limit"),
-                value_limit: number(case, "valueLimit"),
-                part_limit: number(case, "partLimit"),
-                file_limit: number(case, "fileLimit"),
-            },
-        )
-        .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let mut read = RequestBody::new(io(), kind, None, case["stream"] == json!(true), limits(case))
+            .unwrap_or_else(|error| panic!("{label}: {error}"));
         let place = scratch(label);
         // `stopped` is true when a chunk failed, after which the host reads no more (H-5).
         let mut stopped = None;
@@ -278,8 +270,8 @@ fn uploaded() {
         let file = UploadedFile::from_value(
             string(case, "name").to_owned(),
             string(case, "filename").to_owned(),
-            string(case, "contentType").to_owned(),
-            latin1(&case["content"]),
+            string(case, "content_type").to_owned(),
+            bytes(&case["content"]),
         )
         .unwrap_or_else(|error| panic!("{label}: {error}"));
         let content = file.content(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
