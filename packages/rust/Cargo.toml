@@ -1,5 +1,5 @@
 [package]
-name = "polyspec-http-forms"
+name = "polyspec-http-form"
 description = "Form value and multipart/form-data reading with one behavior for PHP, Python and Node"
 version.workspace = true
 edition.workspace = true

@@ -1,12 +1,12 @@
 {
-  "name": "polyspec/http-forms",
-  "description": "The http-forms library of polyspec as a PHP extension",
+  "name": "polyspec/http-form",
+  "description": "The http-form library of polyspec as a PHP extension",
   "type": "php-ext",
   "license": "MIT",
   "require": {
     "php": ">=8.4"
   },
   "php-ext": {
-    "extension-name": "polyspec_http_forms"
+    "extension-name": "polyspec_http_form"
   }
 }

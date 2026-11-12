@@ -1005,7 +1005,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "polyspec-http-forms"
+name = "polyspec-http-form"
 version = "0.1.0"
 dependencies = [
  "memchr",
@@ -1017,31 +1017,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "polyspec-http-forms-node"
+name = "polyspec-http-form-node"
 version = "0.1.0"
 dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
  "polyspec-bindgen-core",
- "polyspec-http-forms",
+ "polyspec-http-form",
 ]
 
 [[package]]
-name = "polyspec-http-forms-php-ext"
+name = "polyspec-http-form-php-ext"
 version = "0.1.0"
 dependencies = [
  "ext-php-rs",
  "polyspec-bindgen-core",
- "polyspec-http-forms",
+ "polyspec-http-form",
 ]
 
 [[package]]
-name = "polyspec-http-forms-python"
+name = "polyspec-http-form-python"
 version = "0.1.0"
 dependencies = [
  "polyspec-bindgen-core",
- "polyspec-http-forms",
+ "polyspec-http-form",
  "pyo3",
 ]
 

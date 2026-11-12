@@ -1,4 +1,4 @@
-# http-forms: rules and API
+# http-form: rules and API
 
 This library reads form values and `multipart/form-data` bodies: the `application/x-www-form-urlencoded` text of a
 query or a body, the values and files of a multipart body, a body read in chunks with its limits, and the files of a
@@ -14,7 +14,7 @@ other rules.
 
 ## One implementation
 
-- **F-1** Every rule is in the Rust crate `polyspec-http-forms` (`packages/rust/`): the urlencoded reader, the content
+- **F-1** Every rule is in the Rust crate `polyspec-http-form` (`packages/rust/`): the urlencoded reader, the content
   types, the header lines and parameters of a part, the state machine that reads a body in chunks, the value, part and
   file limits, the directory of a request, the writing, reading, moving and removal of its files, and the body of a
   request as its host reads it (`RequestBody`).
@@ -215,7 +215,7 @@ is no path, are the binding's (plan B-2, B-3).
 ## Files
 
 - **F-10** The directory of a request is created below the temporary directory of the system by `tempfile` with the name
-  `http-forms-` and random characters, which `tempfile` draws again when the name exists, and with the mode `0700`; the
+  `http-form-` and random characters, which `tempfile` draws again when the name exists, and with the mode `0700`; the
   content of a file part is written to a file of it as it arrives. Its files have the mode `0600` and are closed on
   `exec`. `RequestBody::remove()` removes the directory with the files that were not moved; the directory belongs to the
   request alone, so a directory that is gone fails with `not_found`, and after a removal a second call does nothing.
@@ -299,9 +299,10 @@ These are the decisions of a server that uses the library, which no rule of this
 
 - **F-18** The interface contract is `packages/rust/interface.json` (bindgen design I-1), in the schema of
   `@polyspec/bindgen`. It declares the members of the table above that a host uses (the functions, `Form`,
-  `RequestBody`, `UploadedFile`), the error classes `FormsValueError`, `FormsTypeError`, `FormsIoError`,
-  `FormsStoreError`, `FormsBusyError` and `FormsInternalError` of the categories of the table of Errors (design E-2),
-  the error class `PartialTargetError` of `partial_target`, and the differences from the earlier bindings in `changes`.
+  `RequestBody`, `UploadedFile`), the error classes `HttpFormValueError`, `HttpFormTypeError`, `HttpFormIoError`,
+  `HttpFormStoreError`, `HttpFormBusyError` and `HttpFormInternalError` of the categories of the table of Errors
+  (design E-2), the error class `PartialTargetError` of `partial_target`, and the differences from the earlier bindings
+  in `changes`.
   `MultipartReader`, `parse_multipart` and `parse_multipart_chunks` stay Rust API (F-3). `malformed_content_type` is a
   kind of this library, with the status 400 that a request with such a `Content-Type` gets; its error holds the failure
   of http-media-type (F-12), so the contract names no kind of that library and forwards no property of it. `RequestBody`
@@ -317,8 +318,8 @@ These are the decisions of a server that uses the library, which no rule of this
 - `make test`: the cases of `contracts/fields.json` and `contracts/forms.json` in the core; every multipart case and
   every body case is also read byte by byte and in two chunks divided at every position, and the reader holds between
   two chunks at most its bound (F-24.1, F-24.6). Random bodies with random limits give the result of the body read byte
-  by byte in every division (`HTTP_FORMS_ROUNDS`, 3000 by default). A move to another file system needs one at
-  `HTTP_FORMS_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
+  by byte in every division (`HTTP_FORM_ROUNDS`, 3000 by default). A move to another file system needs one at
+  `HTTP_FORM_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
   fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
 - `make bindings-check BINDGEN=<cli>`: the interface contract passes the contract check of `@polyspec/bindgen` with

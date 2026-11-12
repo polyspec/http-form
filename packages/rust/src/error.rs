@@ -282,7 +282,7 @@ impl fmt::Display for Error {
             Error::PartialTarget { failure, removal } => {
                 write!(f, "the file was not copied ({failure}), and its incomplete copy was not removed ({removal})")
             }
-            Error::Internal(what) => write!(f, "an invariant of http-forms does not hold: {what}"),
+            Error::Internal(what) => write!(f, "an invariant of http-form does not hold: {what}"),
         }
     }
 }

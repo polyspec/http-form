@@ -1,8 +1,8 @@
 {
   "schema": "polyspec/interface@1",
-  "library": "http-forms",
+  "library": "http-form",
   "core": {
-    "crate": "polyspec-http-forms",
+    "crate": "polyspec-http-form",
     "path": "packages/rust"
   },
   "targets": [
@@ -12,15 +12,15 @@
   ],
   "packages": {
     "php": {
-      "package": "polyspec/http-forms",
-      "namespace": "Polyspec\\HttpForms"
+      "package": "polyspec/http-form",
+      "namespace": "Polyspec\\HttpForm"
     },
     "python": {
-      "package": "polyspec-http-forms",
-      "module": "polyspec.http_forms"
+      "package": "polyspec-http-form",
+      "module": "polyspec.http_form"
     },
     "node": {
-      "package": "@polyspec/http-forms",
+      "package": "@polyspec/http-form",
       "entries": {
         ".": {
           "formats": [
@@ -38,34 +38,34 @@
   "errors": {
     "classes": {
       "value": {
-        "php": "Polyspec\\HttpForms\\FormsValueError",
-        "python": "FormsValueError",
-        "node": "FormsValueError"
+        "php": "Polyspec\\HttpForm\\HttpFormValueError",
+        "python": "HttpFormValueError",
+        "node": "HttpFormValueError"
       },
       "type": {
-        "php": "Polyspec\\HttpForms\\FormsTypeError",
-        "python": "FormsTypeError",
-        "node": "FormsTypeError"
+        "php": "Polyspec\\HttpForm\\HttpFormTypeError",
+        "python": "HttpFormTypeError",
+        "node": "HttpFormTypeError"
       },
       "io": {
-        "php": "Polyspec\\HttpForms\\FormsIoError",
-        "python": "FormsIoError",
-        "node": "FormsIoError"
+        "php": "Polyspec\\HttpForm\\HttpFormIoError",
+        "python": "HttpFormIoError",
+        "node": "HttpFormIoError"
       },
       "store": {
-        "php": "Polyspec\\HttpForms\\FormsStoreError",
-        "python": "FormsStoreError",
-        "node": "FormsStoreError"
+        "php": "Polyspec\\HttpForm\\HttpFormStoreError",
+        "python": "HttpFormStoreError",
+        "node": "HttpFormStoreError"
       },
       "busy": {
-        "php": "Polyspec\\HttpForms\\FormsBusyError",
-        "python": "FormsBusyError",
-        "node": "FormsBusyError"
+        "php": "Polyspec\\HttpForm\\HttpFormBusyError",
+        "python": "HttpFormBusyError",
+        "node": "HttpFormBusyError"
       },
       "internal": {
-        "php": "Polyspec\\HttpForms\\FormsInternalError",
-        "python": "FormsInternalError",
-        "node": "FormsInternalError"
+        "php": "Polyspec\\HttpForm\\HttpFormInternalError",
+        "python": "HttpFormInternalError",
+        "node": "HttpFormInternalError"
       }
     },
     "fixed": [
@@ -88,80 +88,80 @@
     ],
     "kinds": [
       {
-        "variant": "polyspec_http_forms::Error::Invalid",
+        "variant": "polyspec_http_form::Error::Invalid",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::HeaderLimit",
+        "variant": "polyspec_http_form::Error::HeaderLimit",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::NoBoundary",
+        "variant": "polyspec_http_form::Error::NoBoundary",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::MalformedContentType",
+        "variant": "polyspec_http_form::Error::MalformedContentType",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::InvalidContentLength",
+        "variant": "polyspec_http_form::Error::InvalidContentLength",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::BodyLimit",
+        "variant": "polyspec_http_form::Error::BodyLimit",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::ValueLimit",
+        "variant": "polyspec_http_form::Error::ValueLimit",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::PartLimit",
+        "variant": "polyspec_http_form::Error::PartLimit",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::FileLimit",
+        "variant": "polyspec_http_form::Error::FileLimit",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::NotFinished",
+        "variant": "polyspec_http_form::Error::NotFinished",
         "category": "type"
       },
       {
-        "variant": "polyspec_http_forms::Error::NotStreamed",
+        "variant": "polyspec_http_form::Error::NotStreamed",
         "category": "type"
       },
       {
-        "variant": "polyspec_http_forms::Error::Finished",
+        "variant": "polyspec_http_form::Error::Finished",
         "category": "type"
       },
       {
-        "variant": "polyspec_http_forms::Error::Moved",
+        "variant": "polyspec_http_form::Error::Moved",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::Exists",
+        "variant": "polyspec_http_form::Error::Exists",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::Removed",
+        "variant": "polyspec_http_form::Error::Removed",
         "category": "value"
       },
       {
-        "variant": "polyspec_http_forms::Error::Io",
+        "variant": "polyspec_http_form::Error::Io",
         "category": "io"
       },
       {
-        "variant": "polyspec_http_forms::Error::SourceLeft",
+        "variant": "polyspec_http_form::Error::SourceLeft",
         "category": "io"
       },
       {
-        "variant": "polyspec_http_forms::Error::PartialTarget",
+        "variant": "polyspec_http_form::Error::PartialTarget",
         "category": "io",
         "class": "partial_target_error"
       },
       {
-        "variant": "polyspec_http_forms::Error::Internal",
+        "variant": "polyspec_http_form::Error::Internal",
         "category": "internal"
       }
     ],
@@ -193,11 +193,11 @@
           "visibility": "public",
           "returns": "text",
           "raises": [
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::Error::removal_kind",
+            "path": "polyspec_http_form::Error::removal_kind",
             "receiver": "&self"
           }
         },
@@ -214,11 +214,11 @@
           },
           "optional_reason": "F-11",
           "raises": [
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::Error::removal_errno",
+            "path": "polyspec_http_form::Error::removal_errno",
             "receiver": "&self"
           }
         }
@@ -262,10 +262,10 @@
             }
           },
           "raises": [
-            "polyspec_http_forms::Error::Invalid"
+            "polyspec_http_form::Error::Invalid"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::parse_urlencoded"
+          "core": "polyspec_http_form::parse_urlencoded"
         },
         {
           "id": "forms.media_type",
@@ -289,10 +289,10 @@
           ],
           "returns": "text",
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType"
+            "polyspec_http_form::Error::MalformedContentType"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::media_type"
+          "core": "polyspec_http_form::media_type"
         },
         {
           "id": "forms.is_urlencoded",
@@ -316,10 +316,10 @@
           ],
           "returns": "bool",
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType"
+            "polyspec_http_form::Error::MalformedContentType"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::is_urlencoded"
+          "core": "polyspec_http_form::is_urlencoded"
         },
         {
           "id": "forms.multipart_boundary",
@@ -345,11 +345,11 @@
             "optional": "latin1"
           },
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary"
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::multipart_boundary",
+          "core": "polyspec_http_form::multipart_boundary",
           "optional_reason": "F-12.3"
         },
         {
@@ -383,14 +383,14 @@
             "unit": "form"
           },
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary",
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary",
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::read_body"
+          "core": "polyspec_http_form::read_body"
         },
         {
           "id": "forms.read_held_body",
@@ -433,18 +433,18 @@
             "unit": "form"
           },
           "raises": [
-            "polyspec_http_forms::Error::BodyLimit",
-            "polyspec_http_forms::Error::ValueLimit",
-            "polyspec_http_forms::Error::PartLimit",
-            "polyspec_http_forms::Error::FileLimit",
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary",
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::BodyLimit",
+            "polyspec_http_form::Error::ValueLimit",
+            "polyspec_http_form::Error::PartLimit",
+            "polyspec_http_form::Error::FileLimit",
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary",
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::read_held_body"
+          "core": "polyspec_http_form::read_held_body"
         },
         {
           "id": "forms.fields_from_body",
@@ -485,14 +485,14 @@
             }
           },
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary",
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary",
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::fields_from_body"
+          "core": "polyspec_http_form::fields_from_body"
         },
         {
           "id": "forms.files_from_body",
@@ -535,14 +535,14 @@
             }
           },
           "raises": [
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary",
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary",
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
-          "core": "polyspec_http_forms::files_from_body"
+          "core": "polyspec_http_form::files_from_body"
         },
         {
           "id": "forms.file_over",
@@ -582,7 +582,7 @@
           "returns": "bool",
           "raises": [],
           "wait": "none",
-          "core": "polyspec_http_forms::file_over"
+          "core": "polyspec_http_form::file_over"
         },
         {
           "id": "forms.header_limit",
@@ -594,7 +594,7 @@
           "visibility": "public",
           "type": "uint",
           "value": 8192,
-          "core": "polyspec_http_forms::HEADER_LIMIT"
+          "core": "polyspec_http_form::HEADER_LIMIT"
         }
       ]
     },
@@ -607,7 +607,7 @@
       "kind": "record",
       "visibility": "public",
       "origin": "generated",
-      "core_type": "polyspec_http_forms::Form",
+      "core_type": "polyspec_http_form::Form",
       "fields": [
         {
           "name": [
@@ -655,7 +655,7 @@
       "kind": "record",
       "visibility": "public",
       "origin": "generated",
-      "core_type": "polyspec_http_forms::BodyLimits",
+      "core_type": "polyspec_http_form::BodyLimits",
       "fields": [
         {
           "name": [
@@ -700,7 +700,7 @@
       "kind": "class",
       "visibility": "public",
       "origin": "generated",
-      "core_type": "polyspec_http_forms::RequestBody",
+      "core_type": "polyspec_http_form::RequestBody",
       "cleanup": "request_body.remove",
       "members": [
         {
@@ -749,16 +749,16 @@
             }
           ],
           "raises": [
-            "polyspec_http_forms::Error::InvalidContentLength",
-            "polyspec_http_forms::Error::BodyLimit",
-            "polyspec_http_forms::Error::MalformedContentType",
-            "polyspec_http_forms::Error::NoBoundary",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::InvalidContentLength",
+            "polyspec_http_form::Error::BodyLimit",
+            "polyspec_http_form::Error::MalformedContentType",
+            "polyspec_http_form::Error::NoBoundary",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::new"
+            "path": "polyspec_http_form::RequestBody::new"
           }
         },
         {
@@ -779,20 +779,20 @@
           ],
           "returns": "none",
           "raises": [
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::BodyLimit",
-            "polyspec_http_forms::Error::ValueLimit",
-            "polyspec_http_forms::Error::PartLimit",
-            "polyspec_http_forms::Error::FileLimit",
-            "polyspec_http_forms::Error::Finished",
-            "polyspec_http_forms::Error::Removed",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::BodyLimit",
+            "polyspec_http_form::Error::ValueLimit",
+            "polyspec_http_form::Error::PartLimit",
+            "polyspec_http_form::Error::FileLimit",
+            "polyspec_http_form::Error::Finished",
+            "polyspec_http_form::Error::Removed",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::feed",
+            "path": "polyspec_http_form::RequestBody::feed",
             "receiver": "&mut self"
           }
         },
@@ -806,19 +806,19 @@
           "parameters": [],
           "returns": "none",
           "raises": [
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::BodyLimit",
-            "polyspec_http_forms::Error::ValueLimit",
-            "polyspec_http_forms::Error::PartLimit",
-            "polyspec_http_forms::Error::FileLimit",
-            "polyspec_http_forms::Error::Removed",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::BodyLimit",
+            "polyspec_http_form::Error::ValueLimit",
+            "polyspec_http_form::Error::PartLimit",
+            "polyspec_http_form::Error::FileLimit",
+            "polyspec_http_form::Error::Removed",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::finish",
+            "path": "polyspec_http_form::RequestBody::finish",
             "receiver": "&mut self"
           }
         },
@@ -834,20 +834,20 @@
             "unit": "form"
           },
           "raises": [
-            "polyspec_http_forms::Error::NotStreamed",
-            "polyspec_http_forms::Error::NotFinished",
-            "polyspec_http_forms::Error::Invalid",
-            "polyspec_http_forms::Error::HeaderLimit",
-            "polyspec_http_forms::Error::BodyLimit",
-            "polyspec_http_forms::Error::ValueLimit",
-            "polyspec_http_forms::Error::PartLimit",
-            "polyspec_http_forms::Error::FileLimit",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::NotStreamed",
+            "polyspec_http_form::Error::NotFinished",
+            "polyspec_http_form::Error::Invalid",
+            "polyspec_http_form::Error::HeaderLimit",
+            "polyspec_http_form::Error::BodyLimit",
+            "polyspec_http_form::Error::ValueLimit",
+            "polyspec_http_form::Error::PartLimit",
+            "polyspec_http_form::Error::FileLimit",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::parts",
+            "path": "polyspec_http_form::RequestBody::parts",
             "receiver": "&self"
           }
         },
@@ -863,7 +863,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::held",
+            "path": "polyspec_http_form::RequestBody::held",
             "receiver": "&self"
           }
         },
@@ -879,7 +879,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::size",
+            "path": "polyspec_http_form::RequestBody::size",
             "receiver": "&self"
           }
         },
@@ -895,7 +895,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::streamed",
+            "path": "polyspec_http_form::RequestBody::streamed",
             "receiver": "&self"
           }
         },
@@ -914,7 +914,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::directory",
+            "path": "polyspec_http_form::RequestBody::directory",
             "receiver": "&self"
           }
         },
@@ -928,12 +928,12 @@
           "parameters": [],
           "returns": "none",
           "raises": [
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::RequestBody::remove",
+            "path": "polyspec_http_form::RequestBody::remove",
             "receiver": "&mut self"
           }
         }
@@ -949,7 +949,7 @@
       "kind": "class",
       "visibility": "public",
       "origin": "generated",
-      "core_type": "polyspec_http_forms::UploadedFile",
+      "core_type": "polyspec_http_form::UploadedFile",
       "members": [
         {
           "id": "uploaded_file.new",
@@ -990,11 +990,11 @@
             }
           ],
           "raises": [
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::from_value"
+            "path": "polyspec_http_form::UploadedFile::from_value"
           }
         },
         {
@@ -1008,7 +1008,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::name",
+            "path": "polyspec_http_form::UploadedFile::name",
             "receiver": "&self"
           }
         },
@@ -1023,7 +1023,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::filename",
+            "path": "polyspec_http_form::UploadedFile::filename",
             "receiver": "&self"
           }
         },
@@ -1039,7 +1039,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::content_type",
+            "path": "polyspec_http_form::UploadedFile::content_type",
             "receiver": "&self"
           }
         },
@@ -1054,7 +1054,7 @@
           "raises": [],
           "wait": "none",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::size",
+            "path": "polyspec_http_form::UploadedFile::size",
             "receiver": "&self"
           }
         },
@@ -1068,14 +1068,14 @@
           "parameters": [],
           "returns": "bytes",
           "raises": [
-            "polyspec_http_forms::Error::Moved",
-            "polyspec_http_forms::Error::Removed",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Moved",
+            "polyspec_http_form::Error::Removed",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::content",
+            "path": "polyspec_http_form::UploadedFile::content",
             "receiver": "&self"
           }
         },
@@ -1098,17 +1098,17 @@
           ],
           "returns": "none",
           "raises": [
-            "polyspec_http_forms::Error::Exists",
-            "polyspec_http_forms::Error::Moved",
-            "polyspec_http_forms::Error::Removed",
-            "polyspec_http_forms::Error::Io",
-            "polyspec_http_forms::Error::SourceLeft",
-            "polyspec_http_forms::Error::PartialTarget",
-            "polyspec_http_forms::Error::Internal"
+            "polyspec_http_form::Error::Exists",
+            "polyspec_http_form::Error::Moved",
+            "polyspec_http_form::Error::Removed",
+            "polyspec_http_form::Error::Io",
+            "polyspec_http_form::Error::SourceLeft",
+            "polyspec_http_form::Error::PartialTarget",
+            "polyspec_http_form::Error::Internal"
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_forms::UploadedFile::move_to",
+            "path": "polyspec_http_form::UploadedFile::move_to",
             "receiver": "&self"
           }
         }
@@ -1119,7 +1119,7 @@
     {
       "id": "module",
       "rule": "P-1",
-      "reason": "P-1: one form of names in every repository: Composer polyspec/http-forms, PHP Polyspec\\HttpForms, PyPI polyspec-http-forms, Python polyspec.http_forms in the PEP 420 namespace polyspec, npm @polyspec/http-forms",
+      "reason": "P-1, plan N-1, N-2: one form of names in every repository, after the repository name http-form (a noun in the singular, with the prefix http- for a part of an HTTP message): Composer polyspec/http-form, PHP Polyspec\\HttpForm, PyPI polyspec-http-form, Python polyspec.http_form in the PEP 420 namespace polyspec, npm @polyspec/http-form, PHP extension polyspec_http_form",
       "symbol": "Polyspec\\Forms, http_forms",
       "from": {
         "php": "namespace Polyspec\\Forms",
@@ -1378,7 +1378,7 @@
     {
       "id": "errors",
       "rule": "E-2",
-      "reason": "E-2, B-4: every error is a class of its category, FormsValueError to FormsInternalError, with kind, status and errno",
+      "reason": "E-2, B-4: every error is a class of its category, HttpFormValueError to HttpFormInternalError (the <Library> of a class is the PascalCase of the repository name), with kind, status and errno",
       "symbol": "FormError",
       "from": {
         "php": "InvalidArgumentException, RuntimeException",

@@ -12,13 +12,13 @@ use crate::multipart::count;
 use crate::{Error, IoFailure};
 
 #[cfg(not(any(target_os = "linux", target_vendor = "apple")))]
-compile_error!("http-forms moves a file without replacing its target on Linux and macOS only (spec F-14)");
+compile_error!("http-form moves a file without replacing its target on Linux and macOS only (spec F-14)");
 
 /// Creates a new directory below the temporary directory of the system that only its user can open (F-10). The
-/// name is `http-forms-` and random characters, which `tempfile` draws again when the name exists.
+/// name is `http-form-` and random characters, which `tempfile` draws again when the name exists.
 pub(crate) fn create_directory() -> Result<PathBuf, Error> {
     let mut builder = tempfile::Builder::new();
-    builder.prefix("http-forms-");
+    builder.prefix("http-form-");
     #[cfg(unix)]
     builder.permissions(std::os::unix::fs::PermissionsExt::from_mode(0o700));
     Ok(builder.tempdir()?.keep())
@@ -366,7 +366,7 @@ mod tests {
 
     impl Place {
         fn new(name: &str) -> Place {
-            let directory = std::env::temp_dir().join(format!("http-forms-store-{}-{name}", std::process::id()));
+            let directory = std::env::temp_dir().join(format!("http-form-store-{}-{name}", std::process::id()));
             match fs::remove_dir_all(&directory) {
                 Ok(()) => {}
                 Err(error) => assert_eq!(error.kind(), io::ErrorKind::NotFound),

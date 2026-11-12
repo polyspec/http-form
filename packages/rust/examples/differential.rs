@@ -4,7 +4,7 @@
 
 use std::io::{self, BufRead, Write};
 
-use polyspec_http_forms::{
+use polyspec_http_form::{
     fields_from_body, files_from_body, multipart_boundary, parse_multipart_chunks, Fields, Files,
 };
 use serde_json::{json, Value};

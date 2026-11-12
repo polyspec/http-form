@@ -10,8 +10,8 @@ NODE ?= node
 BINDGEN ?=
 
 # The core crate is named, because the binding crates of the workspace need make bindings first (plan 9c, bindgen L-2).
-CORE := polyspec-http-forms
-BINDING_CRATES := polyspec-http-forms-node polyspec-http-forms-python polyspec-http-forms-php-ext
+CORE := polyspec-http-form
+BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
 .PHONY: test clippy fmt check differential bindings bindings-check lint-bindings test-bindings
 

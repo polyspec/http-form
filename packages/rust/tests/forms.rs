@@ -5,7 +5,7 @@
 mod common;
 
 use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
-use polyspec_http_forms::{
+use polyspec_http_form::{
     file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, BodyLimits, Collector, Error,
     Form, Limits, MultipartReader, ReadError, RequestBody,
 };
@@ -206,7 +206,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
                     for (_, files) in &form.files {
                         for file in files {
                             after.push(file.content(io()).map_err(|error| raises(&error)));
-                            let target = std::env::temp_dir().join(format!("http-forms-after-{}", std::process::id()));
+                            let target = std::env::temp_dir().join(format!("http-form-after-{}", std::process::id()));
                             after
                                 .push(file.move_to(io(), &target).map(|()| Vec::new()).map_err(|error| raises(&error)));
                         }

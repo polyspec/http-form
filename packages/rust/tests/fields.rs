@@ -11,7 +11,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use common::{contract, fields_json, files_json, group, id, io, latin1, number, raises, string, text, Failures};
-use polyspec_http_forms::{
+use polyspec_http_form::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, BodyLimits, Collector, Error, Form,
     Limits, MultipartReader, ReadError, RequestBody, UploadedFile, HEADER_LIMIT,
 };
@@ -135,7 +135,7 @@ fn multipart() {
 }
 
 fn scratch(label: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("http-forms-case-{}-{label}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("http-form-case-{}-{label}", std::process::id()));
     match fs::remove_dir_all(&path) {
         Ok(()) => {}
         Err(error) => assert_eq!(error.kind(), std::io::ErrorKind::NotFound, "{label}"),

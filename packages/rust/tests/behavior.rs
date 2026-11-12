@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use bindgen_core::Io;
-use polyspec_http_forms::{
+use polyspec_http_form::{
     BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile,
 };
 
@@ -111,12 +111,12 @@ fn the_directory_of_a_request() {
 }
 
 /// H-9: a move to another file system copies, writes to the disk and removes the source. The other file system is
-/// `HTTP_FORMS_OTHER_FS`, or `/dev/shm`; the test fails when it is on the file system of the temporary directory.
+/// `HTTP_FORM_OTHER_FS`, or `/dev/shm`; the test fails when it is on the file system of the temporary directory.
 #[cfg(target_os = "linux")]
 #[test]
 fn a_move_to_another_file_system_copies() {
     use std::os::unix::fs::MetadataExt;
-    let other = PathBuf::from(match std::env::var_os("HTTP_FORMS_OTHER_FS") {
+    let other = PathBuf::from(match std::env::var_os("HTTP_FORM_OTHER_FS") {
         Some(path) => path,
         None => "/dev/shm".into(),
     });
@@ -134,7 +134,7 @@ fn a_move_to_another_file_system_copies() {
         Err(error) => panic!("{error}"),
     };
     let Some(file) = last(&form.files, "f") else { panic!("no file") };
-    let target = other.join(format!("http-forms-move-{}", std::process::id()));
+    let target = other.join(format!("http-form-move-{}", std::process::id()));
     assert_eq!(file.move_to(io(), &target), Ok(()));
     assert_eq!(fs::read(&target).map_err(|error| error.kind()), Ok(b"payload".to_vec()));
     match fs::read_dir(directory(&read)) {
@@ -288,9 +288,9 @@ fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
 #[test]
 fn random_bodies_do_not_depend_on_their_chunks() {
     let mut random = Random(0x9e37_79b9_7f4a_7c15);
-    let rounds = match std::env::var("HTTP_FORMS_ROUNDS").map(|text| text.parse::<usize>()) {
+    let rounds = match std::env::var("HTTP_FORM_ROUNDS").map(|text| text.parse::<usize>()) {
         Ok(Ok(rounds)) => rounds,
-        Ok(Err(error)) => panic!("HTTP_FORMS_ROUNDS: {error}"),
+        Ok(Err(error)) => panic!("HTTP_FORM_ROUNDS: {error}"),
         Err(_) => 3000,
     };
     let mut failed = 0;

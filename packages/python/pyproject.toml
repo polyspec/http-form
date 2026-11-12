@@ -4,10 +4,10 @@ requires = ["maturin>=1.16,<2"]
 build-backend = "maturin"
 
 [project]
-name = "polyspec-http-forms"
+name = "polyspec-http-form"
 version = "0.1.0"
 requires-python = ">=3.14"
 
 [tool.maturin]
-module-name = "polyspec.http_forms._native"
+module-name = "polyspec.http_form._native"
 python-source = "generated/python"

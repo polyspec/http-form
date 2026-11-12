@@ -1,49 +1,8 @@
-# Changelog
 
-## Unreleased
-
-- The core crate is `polyspec-http-forms` in `packages/rust/`, and the rules are `docs/spec/forms.md`.
-- Every failure is an `Error` with a kind, a status and, for the file system, an `errno`; nothing fails as `None`.
-- `RequestBody::new` takes the `Content-Length`; `feed` fails with the first failure of the body, by the position of
-  its byte, and every later call gives it; the host calls `finish`; `parts` fails with `not_finished`,
-  `not_streamed` or the failure of the body.
-- A `multipart/form-data` type without a boundary fails with `no_boundary`; a quoted parameter value without its end
-  fails; long header lines fail with `header_limit`.
-- `Form::file_over(limit)` replaces `largest_file`.
-- `UploadedFile` is shared by its clones; a move never replaces a file, copies only to another file system, and
-  reports `source_left` and `partial_target`; after `remove` a stored file fails with `removed`.
-- The directory of a request is made by `tempfile` and named `http-forms-…`; a body dropped without `remove`
-  removes it.
-- The hand-written PHP, Python and Node bindings are no longer built.
-- `RequestBody::new`, `feed`, `finish`, `remove`, `UploadedFile::content` and `move_to` take the wait token
-  `bindgen_core::Io` as their first argument (F-17).
-- The `Content-Type` is read as a media type by `polyspec-http-media-type` (F-12): `media_type()` gives `mediaType()`;
-  a value that is no media type, such as one with a line feed or the byte A0 around it, an unclosed quote, a parameter
-  given twice or the empty value, fails with `malformed_content_type` (400) and holds the failure of the media type;
-  spaces before an urlencoded type are ignored; a quoted boundary unquotes its quoted pairs. The content type
-  arguments are `Option<&[u8]>`, where `None` is a request without `Content-Type`.
-- A part without `Content-Disposition`, of another disposition type or without `name`, and a parameter given twice in
-  a `Content-Disposition`, fail the body with `invalid` instead of being ignored (F-16).
-- `HEADER_LIMIT` is a `u64`. `Error` implements `bindgen_core::Kinds` and `RequestBody` implements
-  `bindgen_core::Cleanup`.
-- The interface contract is `packages/rust/interface.json` (F-18).
-- A part with two `Content-Disposition` or two `Content-Type` lines, or with a header line without `:`, fails the
-  body with `invalid` (F-16). The parameters that a form type does not define are ignored (I-7).
-- The core takes and returns the types of the interface contract: `RequestBody::new` takes the limits as the record
-  `BodyLimits`; `Fields` and `Files` are lists of a name and its values; `Form` is a record and `file_over(files,
-  limit)` a function; `Collector` collects the pieces of a reader; `held`, `directory` and the names of an
-  `UploadedFile` are owned values; `Error::removal_kind` and `removal_errno` give the removal of `partial_target`.
-- The crate needs Rust 1.99.0, the pinned toolchain; `rustfmt.toml` fixes the format, which `make fmt` checks.
-- The rules of reading form values, files and bodies in chunks are the rules F-20 to F-25 and F-27 of
-  `docs/spec/forms.md`, and their cases are `contracts/fields.json` and `contracts/forms.json`, no longer a copy;
-  `sources.json` and its check are gone. A part header longer than 8192 bytes fails with `header_limit` in those cases
-  too, and the messages of `moved`, `exists` and `removed` name F-11 and F-10.
-- `polyspec-http-media-type` and `polyspec-bindgen-core` are Git dependencies of the branch `v1/rust-core`, whose
-  commit `Cargo.lock` pins, and no longer paths of another checkout.
-- `read_held_body(content type, body, limits)` reads a body held as one value with the part limit and the file limit
-  of a body read in chunks, as well as its body limit and value limit (F-25.6). The message of a path that is no
-  path names F-11.
-- The hand-written bindings and their runners are in `legacy/`, which is not built or released.
-- One root workspace holds the core crate and the thin binding packages `packages/ts`, `packages/python` and
-  `packages/php-ext` that bindgen scaffold writes; `make bindings` and `make bindings-check` generate and check them,
-  and the core targets name the core crate.
+- The repository is http-form: a repository is named after what it handles, in the singular, with the prefix `http-`
+  for a part of an HTTP message (plan N-1, N-2). Every name follows it (design P-1, E-2): the crate `polyspec-http-form`,
+  the Composer package `polyspec/http-form` with the namespace `Polyspec\HttpForm` and the extension
+  `polyspec_http_form`, the PyPI package `polyspec-http-form` with the module `polyspec.http_form`, the npm package
+  `@polyspec/http-form` and the error classes `HttpForm<Category>Error`; the directory of a request starts with
+  `http-form-` (F-10), and the test settings are `HTTP_FORM_ROUNDS` and `HTTP_FORM_OTHER_FS`. The contract records the
+  change in `changes`. The hand-written bindings under `legacy/` keep their names.

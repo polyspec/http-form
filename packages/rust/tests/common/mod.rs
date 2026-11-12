@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use bindgen_core::Io;
-use polyspec_http_forms::{Error, Fields, Files};
+use polyspec_http_form::{Error, Fields, Files};
 use serde_json::{json, Value};
 
 /// The repository root.
