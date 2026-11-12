@@ -1,13 +1,19 @@
 [package]
-name = "http-forms"
+name = "polyspec-http-forms"
 description = "Form value and multipart/form-data reading with one behavior for PHP, Python and Node"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 memchr = "2"
+rustix = { version = "1", default-features = false, features = ["fs", "std"] }
+tempfile = "3"
 
 [dev-dependencies]
 serde_json = "1"
+sha2 = "0.10"

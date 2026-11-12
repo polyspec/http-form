@@ -1,12 +1,26 @@
+# The workspace holds the core crate. The hand-written bindings in php/, python/ and node/ are not members: the core API
+# changed (docs/spec/forms.md) and the bindings are generated from the interface contract instead (plan G-6, L-2).
 [workspace]
 resolver = "2"
-members = ["core", "python", "node", "php"]
+members = ["packages/rust"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 rust-version = "1.85"
+
+# R-1: a failure reaches its caller as an error with a kind (P-2), and no input becomes a plausible value (P-3). Every
+# remaining use carries `#[allow(..., reason = "<rule id>")]`. The methods that turn an absence or a failure into a
+# value are in clippy.toml.
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+let_underscore_must_use = "deny"
+let_underscore_untyped = "deny"
+disallowed_methods = "deny"
+# H-22: every conversion of a number checks its range.
+as_conversions = "deny"
 
 [profile.release]
 lto = true

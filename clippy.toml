@@ -1,0 +1,14 @@
+# R-1: methods that turn an absence or a failure into a value. A remaining use carries
+# `#[allow(clippy::disallowed_methods, reason = "<rule id>")]`.
+disallowed-methods = [
+    { path = "core::option::Option::unwrap_or", reason = "R-1: an absence becomes a value" },
+    { path = "core::option::Option::unwrap_or_default", reason = "R-1: an absence becomes a value" },
+    { path = "core::option::Option::unwrap_or_else", reason = "R-1: an absence becomes a value" },
+    { path = "core::option::Option::map_or", reason = "R-1: an absence becomes a value" },
+    { path = "core::option::Option::map_or_else", reason = "R-1: an absence becomes a value" },
+    { path = "core::result::Result::ok", reason = "R-1: a failure becomes an absence" },
+    { path = "core::result::Result::map_or", reason = "R-1: a failure becomes a value" },
+    { path = "core::result::Result::map_or_else", reason = "R-1: a failure becomes a value" },
+]
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true

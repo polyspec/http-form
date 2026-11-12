@@ -1,0 +1,341 @@
+//! The body of a request as its host reads it (HY-59, HY-131): the bytes of a body that is one value, or the parts
+//! of a `multipart/form-data` body that is read in chunks, whose files are in a directory of the request.
+
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+
+use crate::multipart::count;
+use crate::store::{create_directory, create_file};
+use crate::{content, Error, Fields, Files, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
+
+/// The file part that is written.
+struct Target {
+    name: String,
+    filename: String,
+    content_type: String,
+    path: PathBuf,
+    file: File,
+    size: u64,
+}
+
+/// The parts of a body read in chunks, with the file that is written.
+struct Parts {
+    directory: PathBuf,
+    fields: Fields,
+    files: Files,
+    target: Option<Target>,
+    stored: u64,
+}
+
+impl Parts {
+    /// Takes a piece of the reader: a value, or the start, the data or the end of a file, which it writes to a new
+    /// file of the directory (HY-131.13). A piece out of the order of a reader is `internal` (H-8).
+    fn take(&mut self, piece: Piece<'_>) -> Result<(), Error> {
+        match piece {
+            Piece::Field { name, value } => self.fields.push(name, value),
+            Piece::FileStart { name, filename, content_type } => {
+                if self.target.is_some() {
+                    return Err(Error::Internal("a file started before the end of the file before it"));
+                }
+                self.stored = self.stored.checked_add(1).ok_or(Error::Internal("files"))?;
+                let path = self.directory.join(self.stored.to_string());
+                let file = match create_file(&path) {
+                    Ok(file) => file,
+                    // H-8: the directory is new and its files are numbered, so the path cannot exist.
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                        return Err(Error::Internal("a new file of the directory of a request exists"))
+                    }
+                    Err(error) => return Err(error.into()),
+                };
+                self.target = Some(Target { name, filename, content_type, path, file, size: 0 });
+            }
+            Piece::FileData(bytes) => {
+                let Some(target) = self.target.as_mut() else {
+                    return Err(Error::Internal("data of a file came without its start"));
+                };
+                target.file.write_all(bytes)?;
+                target.size = target.size.checked_add(count(bytes.len())?).ok_or(Error::Internal("size"))?;
+            }
+            Piece::FileEnd => {
+                let Some(target) = self.target.take() else {
+                    return Err(Error::Internal("the end of a file came without its start"));
+                };
+                // H-22: `std` does not report a failure of close(2), so the size of the file is checked before it is
+                // closed.
+                let written = target.file.metadata()?.len();
+                if written != target.size {
+                    return Err(Error::Io(IoFailure::found(format!(
+                        "the file holds {written} bytes where {} were written",
+                        target.size
+                    ))));
+                }
+                drop(target.file);
+                let file = UploadedFile::stored(
+                    target.name.clone(),
+                    target.filename,
+                    target.content_type,
+                    target.path,
+                    target.size,
+                );
+                self.files.push(target.name, file);
+            }
+        }
+        Ok(())
+    }
+}
+
+/// The value of a `Content-Length` (RFC 9110 8.6): one or more digits. A number beyond 64 bits is beyond any limit.
+fn parse_content_length(value: &[u8]) -> Result<Option<u64>, Error> {
+    if value.is_empty() || !value.iter().all(u8::is_ascii_digit) {
+        return Err(Error::InvalidContentLength);
+    }
+    let mut number: u64 = 0;
+    for &digit in value {
+        let next = number.checked_mul(10).and_then(|tens| tens.checked_add(u64::from(digit - b'0')));
+        match next {
+            Some(next) => number = next,
+            None => return Ok(None),
+        }
+    }
+    Ok(Some(number))
+}
+
+/// Reads the chunks of a request body.
+pub struct RequestBody {
+    limit: u64,
+    value_limit: u64,
+    reader: Option<MultipartReader>,
+    parts: Option<Parts>,
+    chunks: Vec<u8>,
+    length: u64,
+    failure: Option<Error>,
+    finished: bool,
+    removed: bool,
+}
+
+impl RequestBody {
+    /// Starts the body of the content type with the body limit.
+    ///
+    /// `content_type` is the value of `Content-Type`, or `None` without one. `content_length` is the value of the `Content-Length` field as the host received it, or `None` without one; a
+    /// value that is not a number fails with `invalid_content_length`, and a number above the limit fails with
+    /// `body_limit` before any byte is read (HY-131.18). `stream` tells whether a multipart body is read in chunks,
+    /// which it is when `multipart/form-data` is a form type of the application (HY-131.1); such a body needs its
+    /// boundary (H-17, H-18) and gets its directory now. The value limit bounds a body that is one value and the text
+    /// values of a body read in chunks, the part limit its parts and the file limit each of its files (HY-131.7 to
+    /// HY-131.12).
+    pub fn new(
+        content_type: Option<&[u8]>,
+        content_length: Option<&[u8]>,
+        limit: u64,
+        stream: bool,
+        value_limit: u64,
+        part_limit: u64,
+        file_limit: u64,
+    ) -> Result<Self, Error> {
+        if let Some(value) = content_length {
+            match parse_content_length(value)? {
+                Some(length) if length <= limit => {}
+                Some(_) | None => return Err(Error::BodyLimit),
+            }
+        }
+        let boundary = if stream { content::boundary(content_type)? } else { None };
+        let (reader, parts) = match boundary {
+            Some(boundary) => {
+                let limits = Limits { value: Some(value_limit), parts: Some(part_limit), file: Some(file_limit) };
+                let parts = Parts {
+                    directory: create_directory()?,
+                    fields: Fields::default(),
+                    files: Files::default(),
+                    target: None,
+                    stored: 0,
+                };
+                (Some(MultipartReader::new(&boundary, limits)), Some(parts))
+            }
+            None => (None, None),
+        };
+        Ok(RequestBody {
+            limit,
+            value_limit,
+            reader,
+            parts,
+            chunks: Vec::new(),
+            length: 0,
+            failure: None,
+            finished: false,
+            removed: false,
+        })
+    }
+
+    /// Reads the next chunk (H-5). The first failure of the body is its error and the error of every later call, and
+    /// the body then holds no bytes and no open file (HY-131.11): `invalid` and `header_limit` (HY-42, HY-113.16,
+    /// HY-131.5), the limits, and a failure of the file system. The first failure is the one whose byte comes first
+    /// (spec F-8); the body limit is passed at the byte after `limit` bytes, and a chunk that passes it is read up to
+    /// the limit first, so that a failure before that byte is the error.
+    pub fn feed(&mut self, chunk: &[u8]) -> Result<(), Error> {
+        if let Some(failure) = &self.failure {
+            return Err(failure.clone());
+        }
+        if self.removed {
+            return Err(Error::Removed);
+        }
+        if self.finished {
+            return Err(Error::Finished);
+        }
+        let result = self.read(chunk);
+        if let Err(error) = &result {
+            self.failure = Some(error.clone());
+            self.chunks = Vec::new();
+            self.release();
+        }
+        result
+    }
+
+    fn read(&mut self, chunk: &[u8]) -> Result<(), Error> {
+        let start = self.length;
+        self.length = start.checked_add(count(chunk.len())?).ok_or(Error::BodyLimit)?;
+        // The bytes of the chunk before the body limit.
+        let within = match usize::try_from(self.limit.saturating_sub(start)) {
+            Ok(within) if within < chunk.len() => Some(within),
+            Ok(_) | Err(_) => None,
+        };
+        let (Some(reader), Some(parts)) = (self.reader.as_mut(), self.parts.as_mut()) else {
+            // A body held as one value: the body limit and the value limit (HY-131.7); at one byte the body limit
+            // comes first.
+            let value = match usize::try_from(self.value_limit.saturating_sub(start)) {
+                Ok(value) if value < chunk.len() => Some(value),
+                Ok(_) | Err(_) => None,
+            };
+            return match (within, value) {
+                (Some(within), Some(value)) if value < within => Err(Error::ValueLimit),
+                (Some(_), _) => Err(Error::BodyLimit),
+                (None, Some(_)) => Err(Error::ValueLimit),
+                (None, None) => {
+                    self.chunks.extend_from_slice(chunk);
+                    Ok(())
+                }
+            };
+        };
+        let read = match within {
+            Some(within) => &chunk[..within],
+            None => chunk,
+        };
+        let result = reader.feed_with(read, |piece| parts.take(piece));
+        match result {
+            Ok(()) => {}
+            Err(ReadError::Form(error) | ReadError::Sink(error)) => return Err(error),
+            Err(ReadError::SinkFailed) => return Err(Error::Internal("the body read on after a failure")),
+        }
+        match within {
+            Some(_) => Err(Error::BodyLimit),
+            None => Ok(()),
+        }
+    }
+
+    /// Ends the body, as its host calls it after the last chunk (H-4): a body read in chunks that did not end with
+    /// the `--` after a delimiter fails with `invalid` (HY-131.5). A second call gives the result of the first.
+    pub fn finish(&mut self) -> Result<(), Error> {
+        if let Some(failure) = &self.failure {
+            return Err(failure.clone());
+        }
+        if self.removed {
+            return Err(Error::Removed);
+        }
+        self.finished = true;
+        let Some(reader) = self.reader.as_mut() else {
+            return Ok(());
+        };
+        let result = match reader.finish() {
+            Ok(()) => Ok(()),
+            Err(ReadError::Form(error)) => Err(error),
+            Err(ReadError::Sink(never)) => match never {},
+            Err(ReadError::SinkFailed) => Err(Error::Internal("the body ended after a failure")),
+        };
+        if let Err(error) = &result {
+            self.failure = Some(error.clone());
+            self.release();
+        }
+        result
+    }
+
+    /// Closes the file of a part whose end was not read.
+    fn release(&mut self) {
+        if let Some(parts) = self.parts.as_mut() {
+            parts.target = None;
+        }
+    }
+
+    /// The number of bytes that were given.
+    pub fn size(&self) -> u64 {
+        self.length
+    }
+
+    /// The body as one value: no bytes for a body read in chunks, and none after a failure.
+    pub fn held(&self) -> &[u8] {
+        &self.chunks
+    }
+
+    /// True when the body is read in chunks.
+    pub fn streamed(&self) -> bool {
+        self.reader.is_some()
+    }
+
+    /// The text fields and the files of a body read in chunks (H-4). Fails with `not_streamed` for a body held as one
+    /// value, with the first failure of the body, and with `not_finished` before `finish`. Every call gives the same
+    /// files, which share their state (H-16).
+    pub fn parts(&self) -> Result<Form, Error> {
+        let Some(parts) = self.parts.as_ref() else {
+            return Err(Error::NotStreamed);
+        };
+        if let Some(failure) = &self.failure {
+            return Err(failure.clone());
+        }
+        if !self.finished {
+            return Err(Error::NotFinished);
+        }
+        Ok(Form::new(parts.fields.clone(), parts.files.clone()))
+    }
+
+    /// The directory of the files of a body read in chunks, or `None` for a body held as one value (HY-131.13).
+    pub fn directory(&self) -> Option<&Path> {
+        self.parts.as_ref().map(|parts| parts.directory.as_path())
+    }
+
+    /// Removes the directory with the files that were not moved (HY-131.14, H-20). The directory belongs to this
+    /// request only, so a directory that is gone fails with `not_found`; after a removal a second call does nothing.
+    /// A stored file of the body is then `removed` (H-16), and a later chunk fails with `removed`.
+    pub fn remove(&mut self) -> Result<(), Error> {
+        self.release();
+        let Some(parts) = self.parts.as_ref() else {
+            return Ok(());
+        };
+        if self.removed {
+            return Ok(());
+        }
+        fs::remove_dir_all(&parts.directory)?;
+        self.removed = true;
+        for (_, files) in parts.files.entries() {
+            for file in files {
+                file.mark_removed()?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Drop for RequestBody {
+    /// Removes the directory of a body whose host did not call `remove` (plan B-10). A failure here has no caller to
+    /// reach (spec F-10); the binding reports the missing call.
+    fn drop(&mut self) {
+        if self.removed {
+            return;
+        }
+        if let Some(parts) = self.parts.as_mut() {
+            parts.target = None;
+            match fs::remove_dir_all(&parts.directory) {
+                Ok(()) => {}
+                Err(error) => drop(error),
+            }
+        }
+    }
+}
