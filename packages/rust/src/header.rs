@@ -1,5 +1,5 @@
-//! Content types (HY-57.10, HY-113.11; see `content.rs`), header lines and header parameters (HY-113.12 to
-//! HY-113.14).
+//! Header lines and the parameters of a `Content-Disposition` (HY-113.12 to HY-113.14, spec F-6, F-16). A content type
+//! is a media type, which `content.rs` reads with `polyspec-http-media-type` (spec F-12).
 //!
 //! Every function reads bytes. A blank is a space or a tab; no other byte, such as a no-break space, separates
 //! anything, and a name is compared without case for ASCII letters only.
@@ -37,15 +37,15 @@ fn head(text: &[u8]) -> &[u8] {
 }
 
 /// The text before the first `;` without the spaces and tabs at both ends, with the ASCII letters in lower case: the
-/// type of a `Content-Disposition` (HY-113.13) and of a content type (HY-113.11).
+/// type of a `Content-Disposition` (HY-113.13).
 fn disposition_type(value: &[u8]) -> Vec<u8> {
     trim_blanks(head(value)).to_ascii_lowercase()
 }
 
 /// Returns the parameters of a header value after the first `;` in their order: each follows a `;` and blanks, its name runs up to its
 /// `=`, and its value is a quoted string without its quotes or the text up to the next `;`, space or tab
-/// (HY-113.13, HY-113.14). A text before a `;` without a `=` is no parameter. A quoted value without its end fails
-/// (H-18) with `None`.
+/// (HY-113.13, HY-113.14). A text before a `;` without a `=` is no parameter. A quoted value without its end (F-6) and
+/// a parameter whose name, compared without case, a parameter before it has (F-16) fail with `None`.
 fn parameters(text: &[u8]) -> Option<Parameters> {
     let length = text.len();
     let mut index = find(text, 0, b';');
@@ -80,58 +80,32 @@ fn parameters(text: &[u8]) -> Option<Parameters> {
             }
             value = text[start..at].to_vec();
         }
-        // HY-113.13: the first parameter of a name counts; a later one is an ignored input (spec I-4).
-        if !found.iter().any(|(known, _)| *known == name) {
-            found.push((name, value));
+        // F-16: a parameter given twice makes the value invalid (RFC 6266, section 4.1).
+        if found.iter().any(|(known, _)| *known == name) {
+            return None;
         }
+        found.push((name, value));
         index = find(text, at, b';');
     }
     Some(found)
 }
 
-/// The value of the first parameter of a name.
+/// The value of the parameter of a name.
 pub fn parameter<'a>(parameters: &'a Parameters, name: &[u8]) -> Option<&'a [u8]> {
     parameters.iter().find(|(known, _)| known == name).map(|(_, value)| value.as_slice())
 }
 
-/// The disposition type of a `Content-Disposition` (HY-113.13) and its parameters, or `Error::Invalid` for a quoted
-/// value without its end (H-18).
-pub fn disposition(value: &[u8]) -> Result<(Vec<u8>, Parameters), Error> {
-    match parameters(value) {
-        Some(found) => Ok((disposition_type(value), found)),
+/// The `name` and the parameters of the `Content-Disposition` of a part (HY-113.13, F-16): its type is `form-data`
+/// and it has a `name` parameter, or the part fails with `Error::Invalid` (RFC 7578, section 4.2); a quoted value
+/// without its end (F-6) and a parameter given twice (F-16) fail likewise.
+pub fn form_data(value: &[u8]) -> Result<(Vec<u8>, Parameters), Error> {
+    let found = parameters(value).ok_or(Error::Invalid)?;
+    if disposition_type(value) != b"form-data" {
+        return Err(Error::Invalid);
+    }
+    match parameter(&found, b"name") {
+        Some(name) => Ok((name.to_vec(), found)),
         None => Err(Error::Invalid),
-    }
-}
-
-/// True when the content type starts with `application/x-www-form-urlencoded`, compared without case, followed by
-/// spaces or tabs and then `;` or the end (HY-57.10).
-pub fn is_urlencoded(content_type: &[u8]) -> bool {
-    const TYPE: &[u8] = b"application/x-www-form-urlencoded";
-    let Some(start) = content_type.get(..TYPE.len()) else {
-        return false;
-    };
-    if !start.eq_ignore_ascii_case(TYPE) {
-        return false;
-    }
-    let rest = &content_type[TYPE.len()..];
-    match rest.iter().find(|&&byte| !blank(byte)) {
-        Some(&byte) => byte == b';',
-        None => true,
-    }
-}
-
-/// The boundary of a content type whose text before the first `;`, without the blanks around it and compared
-/// without case, is `multipart/form-data` (HY-113.11): `None` for another type, the `boundary` parameter, or
-/// `no_boundary` when it is missing or empty (H-17) and `malformed_content_type` when a parameter is a quoted value
-/// without its end (H-18).
-pub fn boundary(content_type: &[u8]) -> Result<Option<Vec<u8>>, Error> {
-    if disposition_type(content_type) != b"multipart/form-data" {
-        return Ok(None);
-    }
-    let found = parameters(content_type).ok_or(Error::MalformedContentType)?;
-    match parameter(&found, b"boundary") {
-        Some(value) if !value.is_empty() => Ok(Some(value.to_vec())),
-        Some(_) | None => Err(Error::NoBoundary),
     }
 }
 

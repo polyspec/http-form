@@ -93,9 +93,9 @@ pub enum Error {
     HeaderLimit,
     /// `no_boundary` (400): a `multipart/form-data` content type without a boundary or with an empty one (H-17).
     NoBoundary,
-    /// `malformed_content_type` (400): the parameters of a `multipart/form-data` content type hold a quoted value
-    /// without its end (H-18).
-    MalformedContentType,
+    /// `malformed_content_type` (400): the `Content-Type` is no media type (spec F-12). It holds the failure of
+    /// `polyspec_http_media_type::parse` (MT-4), which has no status because its caller decides it (MT-8.1).
+    MalformedContentType(polyspec_http_media_type::Error),
     /// `invalid_content_length` (400): a `Content-Length` that is not one or more digits (RFC 9110 8.6).
     InvalidContentLength,
     /// `body_limit` (413): the body passed the body limit (HY-59.4, HY-131.11, HY-131.18).
@@ -141,7 +141,7 @@ impl Error {
             Error::Invalid => "invalid",
             Error::HeaderLimit => "header_limit",
             Error::NoBoundary => "no_boundary",
-            Error::MalformedContentType => "malformed_content_type",
+            Error::MalformedContentType(_) => "malformed_content_type",
             Error::InvalidContentLength => "invalid_content_length",
             Error::BodyLimit => "body_limit",
             Error::ValueLimit => "value_limit",
@@ -167,7 +167,7 @@ impl Error {
             Error::Invalid
             | Error::HeaderLimit
             | Error::NoBoundary
-            | Error::MalformedContentType
+            | Error::MalformedContentType(_)
             | Error::InvalidContentLength => Some(400),
             Error::BodyLimit | Error::ValueLimit | Error::PartLimit | Error::FileLimit => Some(413),
             Error::NotFinished
@@ -191,7 +191,7 @@ impl Error {
             Error::Invalid
             | Error::HeaderLimit
             | Error::NoBoundary
-            | Error::MalformedContentType
+            | Error::MalformedContentType(_)
             | Error::InvalidContentLength
             | Error::BodyLimit
             | Error::ValueLimit
@@ -228,8 +228,8 @@ impl fmt::Display for Error {
             Error::Invalid => f.write_str("the form fails with HY-42"),
             Error::HeaderLimit => f.write_str("the header lines of a part are longer than 8192 bytes (HY-113.16)"),
             Error::NoBoundary => f.write_str("a multipart/form-data content type has no boundary (HY-113.11)"),
-            Error::MalformedContentType => {
-                f.write_str("a parameter of the content type is a quoted string without its end (HY-113.14)")
+            Error::MalformedContentType(_) => {
+                f.write_str("the Content-Type is not a media type of RFC 9110, section 8.3.1 (MT-4)")
             }
             Error::InvalidContentLength => f.write_str("the Content-Length is not a number of bytes (RFC 9110 8.6)"),
             Error::BodyLimit => f.write_str("the body passed the body limit"),
@@ -254,4 +254,12 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+    /// The failure of `polyspec_http_media_type::parse` that `malformed_content_type` holds (spec F-12).
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::MalformedContentType(failure) => Some(failure),
+            _ => None,
+        }
+    }
+}

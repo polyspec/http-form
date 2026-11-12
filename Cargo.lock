@@ -179,11 +179,16 @@ version = "0.1.0"
 dependencies = [
  "memchr",
  "polyspec-bindgen-core",
+ "polyspec-http-media-type",
  "rustix",
  "serde_json",
  "sha2",
  "tempfile",
 ]
+
+[[package]]
+name = "polyspec-http-media-type"
+version = "0.0.1"
 
 [[package]]
 name = "proc-macro2"

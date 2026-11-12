@@ -15,7 +15,7 @@ use std::convert::Infallible;
 
 use memchr::memmem::Finder;
 
-use crate::header::{disposition, header_value, parameter};
+use crate::header::{form_data, header_value, parameter};
 use crate::Error;
 
 /// The largest header of a part in bytes (HY-113.16).
@@ -98,7 +98,7 @@ enum Stopped {
 
 /// What the part that is read is.
 enum Part {
-    /// A part that is neither a value nor a file (HY-113.6).
+    /// No part: before the header lines of a part are read (F-16: every part is a value or a file).
     None,
     /// A text value, and the length of its content that is known to be the start of UTF-8 text.
     Value { name: String, content: Vec<u8>, valid: usize },
@@ -339,35 +339,25 @@ impl MultipartReader {
         sink: &mut impl FnMut(Piece<'_>) -> Result<(), E>,
     ) -> Result<(), ReadError<E>> {
         self.part = Part::None;
+        // F-16: a part has a `Content-Disposition` of the type `form-data` with a `name`, or it fails the body.
         let parsed = match header_value(lines, b"content-disposition") {
-            Some(value) => disposition(value).map(Some),
-            None => Ok(None),
+            Some(value) => form_data(value),
+            None => Err(Error::Invalid),
         };
         // H-5: the name of a value counts for the value limit at the end of the header lines, the byte that also
         // reveals any failure of HY-42 of the header lines; at one byte a limit comes before HY-42.
-        if let Ok(Some((kind, found))) = &parsed {
-            if kind == b"form-data" && parameter(found, b"filename").is_none() {
-                if let Some(raw_name) = parameter(found, b"name") {
-                    self.add_value_bytes(count(raw_name.len()).map_err(ReadError::Form)?)?;
-                }
+        if let Ok((raw_name, found)) = &parsed {
+            if parameter(found, b"filename").is_none() {
+                self.add_value_bytes(count(raw_name.len()).map_err(ReadError::Form)?)?;
             }
         }
         // HY-131.5: a header line that starts with the delimiter fails the body.
         if lines.iter().any(|line| line.starts_with(&self.delimiter)) {
             return Err(ReadError::Form(Error::Invalid));
         }
-        // HY-113.6: a part without `Content-Disposition`, without a `name` or of another disposition type is
-        // neither a value nor a file; its header lines and content are an ignored input (spec I-3).
-        let Some((kind, found)) = parsed.map_err(ReadError::Form)? else {
-            return Ok(());
-        };
-        let Some(raw_name) = parameter(&found, b"name") else {
-            return Ok(());
-        };
-        if kind != b"form-data" {
-            return Ok(());
-        }
-        let name = utf8(raw_name).ok_or(ReadError::Form(Error::Invalid))?;
+        let (raw_name, found) = parsed.map_err(ReadError::Form)?;
+        let name = utf8(&raw_name).ok_or(ReadError::Form(Error::Invalid))?;
+        // HY-113.7: `filename*` is not read; it is an ignored input (spec I-4).
         match parameter(&found, b"filename") {
             Some(filename) => {
                 let content_type = match header_value(lines, b"content-type") {
@@ -403,8 +393,8 @@ impl MultipartReader {
         let length = count(data.len()).map_err(ReadError::Form)?;
         let needle = self.separator.needle();
         match &mut self.part {
-            // HY-113.6: the content of a part that is neither a value nor a file (spec I-3).
-            Part::None => Ok(()),
+            // F-16: content is read only after the header lines of a value or a file.
+            Part::None => Err(ReadError::Form(Error::Internal("content of no part"))),
             Part::Value { content, valid, .. } => {
                 let over = match self.limits.value {
                     Some(limit) => past(limit, self.value_bytes, data.len()),
@@ -454,7 +444,7 @@ impl MultipartReader {
 
     fn part_ended<E>(&mut self, sink: &mut impl FnMut(Piece<'_>) -> Result<(), E>) -> Result<(), ReadError<E>> {
         match std::mem::replace(&mut self.part, Part::None) {
-            Part::None => Ok(()),
+            Part::None => Err(ReadError::Form(Error::Internal("the end of no part"))),
             Part::Value { name, content, valid } => {
                 // HY-57.5: a value whose content ends inside a UTF-8 sequence fails at the end of its content.
                 if valid != content.len() {

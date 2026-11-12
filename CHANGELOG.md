@@ -17,3 +17,10 @@
 - The hand-written PHP, Python and Node bindings are no longer built.
 - `RequestBody::new`, `feed`, `finish`, `remove`, `UploadedFile::content` and `move_to` take the wait token
   `bindgen_core::Io` as their first argument (F-17).
+- The `Content-Type` is read as a media type by `polyspec-http-media-type` (F-12): `media_type()` gives `mediaType()`;
+  a value that is no media type, such as one with a line feed or the byte A0 around it, an unclosed quote, a parameter
+  given twice or the empty value, fails with `malformed_content_type` (400) and holds the failure of the media type;
+  spaces before an urlencoded type are ignored; a quoted boundary unquotes its quoted pairs. The content type
+  arguments are `Option<&[u8]>`, where `None` is a request without `Content-Type`.
+- A part without `Content-Disposition`, of another disposition type or without `name`, and a parameter given twice in
+  a `Content-Disposition`, fail the body with `invalid` instead of being ignored (F-16).

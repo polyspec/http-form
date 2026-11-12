@@ -13,6 +13,7 @@ workspace = true
 memchr = "2"
 # The wait token `Io` of a function that does blocking I/O (bindgen design I-2 (4), spec F-17).
 polyspec-bindgen-core = { path = "../../../bindgen/packages/core/rust" }
+polyspec-http-media-type = { path = "../../../http-media-type/packages/rust" }
 rustix = { version = "1", default-features = false, features = ["fs", "std"] }
 tempfile = "3"
 

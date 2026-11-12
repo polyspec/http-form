@@ -7,7 +7,10 @@ mod common;
 use std::path::Path;
 
 use common::{contract, io, fields_json, files_json, group, id, latin1, number, raises, string, text, Failures};
-use polyspec_http_forms::{multipart_boundary, read_body, Error, Form, Limits, MultipartReader, ReadError, RequestBody};
+use polyspec_http_forms::{
+    is_urlencoded, media_type, multipart_boundary, read_body, Error, Form, Limits, MultipartReader, ReadError,
+    RequestBody,
+};
 use serde_json::{json, Value};
 
 /// The divisions of a body: whole, byte by byte, and in two chunks at every position.
@@ -70,6 +73,36 @@ fn multipart() {
         assert!(keys > 0, "{label}: no expectation");
     }
     failures.check("multipart");
+}
+
+/// HY-59.11, HY-57.10, HY-113.11, spec F-12: the media type, the urlencoded type and the boundary of a content type,
+/// which `null` leaves out; a case with `raises` fails in all three.
+#[test]
+fn content_type() {
+    let cases = contract("forms.json");
+    let mut failures = Failures::default();
+    for case in group(&cases, "content_type") {
+        let label = id(case);
+        let value = match &case["type"] {
+            Value::Null => None,
+            other => Some(latin1(other)),
+        };
+        let value = value.as_deref();
+        let results = [
+            ("mediaType", media_type(value).map(Value::from)),
+            ("urlencoded", is_urlencoded(value).map(Value::from)),
+            ("boundary", multipart_boundary(value).map(|boundary| Value::from(boundary.map(|b| text(&b))))),
+        ];
+        for (key, result) in results {
+            match (result, case.get("raises")) {
+                (Ok(actual), None) => failures.compare(case, key, &actual),
+                (Err(error), Some(_)) => failures.compare(case, "raises", &raises(&error)),
+                (Ok(actual), Some(_)) => failures.push(format!("{label}: {key} gives {actual} and does not fail")),
+                (Err(error), None) => failures.push(format!("{label}: {key} fails with {}", error.kind())),
+            }
+        }
+    }
+    failures.check("content_type");
 }
 
 #[test]

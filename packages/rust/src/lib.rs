@@ -22,13 +22,21 @@ pub use fields::{Fields, Files, Form, Named};
 pub use multipart::{Event, Limits, MultipartReader, Piece, ReadError, HEADER_LIMIT};
 pub use store::UploadedFile;
 
-/// True when the content type is `application/x-www-form-urlencoded` (HY-57.10).
+/// The media type of a content type, its type and subtype in lowercase without parameters, or the empty text for a
+/// request without `Content-Type` (HY-59.11); HY-59.7 compares it with the form types. A value that is no media type
+/// fails with `malformed_content_type` (spec F-12).
+pub fn media_type(content_type: Option<&[u8]>) -> Result<String, Error> {
+    content::media_type(content_type)
+}
+
+/// True when the media type of the content type is `application/x-www-form-urlencoded` (HY-57.10, spec F-12).
 pub fn is_urlencoded(content_type: Option<&[u8]>) -> Result<bool, Error> {
     content::is_urlencoded(content_type)
 }
 
 /// The boundary of a content type (HY-113.11): `None` for a type other than `multipart/form-data` and for a request
-/// without `Content-Type`; for that type its boundary, or `no_boundary` (H-17) or `malformed_content_type` (H-18).
+/// without `Content-Type`; for that type its boundary, or `no_boundary` (F-7). A value that is no media type fails
+/// with `malformed_content_type` (spec F-12).
 pub fn multipart_boundary(content_type: Option<&[u8]>) -> Result<Option<Vec<u8>>, Error> {
     content::boundary(content_type)
 }
