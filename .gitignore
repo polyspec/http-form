@@ -1,5 +1,5 @@
 /target/
-/python/http_forms/*.so
-/node/lib/
-/php/lib/
+/legacy/python/http_forms/*.so
+/legacy/node/lib/
+/legacy/php/lib/
 __pycache__/

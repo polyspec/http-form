@@ -43,3 +43,4 @@
 - `read_held_body(content type, body, limits)` reads a body held as one value with the part limit and the file limit
   of a body read in chunks, as well as its body limit and value limit (F-25.6). The message of a path that is no
   path names F-11.
+- The hand-written bindings and their runners are in `legacy/`, which is not built or released.

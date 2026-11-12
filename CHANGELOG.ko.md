@@ -21,3 +21,4 @@
 - form 값, 파일, 조각으로 읽는 본문의 규칙은 `docs/spec/forms.md`의 F-20~F-25와 F-27이고, 그 case는 사본이 아닌 `contracts/fields.json`과 `contracts/forms.json`이다. `sources.json`과 그 검사는 없어졌다. 8192바이트보다 긴 part header는 그 case에서도 `header_limit`로 실패하고, `moved`, `exists`, `removed`의 메시지는 F-11과 F-10을 가리킨다.
 - `polyspec-http-media-type`과 `polyspec-bindgen-core`는 다른 checkout의 경로가 아니라 branch `v1/rust-core`의 Git 의존이며 `Cargo.lock`이 커밋을 고정한다.
 - `read_held_body(content type, body, limits)`는 한 값으로 보관한 본문을 body 한도와 value 한도에 더해 조각으로 읽는 본문의 part 한도와 file 한도로 읽는다(F-25.6). 경로가 아닌 값의 메시지는 F-11을 가리킨다.
+- 손으로 쓴 바인딩과 그 runner는 `legacy/`에 있고 빌드하거나 배포하지 않는다.

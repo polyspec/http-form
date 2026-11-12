@@ -1,8 +1,7 @@
 # Every check of this repository is a target here.
 #
-# The bindings are generated from the interface contract (plan G-6); the hand-written bindings in php/, python/ and
-# node/ are not workspace members and are not built, so the targets that ran the cases through them are gone until
-# the generated bindings exist.
+# The bindings are generated from the interface contract (plan G-6); the hand-written bindings of an earlier API are in
+# legacy/, which no target builds.
 
 CARGO ?= cargo
 PYTHON ?= python3

@@ -9,7 +9,7 @@ packages/rust/   the Rust crate polyspec-http-forms: every rule, and interface.j
 docs/spec/       forms.md: the rules, the errors and the API
 contracts/       fields.json and forms.json: the cases of the rules
 conformance/     the differential test against hyper's Python reader
-php/ python/ node/  hand-written bindings of an earlier API; not built, replaced by generated bindings
+legacy/          the hand-written bindings of an earlier API and their runners; not built
 ```
 
 ## Use
