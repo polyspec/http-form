@@ -7,7 +7,7 @@ PYTHON ?= python3
 NODE ?= node
 RESULTS := target/conformance
 
-.PHONY: build test conformance differential clippy check
+.PHONY: build test conformance differential clippy check bench
 
 build:
 	$(CARGO) build --release --locked
@@ -35,3 +35,15 @@ differential: build
 	PYTHONPATH=python $(PYTHON) conformance/differential.py $(REFERENCE) $${BODIES:-200000}
 
 check: clippy test conformance
+
+# HYPER is the directory packages/server of a checkout of hyper. The benchmark times hyper's readers and the bindings on
+# a complex urlencoded form, a complex multipart form and a 50 MiB attachment; it reports and never fails.
+bench: build
+	test -n "$(HYPER)" || (echo "make bench HYPER=<hyper>/packages/server" && exit 2)
+	rm -rf target/bench && mkdir -p target/bench/data target/bench/ts
+	$(PYTHON) bench/generate.py target/bench/data
+	cp $(HYPER)/ts/src/*.ts target/bench/ts/
+	sed -i.orig -E "s#from '\./([a-z-]+)\.js'#from './\1.ts'#" target/bench/ts/*.ts
+	$(PYTHON) bench/bench.py $(HYPER)/python/src target/bench/data
+	$(NODE) --experimental-strip-types --no-warnings bench/bench.mts $(CURDIR)/target/bench/ts target/bench/data $(CURDIR)/node/lib/http-forms.linux-x64-gnu.node
+	$(PHP) -d memory_limit=1G -d extension=$(CURDIR)/php/lib/http_forms.so bench/bench.php $(HYPER)/php/src target/bench/data

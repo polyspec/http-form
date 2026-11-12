@@ -13,7 +13,7 @@ mod urlencoded;
 
 pub use body::RequestBody;
 pub use fields::{Fields, Files, Form, Named};
-pub use multipart::{Event, Limits, MultipartReader, HEADER_LIMIT};
+pub use multipart::{Event, Limits, MultipartReader, Piece, ReadError, HEADER_LIMIT};
 pub use store::{FileError, UploadedFile, EXISTS, MOVED, NOT_A_STRING};
 
 use std::fmt;
@@ -86,11 +86,7 @@ pub fn multipart_boundary(content_type: &[u8]) -> Option<Vec<u8>> {
 
 /// Reads a whole `multipart/form-data` body without limits, the files as values (HY-113, HY-131).
 pub fn parse_multipart(body: &[u8], boundary: &[u8]) -> Result<Form, FormError> {
-    let mut reader = MultipartReader::new(boundary, Limits::default());
-    let mut form = Form::default();
-    form.collect(reader.feed(body)?);
-    reader.finish()?;
-    Ok(form)
+    parse_multipart_chunks([body], boundary)
 }
 
 /// The form values of a body: of an urlencoded body, or the text fields of a multipart body; a body of another type
@@ -122,7 +118,15 @@ pub fn parse_multipart_chunks<'a>(
     let mut reader = MultipartReader::new(boundary, Limits::default());
     let mut form = Form::default();
     for chunk in chunks {
-        form.collect(reader.feed(chunk)?);
+        reader
+            .feed_with(chunk, |piece| {
+                form.take(piece);
+                Ok::<(), std::convert::Infallible>(())
+            })
+            .map_err(|error| match error {
+                ReadError::Form(error) => error,
+                ReadError::Sink(never) => match never {},
+            })?;
     }
     reader.finish()?;
     Ok(form)

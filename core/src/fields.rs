@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::{Event, UploadedFile};
+use crate::{Event, Piece, UploadedFile};
 
 /// An ordered map from each name, in the order of its first occurrence, to its values in request order.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,6 +78,22 @@ impl Form {
     /// A form of fields and files.
     pub fn new(fields: Fields, files: Files) -> Self {
         Form { fields, files, open: None }
+    }
+
+    /// Adds a piece of a reader, as `collect` adds an event.
+    pub fn take(&mut self, piece: Piece<'_>) {
+        match piece {
+            Piece::FileData(bytes) => {
+                if let Some(open) = self.open.as_mut() {
+                    open.3.extend_from_slice(bytes)
+                }
+            }
+            Piece::Field { name, value } => self.collect(vec![Event::Field { name, value }]),
+            Piece::FileStart { name, filename, content_type } => {
+                self.collect(vec![Event::FileStart { name, filename, content_type }])
+            }
+            Piece::FileEnd => self.collect(vec![Event::FileEnd]),
+        }
     }
 
     /// Adds the events of a reader: a field becomes a value, and the start, the data and the end of a file become

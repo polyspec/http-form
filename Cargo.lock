@@ -612,6 +612,7 @@ dependencies = [
 name = "http-forms"
 version = "0.1.0"
 dependencies = [
+ "memchr",
  "serde_json",
 ]
 
