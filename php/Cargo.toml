@@ -1,0 +1,14 @@
+[package]
+name = "http-forms-php"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+name = "http_forms_php"
+crate-type = ["cdylib"]
+
+[dependencies]
+http-forms = { path = "../core" }
+ext-php-rs = "0.16"

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.16,<2"]
+build-backend = "maturin"
+
+[project]
+name = "polyspec-http-forms"
+version = "0.1.0"
+requires-python = ">=3.10"
+license = "MIT"
+
+[tool.maturin]
+python-source = "."
+module-name = "http_forms._http_forms"
+features = ["pyo3/extension-module"]

@@ -1,0 +1,9 @@
+{
+  "name": "@polyspec/http-forms",
+  "version": "0.1.0",
+  "description": "Form values and multipart/form-data bodies of hyper, read by the http-forms core",
+  "license": "MIT",
+  "main": "index.js",
+  "files": ["index.js", "lib/*.node"],
+  "engines": { "node": ">=18" }
+}
