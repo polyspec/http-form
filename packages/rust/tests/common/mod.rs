@@ -6,12 +6,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use bindgen_core::Io;
 use polyspec_http_forms::{Error, Fields, Files};
 use serde_json::{json, Value};
 
 /// The repository root.
 pub fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+/// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
+pub fn io() -> Io {
+    Io::for_generated_call()
 }
 
 /// The JSON of a contract file.
@@ -100,7 +106,7 @@ pub fn files_json(files: &Files, size: bool) -> Value {
     let mut list = Vec::new();
     for (_, items) in files.entries() {
         for item in items {
-            let content = match item.content() {
+            let content = match item.content(io()) {
                 Ok(bytes) => text(&bytes),
                 Err(error) => panic!("the content of {}: {error}", item.name()),
             };

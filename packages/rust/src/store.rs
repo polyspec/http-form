@@ -6,6 +6,8 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use bindgen_core::Io;
+
 use crate::multipart::count;
 use crate::{Error, IoFailure};
 
@@ -159,8 +161,9 @@ impl UploadedFile {
     }
 
     /// The bytes of the part as one value. A stored file must hold the number of bytes that were written (H-22).
-    /// Fails with `moved` after a move (HY-131.16) and with `removed` after the removal of the directory (H-16).
-    pub fn content(&self) -> Result<Vec<u8>, Error> {
+    /// Fails with `moved` after a move (HY-131.16) and with `removed` after the removal of the directory (H-16). It
+    /// reads a stored file, so it takes the wait token `Io` (spec F-17).
+    pub fn content(&self, _io: Io) -> Result<Vec<u8>, Error> {
         let content = self.lock()?;
         match &*content {
             Content::Value(bytes) => Ok(bytes.clone()),
@@ -172,8 +175,9 @@ impl UploadedFile {
 
     /// Moves the file to the path without replacing a file there (HY-131.15, spec F-11): a stored file by a rename,
     /// or by a copy and a removal when the path is on another file system, and a value by a write. Fails with
-    /// `exists` when the path exists, `moved` when the file was moved and `removed` when its directory was removed.
-    pub fn move_to(&self, path: &Path) -> Result<(), Error> {
+    /// `exists` when the path exists, `moved` when the file was moved and `removed` when its directory was removed. It
+    /// takes the wait token `Io` (spec F-17).
+    pub fn move_to(&self, _io: Io, path: &Path) -> Result<(), Error> {
         self.move_with(&System, path)
     }
 
@@ -403,8 +407,8 @@ mod tests {
         file.move_with(&faulty(&[Step::None]), &place.target()).unwrap();
         assert_eq!(fs::read(place.target()).unwrap(), b"payload");
         assert!(!place.exists("source"));
-        assert_eq!(file.move_to(&place.directory.join("again")), Err(Error::Moved));
-        assert_eq!(file.content(), Err(Error::Moved));
+        assert_eq!(file.move_to(Io::for_generated_call(), &place.directory.join("again")), Err(Error::Moved));
+        assert_eq!(file.content(Io::for_generated_call()), Err(Error::Moved));
     }
 
     #[test]
@@ -414,7 +418,7 @@ mod tests {
         file.move_with(&faulty(&[Step::RenameCrossDevice]), &place.target()).unwrap();
         assert_eq!(fs::read(place.target()).unwrap(), b"payload");
         assert!(!place.exists("source"));
-        assert_eq!(file.content(), Err(Error::Moved));
+        assert_eq!(file.content(Io::for_generated_call()), Err(Error::Moved));
     }
 
     #[test]
@@ -424,7 +428,7 @@ mod tests {
         fs::write(place.target(), b"taken").unwrap();
         assert_eq!(file.move_with(&faulty(&[Step::RenameCrossDevice]), &place.target()), Err(Error::Exists));
         assert_eq!(fs::read(place.target()).unwrap(), b"taken");
-        assert_eq!(file.content().unwrap(), b"payload");
+        assert_eq!(file.content(Io::for_generated_call()).unwrap(), b"payload");
     }
 
     #[test]
@@ -434,7 +438,7 @@ mod tests {
         let error = file.move_with(&faulty(&[Step::RenameInvalid]), &place.target()).unwrap_err();
         assert_eq!((error.kind(), error.errno()), ("io", Some(EINVAL)));
         assert!(!place.exists("target"));
-        assert_eq!(file.content().unwrap(), b"payload");
+        assert_eq!(file.content(Io::for_generated_call()).unwrap(), b"payload");
     }
 
     #[test]
@@ -450,7 +454,7 @@ mod tests {
             };
             assert_eq!((error.kind(), error.errno()), expected, "{step:?}");
             assert!(!place.exists("target"), "{step:?}");
-            assert_eq!(file.content().unwrap(), b"payload", "{step:?}");
+            assert_eq!(file.content(Io::for_generated_call()).unwrap(), b"payload", "{step:?}");
         }
     }
 
@@ -462,7 +466,7 @@ mod tests {
         let error = file.move_with(&faulty(&steps), &place.target()).unwrap_err();
         assert_eq!((error.kind(), error.errno()), ("partial_target", Some(EIO)));
         assert_eq!(error.removal().map(IoFailure::errno), Some(Some(EACCES)));
-        assert_eq!(file.content().unwrap(), b"payload");
+        assert_eq!(file.content(Io::for_generated_call()).unwrap(), b"payload");
     }
 
     #[test]
@@ -473,7 +477,7 @@ mod tests {
         let error = error.unwrap_err();
         assert_eq!((error.kind(), error.errno()), ("source_left", Some(EACCES)));
         assert_eq!(fs::read(place.target()).unwrap(), b"payload");
-        assert_eq!(file.content(), Err(Error::Moved));
+        assert_eq!(file.content(Io::for_generated_call()), Err(Error::Moved));
     }
 
     #[test]
@@ -495,7 +499,7 @@ mod tests {
         let place = Place::new("size");
         let file = place.stored();
         fs::write(place.directory.join("source"), b"pay").unwrap();
-        let error = file.content().unwrap_err();
+        let error = file.content(Io::for_generated_call()).unwrap_err();
         assert_eq!((error.kind(), error.errno()), ("io", None));
     }
 
@@ -504,8 +508,8 @@ mod tests {
         let place = Place::new("clone");
         let file = place.stored();
         let other = file.clone();
-        file.move_to(&place.target()).unwrap();
-        assert_eq!(other.content(), Err(Error::Moved));
-        assert_eq!(other.move_to(&place.directory.join("again")), Err(Error::Moved));
+        file.move_to(Io::for_generated_call(), &place.target()).unwrap();
+        assert_eq!(other.content(Io::for_generated_call()), Err(Error::Moved));
+        assert_eq!(other.move_to(Io::for_generated_call(), &place.directory.join("again")), Err(Error::Moved));
     }
 }

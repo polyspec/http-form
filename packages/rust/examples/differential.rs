@@ -7,6 +7,11 @@ use std::io::{self, BufRead, Write};
 use polyspec_http_forms::{fields_from_body, files_from_body, multipart_boundary, parse_multipart_chunks, Fields, Files};
 use serde_json::{json, Value};
 
+/// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
+fn io() -> bindgen_core::Io {
+    bindgen_core::Io::for_generated_call()
+}
+
 fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
@@ -33,7 +38,7 @@ fn files(files: &Files) -> Value {
             .map(|(name, items)| {
                 let items: Vec<Value> = items
                     .iter()
-                    .map(|file| match file.content() {
+                    .map(|file| match file.content(io()) {
                         Ok(bytes) => json!([file.filename(), file.content_type(), hex(&bytes)]),
                         Err(error) => panic!("{error}"),
                     })

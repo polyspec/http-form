@@ -14,7 +14,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use common::{
-    contract, fields_json, files_json, group, id, latin1, number, string, text, Failures,
+    contract, io, fields_json, files_json, group, id, latin1, number, string, text, Failures,
 };
 use polyspec_http_forms::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Error, Form, Limits, MultipartReader,
@@ -198,6 +198,7 @@ fn streamed() {
         let body = latin1(&case["body"]);
         let chunk = usize::try_from(number(case, "chunk")).unwrap_or_else(|_| panic!("{label}: chunk"));
         let mut read = RequestBody::new(
+            io(),
             kind,
             None,
             number(case, "limit"),
@@ -211,14 +212,14 @@ fn streamed() {
         // `stopped` is true when a chunk failed, after which the host reads no more (H-5).
         let mut stopped = None;
         for piece in body.chunks(chunk) {
-            if let Err(error) = read.feed(piece) {
+            if let Err(error) = read.feed(io(), piece) {
                 stopped = Some(error);
                 break;
             }
         }
         let finished = match &stopped {
             Some(_) => None,
-            None => read.finish().err(),
+            None => read.finish(io()).err(),
         };
         let held = read.held().to_vec();
         let (fields, files) = if read.streamed() {
@@ -251,11 +252,11 @@ fn streamed() {
                 if movement == "exists" {
                     fs::write(&target, b"taken").unwrap_or_else(|error| panic!("{label}: {error}"));
                 }
-                let moved = match first.move_to(&target) {
+                let moved = match first.move_to(io(), &target) {
                     Ok(()) => {
                         let content = fs::read(&target).unwrap_or_else(|error| panic!("{label}: {error}"));
-                        let again = first.move_to(&place.join("second")).err();
-                        let after = first.content().err();
+                        let again = first.move_to(io(), &place.join("second")).err();
+                        let after = first.content(io()).err();
                         json!({
                             "content": text(&content),
                             "left": entries(&directory),
@@ -265,7 +266,7 @@ fn streamed() {
                         })
                     }
                     Err(error) => {
-                        let content = first.content().unwrap_or_else(|error| panic!("{label}: {error}"));
+                        let content = first.content(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
                         json!({
                             "content": text(&content),
                             "left": entries(&directory),
@@ -278,7 +279,7 @@ fn streamed() {
                 failures.compare(case, "moved", &moved);
             }
         }
-        read.remove().unwrap_or_else(|error| panic!("{label}: {error}"));
+        read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
         let removed = Value::from(directory.as_ref().map(|d| !d.exists()));
         failures.compare(case, "removed", &removed);
         fs::remove_dir_all(&place).unwrap_or_else(|error| panic!("{label}: {error}"));
@@ -301,7 +302,7 @@ fn uploaded() {
             latin1(&case["content"]),
         )
         .unwrap_or_else(|error| panic!("{label}: {error}"));
-        let content = file.content().unwrap_or_else(|error| panic!("{label}: {error}"));
+        let content = file.content(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
         let made = json!({
             "name": file.name(),
             "filename": file.filename(),

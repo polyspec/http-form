@@ -4,13 +4,19 @@
 use std::fs;
 use std::path::PathBuf;
 
+use bindgen_core::Io;
 use polyspec_http_forms::{Error, Form, Limits, MultipartReader, Piece, ReadError, RequestBody};
+
+/// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
+fn io() -> Io {
+    Io::for_generated_call()
+}
 
 const TYPE: &[u8] = b"multipart/form-data; boundary=X";
 const BIG: u64 = 1 << 20;
 
 fn body(content_type: &[u8], stream: bool) -> RequestBody {
-    match RequestBody::new(Some(content_type), None, BIG, stream, BIG, BIG, BIG) {
+    match RequestBody::new(io(), Some(content_type), None, BIG, stream, BIG, BIG, BIG) {
         Ok(body) => body,
         Err(error) => panic!("{error}"),
     }
@@ -49,13 +55,13 @@ fn pieces_out_of_order_are_internal() {
 #[test]
 fn a_body_ends_once() {
     let mut read = body(TYPE, true);
-    assert_eq!(read.feed(b"--X\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\n1\r\n--X--"), Ok(()));
+    assert_eq!(read.feed(io(), b"--X\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\n1\r\n--X--"), Ok(()));
     assert_eq!(read.parts().map(|form| form.fields.len()), Err(Error::NotFinished));
-    assert_eq!(read.finish(), Ok(()));
-    assert_eq!(read.finish(), Ok(()));
-    assert_eq!(read.feed(b"x"), Err(Error::Finished));
+    assert_eq!(read.finish(io()), Ok(()));
+    assert_eq!(read.finish(io()), Ok(()));
+    assert_eq!(read.feed(io(), b"x"), Err(Error::Finished));
     assert_eq!(read.parts().map(|form| form.fields.len()), Ok(1));
-    assert_eq!(read.remove(), Ok(()));
+    assert_eq!(read.remove(io()), Ok(()));
 }
 
 /// H-20: the directory of a request is removed once; a directory that is gone is an error; a dropped body removes it.
@@ -73,17 +79,17 @@ fn the_directory_of_a_request() {
         };
         assert_eq!(mode & 0o777, 0o700, "HY-131.13: for the user of the server only");
     }
-    assert_eq!(read.remove(), Ok(()));
+    assert_eq!(read.remove(io()), Ok(()));
     assert!(!path.exists());
-    assert_eq!(read.remove(), Ok(()));
-    assert_eq!(read.feed(b"--X"), Err(Error::Removed));
+    assert_eq!(read.remove(io()), Ok(()));
+    assert_eq!(read.feed(io(), b"--X"), Err(Error::Removed));
 
     let mut gone = body(TYPE, true);
     let path = directory(&gone);
     if let Err(error) = fs::remove_dir(&path) {
         panic!("{error}");
     }
-    let error = gone.remove();
+    let error = gone.remove(io());
     assert_eq!(error.as_ref().map_err(Error::kind), Err("not_found"));
 
     let dropped = body(TYPE, true);
@@ -112,29 +118,29 @@ fn a_move_to_another_file_system_copies() {
     assert_ne!(device(&other), device(&std::env::temp_dir()), "{} is on the temporary file system", other.display());
     let mut read = body(TYPE, true);
     let data = b"--X\r\nContent-Disposition: form-data; name=\"f\"; filename=\"a\"\r\n\r\npayload\r\n--X--";
-    assert_eq!(read.feed(data), Ok(()));
-    assert_eq!(read.finish(), Ok(()));
+    assert_eq!(read.feed(io(), data), Ok(()));
+    assert_eq!(read.finish(io()), Ok(()));
     let form = match read.parts() {
         Ok(form) => form,
         Err(error) => panic!("{error}"),
     };
     let Some(file) = form.files.last("f") else { panic!("no file") };
     let target = other.join(format!("http-forms-move-{}", std::process::id()));
-    assert_eq!(file.move_to(&target), Ok(()));
+    assert_eq!(file.move_to(io(), &target), Ok(()));
     assert_eq!(fs::read(&target).map_err(|error| error.kind()), Ok(b"payload".to_vec()));
     match fs::read_dir(directory(&read)) {
         Ok(list) => assert_eq!(list.count(), 0, "the source was removed"),
         Err(error) => panic!("{error}"),
     }
-    assert_eq!(file.move_to(&target), Err(Error::Moved));
-    let again = form.files.last("f").map(|file| file.content());
+    assert_eq!(file.move_to(io(), &target), Err(Error::Moved));
+    let again = form.files.last("f").map(|file| file.content(io()));
     assert_eq!(again, Some(Err(Error::Moved)));
     if let Err(error) = fs::remove_file(&target) {
         panic!("{error}");
     }
     let mut taken = body(TYPE, true);
-    assert_eq!(taken.feed(data), Ok(()));
-    assert_eq!(taken.finish(), Ok(()));
+    assert_eq!(taken.feed(io(), data), Ok(()));
+    assert_eq!(taken.finish(io()), Ok(()));
     let form = match taken.parts() {
         Ok(form) => form,
         Err(error) => panic!("{error}"),
@@ -143,13 +149,13 @@ fn a_move_to_another_file_system_copies() {
     if let Err(error) = fs::write(&target, b"taken") {
         panic!("{error}");
     }
-    assert_eq!(file.move_to(&target), Err(Error::Exists), "EEXIST of the copy is exists");
+    assert_eq!(file.move_to(io(), &target), Err(Error::Exists), "EEXIST of the copy is exists");
     assert_eq!(fs::read(&target).map_err(|error| error.kind()), Ok(b"taken".to_vec()));
     if let Err(error) = fs::remove_file(&target) {
         panic!("{error}");
     }
-    assert_eq!(read.remove(), Ok(()));
-    assert_eq!(taken.remove(), Ok(()));
+    assert_eq!(read.remove(io()), Ok(()));
+    assert_eq!(taken.remove(io()), Ok(()));
 }
 
 /// A small generator of random numbers, so that the test needs no dependency and repeats.
@@ -212,20 +218,20 @@ fn random_body(random: &mut Random) -> Vec<u8> {
 
 /// The result of a body read in the chunks: the stage and the kind of its first failure, or its values and files.
 fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
-    let mut read = match RequestBody::new(Some(TYPE), None, limits.0, true, limits.1, limits.2, limits.3) {
+    let mut read = match RequestBody::new(io(), Some(TYPE), None, limits.0, true, limits.1, limits.2, limits.3) {
         Ok(read) => read,
         Err(error) => return format!("new {}", error.kind()),
     };
     let mut result = None;
     for chunk in chunks {
-        if let Err(error) = read.feed(chunk) {
+        if let Err(error) = read.feed(io(), chunk) {
             result = Some(format!("feed {}", error.kind()));
             break;
         }
     }
     let result = match result {
         Some(result) => result,
-        None => match read.finish() {
+        None => match read.finish(io()) {
             Err(error) => format!("finish {}", error.kind()),
             Ok(()) => match read.parts() {
                 Ok(form) => {
@@ -233,7 +239,7 @@ fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
                         .files
                         .entries()
                         .iter()
-                        .flat_map(|(_, files)| files.iter().map(|file| (file.filename().to_owned(), file.content())))
+                        .flat_map(|(_, files)| files.iter().map(|file| (file.filename().to_owned(), file.content(io()))))
                         .collect();
                     format!("{:?} {files:?}", form.fields.entries())
                 }
@@ -241,7 +247,7 @@ fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
             },
         },
     };
-    if let Err(error) = read.remove() {
+    if let Err(error) = read.remove(io()) {
         panic!("{error}");
     }
     result

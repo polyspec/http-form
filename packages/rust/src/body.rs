@@ -5,6 +5,8 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use bindgen_core::Io;
+
 use crate::multipart::count;
 use crate::store::{create_directory, create_file};
 use crate::{content, Error, Fields, Files, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
@@ -123,8 +125,13 @@ impl RequestBody {
     /// which it is when `multipart/form-data` is a form type of the application (HY-131.1); such a body needs its
     /// boundary (H-17, H-18) and gets its directory now. The value limit bounds a body that is one value and the text
     /// values of a body read in chunks, the part limit its parts and the file limit each of its files (HY-131.7 to
-    /// HY-131.12).
+    /// HY-131.12). It creates the directory, so it takes the wait token `Io` (spec F-17).
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "I-2: the wait token comes first, before the seven values that a host gives for a body"
+    )]
     pub fn new(
+        _io: Io,
         content_type: Option<&[u8]>,
         content_length: Option<&[u8]>,
         limit: u64,
@@ -171,8 +178,9 @@ impl RequestBody {
     /// the body then holds no bytes and no open file (HY-131.11): `invalid` and `header_limit` (HY-42, HY-113.16,
     /// HY-131.5), the limits, and a failure of the file system. The first failure is the one whose byte comes first
     /// (spec F-8); the body limit is passed at the byte after `limit` bytes, and a chunk that passes it is read up to
-    /// the limit first, so that a failure before that byte is the error.
-    pub fn feed(&mut self, chunk: &[u8]) -> Result<(), Error> {
+    /// the limit first, so that a failure before that byte is the error. It writes the files of the body, so it takes
+    /// the wait token `Io` (spec F-17).
+    pub fn feed(&mut self, _io: Io, chunk: &[u8]) -> Result<(), Error> {
         if let Some(failure) = &self.failure {
             return Err(failure.clone());
         }
@@ -233,8 +241,9 @@ impl RequestBody {
     }
 
     /// Ends the body, as its host calls it after the last chunk (H-4): a body read in chunks that did not end with
-    /// the `--` after a delimiter fails with `invalid` (HY-131.5). A second call gives the result of the first.
-    pub fn finish(&mut self) -> Result<(), Error> {
+    /// the `--` after a delimiter fails with `invalid` (HY-131.5). A second call gives the result of the first. It
+    /// closes the file of a body that failed, so it takes the wait token `Io` (spec F-17).
+    pub fn finish(&mut self, _io: Io) -> Result<(), Error> {
         if let Some(failure) = &self.failure {
             return Err(failure.clone());
         }
@@ -303,8 +312,9 @@ impl RequestBody {
 
     /// Removes the directory with the files that were not moved (HY-131.14, H-20). The directory belongs to this
     /// request only, so a directory that is gone fails with `not_found`; after a removal a second call does nothing.
-    /// A stored file of the body is then `removed` (H-16), and a later chunk fails with `removed`.
-    pub fn remove(&mut self) -> Result<(), Error> {
+    /// A stored file of the body is then `removed` (H-16), and a later chunk fails with `removed`. It takes the wait
+    /// token `Io` (spec F-17).
+    pub fn remove(&mut self, _io: Io) -> Result<(), Error> {
         self.release();
         let Some(parts) = self.parts.as_ref() else {
             return Ok(());
@@ -325,7 +335,8 @@ impl RequestBody {
 
 impl Drop for RequestBody {
     /// Removes the directory of a body whose host did not call `remove` (plan B-10). A failure here has no caller to
-    /// reach (spec F-10); the binding reports the missing call.
+    /// reach (spec F-10); the binding reports the missing call. This blocking I/O takes no wait token, because `Drop`
+    /// takes no argument (spec F-17).
     fn drop(&mut self) {
         if self.removed {
             return;

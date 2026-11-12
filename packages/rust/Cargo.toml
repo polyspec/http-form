@@ -11,9 +11,13 @@ workspace = true
 
 [dependencies]
 memchr = "2"
+# The wait token `Io` of a function that does blocking I/O (bindgen design I-2 (4), spec F-17).
+polyspec-bindgen-core = { path = "../../../bindgen/packages/core/rust" }
 rustix = { version = "1", default-features = false, features = ["fs", "std"] }
 tempfile = "3"
 
 [dev-dependencies]
+# Only generated code makes a wait token; the tests make it through the feature `construct` (spec F-17).
+polyspec-bindgen-core = { path = "../../../bindgen/packages/core/rust", features = ["construct"] }
 serde_json = "1"
 sha2 = "0.10"

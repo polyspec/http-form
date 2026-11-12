@@ -10,3 +10,4 @@
 - `UploadedFile`의 복제본은 상태를 공유한다. 옮기기는 파일을 덮어쓰지 않고, 다른 파일 시스템으로만 복사하며, `source_left`와 `partial_target`을 낸다. `remove` 뒤에 저장된 파일은 `removed`로 실패한다.
 - 요청 디렉터리는 `tempfile`로 만들고 이름은 `http-forms-…`이다. `remove` 없이 버려진 본문은 디렉터리를 지운다.
 - 손으로 쓴 PHP, Python, Node 바인딩은 더 이상 빌드하지 않는다.
+- `RequestBody::new`, `feed`, `finish`, `remove`, `UploadedFile::content`, `move_to`는 첫 인자로 기다림 토큰 `bindgen_core::Io`를 받는다(F-17).

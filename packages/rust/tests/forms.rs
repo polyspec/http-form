@@ -6,7 +6,7 @@ mod common;
 
 use std::path::Path;
 
-use common::{contract, fields_json, files_json, group, id, latin1, number, raises, string, text, Failures};
+use common::{contract, io, fields_json, files_json, group, id, latin1, number, raises, string, text, Failures};
 use polyspec_http_forms::{multipart_boundary, read_body, Error, Form, Limits, MultipartReader, ReadError, RequestBody};
 use serde_json::{json, Value};
 
@@ -108,6 +108,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     let label = id(case);
     let content_length = case.get("contentLength").map(latin1);
     let mut read = match RequestBody::new(
+        io(),
         Some(&latin1(&case["type"])),
         content_length.as_deref(),
         number(case, "limit"),
@@ -123,15 +124,15 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     let mut result = json!({});
     let mut failed = None;
     for chunk in chunks {
-        if let Err(error) = read.feed(chunk) {
+        if let Err(error) = read.feed(io(), chunk) {
             // HY-131.11: every later call gives the same error.
-            assert_eq!(read.feed(b"more"), Err(error.clone()), "{label}");
+            assert_eq!(read.feed(io(), b"more"), Err(error.clone()), "{label}");
             failed = Some(("feed", error));
             break;
         }
     }
     if failed.is_none() && case.get("finish") != Some(&json!(false)) {
-        if let Err(error) = read.finish() {
+        if let Err(error) = read.finish(io()) {
             failed = Some(("finish", error));
         }
     }
@@ -142,15 +143,15 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
                 result["fields"] = fields_json(&form.fields);
                 result["files"] = files_json(&form.files, true);
                 if case.get("afterRemoval").is_some() {
-                    if let Err(error) = read.remove() {
+                    if let Err(error) = read.remove(io()) {
                         panic!("{label}: {error}");
                     }
                     let mut after = Vec::new();
                     for (_, files) in form.files.entries() {
                         for file in files {
-                            after.push(file.content().map_err(|error| raises(&error)));
+                            after.push(file.content(io()).map_err(|error| raises(&error)));
                             let target = std::env::temp_dir().join(format!("http-forms-after-{}", std::process::id()));
-                            after.push(file.move_to(&target).map(|()| Vec::new()).map_err(|error| raises(&error)));
+                            after.push(file.move_to(io(), &target).map(|()| Vec::new()).map_err(|error| raises(&error)));
                         }
                     }
                     let mut kinds = after.into_iter().map(|result| match result {
@@ -175,7 +176,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
             assert_eq!(read.held(), b"", "{label}: a failed body holds no bytes");
         }
     }
-    if let Err(error) = read.remove() {
+    if let Err(error) = read.remove(io()) {
         panic!("{label}: {error}");
     }
     if let Some(directory) = directory {

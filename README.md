@@ -15,14 +15,15 @@ php/ python/ node/  hand-written bindings of an earlier API; not built, replaced
 ## Use
 
 ```rust
-let mut body = RequestBody::new(content_type, content_length, limit, true, value_limit, part_limit, file_limit)?;
+// `io()` is the wait token `bindgen_core::Io` of one blocking call, which generated code makes (F-17).
+let mut body = RequestBody::new(io(), content_type, content_length, limit, true, value_limit, part_limit, file_limit)?;
 for chunk in chunks {
-    body.feed(chunk)?; // the first failure of the body, with its kind and status
+    body.feed(io(), chunk)?; // the first failure of the body, with its kind and status
 }
-body.finish()?;
+body.finish(io())?;
 let form = body.parts()?;
 // ...
-body.remove()?;
+body.remove(io())?;
 ```
 
 ## Checks
@@ -34,5 +35,6 @@ make differential HYPER=<hyper>/packages/server/python/src   # random bodies aga
 make check         # clippy and test
 ```
 
-Requirements: the Rust toolchain of `rust-toolchain.toml`. Linux and macOS (docs/spec/forms.md, F-14); Windows is
+Requirements: the Rust toolchain of `rust-toolchain.toml`, and the path dependency `polyspec-bindgen-core` beside this
+repository (`../bindgen`). Linux and macOS (docs/spec/forms.md, F-14); Windows is
 not supported.

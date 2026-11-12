@@ -15,3 +15,5 @@
 - The directory of a request is made by `tempfile` and named `http-forms-…`; a body dropped without `remove`
   removes it.
 - The hand-written PHP, Python and Node bindings are no longer built.
+- `RequestBody::new`, `feed`, `finish`, `remove`, `UploadedFile::content` and `move_to` take the wait token
+  `bindgen_core::Io` as their first argument (F-17).
