@@ -40,7 +40,11 @@ TARGETS := php python node go wasm
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
 .PHONY: bootstrap docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
-	test-python node-package test-node test-wasm test-php test-go
+	test-python node-package test-node test-wasm test-php test-go test-scripts
+
+# The tests of the tools, the workflows and the release configuration, on node --test.
+test-scripts:
+	$(NODE) --test tests/scripts/*.test.mts
 
 test:
 	$(CARGO) test --locked --release -p $(CORE)
