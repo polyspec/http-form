@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: b61175bd7832d66f91d213db1d9b13bbbd44718aa46063944434c572cfda5d3a -->
+<!-- source-sha256: fdcfbce0f714b1a1daf7ceec95f325b5111ef7195c0dc646bdc66ce19d27e09b -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -200,7 +200,8 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   넘는 chunk는 한도까지 읽으며, 그 바이트가 실패하지 않을 때에만 `body_limit`이 그 chunk의 실패이다.
   따라서 본문이 실패할 때에도 결과는 chunk에 의존하지 않는다.
 - **F-9** `RequestBody::start(content type, Content-Length, stream, limits)`는 본문을 시작한다. 이것은 코어의 static
-  함수이고 계약의 static member `request_body.start`이며, `RequestBody`에는 생성자가 없다. 시작은 디렉터리 생성을
+  함수이고 계약의 static member `request_body.start`이며, `RequestBody`에는 생성자가 없다. 계약은 이를 unit
+  `request_body`의 `constructible: false`로 적는다(binding U-1). 시작은 디렉터리 생성을
   기다리는데(F-10, F-17), 생성자를 await할 수 없는 언어에는 기다리는 생성자의 형태가 없고 binding은 그런 생성자를
   거부한다(binding GN-6m). 그래서 모든 바인딩은 본문을 그 언어 형태의 호출 `RequestBody.start(...)`로 만들고 `new`로는
   만들지 않는다. `limits`는 본문 한도,

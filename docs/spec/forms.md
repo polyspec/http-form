@@ -200,7 +200,8 @@ is no path, are the binding's (plan B-2, B-3).
   that passes the body limit is read up to the limit, and `body_limit` is its failure only when those bytes do not fail.
   The result therefore does not depend on the chunks, also when the body fails.
 - **F-9** `RequestBody::start(content type, Content-Length, stream, limits)` starts a body. It is a static function of
-  the core and the static member `request_body.start` of the contract, and `RequestBody` has no constructor: the start
+  the core and the static member `request_body.start` of the contract, and `RequestBody` has no constructor, which the
+  contract states with `constructible: false` of the unit `request_body` (binding U-1): the start
   waits on the creation of the directory (F-10, F-17), a language whose constructor cannot be awaited has no form of a
   constructor that waits, and binding refuses one (binding GN-6m), so every binding makes a body by the call
   `RequestBody.start(...)` in the form of its language and none by `new`. `limits` is the record
