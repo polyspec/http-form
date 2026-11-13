@@ -1,7 +1,17 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: a87d954c71b5348febb3239d9b6b81b2b0143452afe42c6f75f8b0811264e4fd -->
+<!-- source-sha256: 3babc06c0878d243de9d823451ddab899103179a322b52f76c3d15f6e5671289 -->
 
 ## Unreleased
+
+- `polyspec-http-form`이 `wasm32-unknown-unknown`으로 빌드된다(spec F-28). 요청의 파일 I/O, 곧 `RequestBody`, 저장된
+  파일과 `UploadedFile`의 이동이 의존성 `rustix`, `tempfile`과 함께 새 Cargo feature `fs`에 있고, 기본 feature가
+  그것을 켠다. `BodyLimits`는 본문 module에서 crate 루트로 옮겼고 경로 `polyspec_http_form::BodyLimits`는 그대로다.
+  계약이 `core.features.wasm`을 빈 목록으로 적으므로 WASM crate는 코어에 `default-features = false`로 의존하고
+  (binding GN-4a), Linux와 macOS에 대한 F-14의 검사는 `fs`의 module에 있다. `rust-toolchain.toml`이 target
+  `wasm32-unknown-unknown`을 더하고, `make check`가 실행하는 새 `make wasm-core`가 그 target의 코어를 `fault-test`가
+  있을 때와 없을 때 clippy로 검사한다. 전에는 `cargo build -p polyspec-http-form --target wasm32-unknown-unknown`이
+  `rustix`가 받는 `errno` 0.3.14에서 "The target OS is "unknown" or "none", so it's unsupported by the errno crate."로
+  실패했고 WASM crate는 빌드될 수 없었다. `make check`는 코어 시험 35개로 통과한다.
 
 - `make test-bindings`가 계약의 다섯 target을 이름한다(BD-27): `make lint-bindings`와 `make test-crates`(전에도
   실행하던 바인딩 crate의 clippy와 Rust 시험) 뒤에 `make test-python`, `make test-node`, `make test-wasm`,

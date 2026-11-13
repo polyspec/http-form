@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 6fc10f8e6585cd954d3e37a164d56b3444bc63d1069db06ca42453f82ada0958 -->
+<!-- source-sha256: fe8e25995a9e87015aff94f02c5822a795156f107bbac4d89a2a3a0240397e8e -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -261,9 +261,15 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   인자를 받지 않기 때문이다. 이것은 빠진 cleanup 호출의 안전망이며, 바인딩이 그 누락을 보고한다(plan B-10).
 - **F-28** 조각으로 읽는 본문과 그 파일에는 WASM 바인딩이 없다: 이것들은 시스템 임시 디렉터리 아래의 디렉터리에
   파일을 두고(F-10) 파일 I/O를 기다리는데(F-17), 브라우저의 WebAssembly는 그것을 할 수 없다(binding Q-4).
-  `RequestBody`와 `UploadedFile`은 PHP, Python, Node, Go의 클래스다.
-- **F-14** 대체하지 않는 이동에는 `renameat2`나 `renameatx_np`가 필요하므로 이 crate는 Linux와 macOS에서만
-  빌드된다(plan T-2).
+  `RequestBody`와 `UploadedFile`은 PHP, Python, Node, Go의 클래스다. 코어는 그 파일 I/O를 Cargo feature `fs`에
+  두고, 기본 feature가 그것을 켠다: `RequestBody`, 요청의 디렉터리와 파일, `UploadedFile`의 저장된 내용과
+  `UploadedFile::move_to`, 그리고 `wasm32-unknown-unknown`으로 빌드되지 않는 의존성 `rustix`와 `tempfile`이다.
+  `fs` 없이 코어는 한 값으로 든 본문의 함수와, 바이트를 값으로 가진 `UploadedFile`을 둔다. 계약은 WASM 바인딩을
+  `core.features.wasm`의 feature로 빌드하고 그 목록은 비어 있으므로, 생성 WASM crate는 코어에
+  `default-features = false`로 의존한다(binding GN-4a). 다른 모든 target은 기본 feature로 빌드한다.
+- **F-14** 대체하지 않는 이동에는 `renameat2`나 `renameatx_np`가 필요하므로 feature `fs`를 켠 이 crate는 Linux와
+  macOS에서만 빌드된다(plan T-2). 그 검사는 그 feature의 module에 있으므로, 그 feature가 없는 코어는
+  `wasm32-unknown-unknown` 같은 다른 target으로 빌드된다(F-28).
 
 ## 실패 주입점
 
@@ -401,6 +407,8 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
   `HTTP_FORM_OTHER_FS`(기본값 `/dev/shm`)에 다른 파일 시스템이 필요하다. 이동의 각 단계의 실패는 일부러 실패하는
   연산으로 시험한다.
 - `make clippy`: plan R-1의 lint와 `as_conversions`.
+- `make wasm-core`: `fs` 없이 `wasm32-unknown-unknown`으로 빌드한 코어를 `fault-test`가 있을 때와 없을 때 clippy로
+  검사한다(F-28). `make check`는 `make fmt`, `make clippy`, `make test` 뒤에 그것을 실행한다.
 - `make bindings-check BINDING=<cli>`: 인터페이스 계약은 `polyspec-http-media-type`의 계약을 의존성으로 하여
   `@polyspec/binding`의 계약 검사를 통과하고, 바인딩 package `packages/ts`,
   `packages/ts/wasm`, `packages/python`, `packages/php-ext`, `packages/go`는 `binding scaffold`가 쓰는 것과 같다(binding design L-2). `make clippy`,

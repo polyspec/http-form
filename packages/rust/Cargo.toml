@@ -10,6 +10,13 @@ rust-version.workspace = true
 workspace = true
 
 [features]
+# BD-27 (a), binding design e6 BD-38 (5): `fs` holds the files of a request, their paths and the blocking I/O on them
+# (F-10, F-11, F-17): `RequestBody`, the stored files and the moves of `UploadedFile`. Every target but WASM builds the
+# default features; the generated WASM crate builds the core without them, as `core.features.wasm` of the contract
+# states (binding GN-4a), so `rustix` and `tempfile`, which do not build for `wasm32-unknown-unknown`, are not built
+# there (F-28).
+default = ["fs"]
+fs = ["dep:rustix", "dep:tempfile"]
 # G-5: compiles the arming of the fault injection points (spec "Fault injection points"); for tests only. A binding
 # crate turns it on through its own feature fault-test, and no release build has it.
 fault-test = ["polyspec-binding-core/fault-test"]
@@ -19,8 +26,8 @@ memchr = "2"
 # The wait token `Io` of a function that does blocking I/O (binding design I-2 (4), spec F-17).
 polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", branch = "v1/rust-core" }
 polyspec-http-media-type = { git = "https://github.com/polyspec/http-media-type.git", branch = "v1/rust-core" }
-rustix = { version = "1", default-features = false, features = ["fs", "std"] }
-tempfile = "3"
+rustix = { version = "1", default-features = false, features = ["fs", "std"], optional = true }
+tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 # Only generated code makes a wait token; the tests make it through the feature `construct` (spec F-17). The tests arm

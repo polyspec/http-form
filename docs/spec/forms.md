@@ -260,9 +260,16 @@ is no path, are the binding's (plan B-2, B-3).
   takes no argument; it is the safety net of a missing cleanup call, which the binding reports (plan B-10).
 - **F-28** A body read in chunks and its files have no WASM binding: they keep their files in a directory below the
   temporary directory of the system (F-10) and wait on file I/O (F-17), which WebAssembly in a browser cannot do
-  (binding Q-4). `RequestBody` and `UploadedFile` are classes of PHP, Python, Node and Go.
-- **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate builds for Linux and macOS only
-  (plan T-2).
+  (binding Q-4). `RequestBody` and `UploadedFile` are classes of PHP, Python, Node and Go. The core holds that file
+  I/O in its Cargo feature `fs`, which its default features turn on: `RequestBody`, the directory and the files of a
+  request, the stored content of an `UploadedFile` and `UploadedFile::move_to`, with the dependencies `rustix` and
+  `tempfile`, which do not build for `wasm32-unknown-unknown`. Without `fs` the core keeps the functions of a body
+  held as one value and `UploadedFile` with its bytes as a value. The contract builds the WASM binding with the
+  features of `core.features.wasm`, which are none, so the generated WASM crate depends on the core with
+  `default-features = false` (binding GN-4a); every other target builds the default features.
+- **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate with the feature `fs` builds for
+  Linux and macOS only (plan T-2); the check is in the module of that feature, so the core without it builds for
+  another target, such as `wasm32-unknown-unknown` (F-28).
 
 ## Fault injection points
 
@@ -404,6 +411,8 @@ These are the decisions of a server that uses the library, which no rule of this
   file system needs one at `HTTP_FORM_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are
   tested with operations that fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
+- `make wasm-core`: the core for `wasm32-unknown-unknown` without `fs`, with and without `fault-test`, under clippy
+  (F-28); `make check` runs it after `make fmt`, `make clippy` and `make test`.
 - `make bindings-check BINDING=<cli>`: the interface contract passes the contract check of `@polyspec/binding` with
   the contract of `polyspec-http-media-type` as its dependency, and the binding packages `packages/ts`,
   `packages/ts/wasm`, `packages/python`, `packages/php-ext` and `packages/go` are what `binding scaffold` writes

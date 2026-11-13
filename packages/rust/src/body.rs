@@ -1,5 +1,6 @@
 //! The body of a request as its host reads it (F-24, F-25): the bytes of a body that is one value, or the parts
-//! of a `multipart/form-data` body that is read in chunks, whose files are in a directory of the request.
+//! of a `multipart/form-data` body that is read in chunks, whose files are in a directory of the request. The module
+//! is of the feature `fs` (F-28).
 
 use std::fs::{self, File};
 use std::io::Write;
@@ -11,7 +12,7 @@ use crate::fault::{self, Fault};
 use crate::fields::Named;
 use crate::multipart::count;
 use crate::store::{create_directory, create_file};
-use crate::{content, Error, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
+use crate::{content, BodyLimits, Error, Form, IoFailure, Limits, MultipartReader, Piece, ReadError, UploadedFile};
 
 /// The file part that is written.
 struct Target {
@@ -105,19 +106,6 @@ fn parse_content_length(value: &[u8]) -> Result<Option<u64>, Error> {
         }
     }
     Ok(Some(number))
-}
-
-/// The limits of a body (F-25), a record of the contract (design T-4).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BodyLimits {
-    /// The body limit in bytes (F-25.1).
-    pub limit: u64,
-    /// The value limit: of a body that is one value, and of the names and text values of a body read in chunks.
-    pub value_limit: u64,
-    /// The part limit of a body read in chunks.
-    pub part_limit: u64,
-    /// The file limit of each file of a body read in chunks.
-    pub file_limit: u64,
 }
 
 /// Reads the chunks of a request body.

@@ -31,7 +31,9 @@ impl<T> Named<T> {
         }
     }
 
-    /// The names with their values, in the order of the first occurrence of each name.
+    /// The names with their values, in the order of the first occurrence of each name; the parts of a body read in
+    /// chunks (feature `fs`) read them.
+    #[cfg(feature = "fs")]
     pub fn entries(&self) -> &[(String, Vec<T>)] {
         &self.entries
     }

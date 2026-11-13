@@ -33,6 +33,13 @@ rules of this repository.
 - On macOS a PHP extension and a Node addon take the symbols of their runtime when it loads them, so
   `.cargo/config.toml` tells the linker to leave them undefined, and the recipes name the library that Cargo builds by
   the extension of the platform (`dylib` on macOS, `so` on Linux).
+- The core builds for `wasm32-unknown-unknown` without its feature `fs`, which holds the files of a request and
+  their dependencies `rustix` and `tempfile` (spec F-28). The contract states the features of the WASM build in
+  `core.features.wasm`, an empty list, and the WASM crate depends on the core with `default-features = false` (binding
+  GN-4a); no manifest splits a dependency by `[target.'cfg(...)'.dependencies]`, because `core.features` is the one
+  place that states what a target builds. An item that needs `fs` carries `#[cfg(feature = "fs")]` and stays out of
+  the WASM binding through the `only` of its unit. `rust-toolchain.toml` installs the target, and `make wasm-core`,
+  which `make check` runs, builds the core for it under clippy.
 - The contract cases of `contracts/` do not run through a binding yet: `binding check` refuses the contract with the
   CK-22 findings that `CHANGELOG.md` lists, so `make bindings` writes no binding, and no case runner of a language
   exists before a generated binding that it can run against.

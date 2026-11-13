@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: aae092e3ecfd80ba47480158ea87f174eeddfde9ea80a1b029c90983ee06d65a -->
+<!-- source-sha256: 3a54b8bd13257c2ddde651783d0d5edcfd2480da7e708977b44c75263bf5d3ef -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -32,6 +32,12 @@
 - macOS에서 PHP 확장과 Node addon은 runtime이 불러올 때 그 runtime의 기호를 받는다. 그래서 `.cargo/config.toml`이
   linker에게 그 기호를 정의하지 않은 채 두게 하고, recipe는 Cargo가 빌드하는 library를 platform의 확장자(macOS는
   `dylib`, Linux는 `so`)로 부른다.
+- 코어는 feature `fs` 없이 `wasm32-unknown-unknown`으로 빌드된다. `fs`는 요청의 파일과 그 의존성 `rustix`,
+  `tempfile`을 담는다(spec F-28). 계약은 WASM 빌드의 feature를 `core.features.wasm`에 빈 목록으로 적고, WASM crate는
+  코어에 `default-features = false`로 의존한다(binding GN-4a). 어떤 manifest도 `[target.'cfg(...)'.dependencies]`로
+  의존성을 가르지 않는다. target이 무엇을 빌드하는지 적는 자리는 `core.features` 하나이기 때문이다. `fs`가 필요한
+  항목은 `#[cfg(feature = "fs")]`를 달고, 그 unit의 `only`로 WASM 바인딩에서 빠진다. `rust-toolchain.toml`이 그
+  target을 설치하고, `make check`가 실행하는 `make wasm-core`가 그 target으로 코어를 clippy와 함께 빌드한다.
 - `contracts/`의 계약 case는 아직 바인딩으로 실행되지 않는다: `binding check`가 `CHANGELOG.md`에 적은 CK-22
   finding으로 계약을 거부하므로 `make bindings`가 바인딩을 쓰지 않는다. 언어의 case runner는 그것이 실행될 생성
   바인딩이 생기기 전에는 두지 않는다.

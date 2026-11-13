@@ -3,7 +3,10 @@
   "library": "http-form",
   "core": {
     "crate": "polyspec-http-form",
-    "path": "packages/rust"
+    "path": "packages/rust",
+    "features": {
+      "wasm": []
+    }
   },
   "targets": [
     "php",

@@ -1,3 +1,5 @@
 [toolchain]
 channel = "1.99.0"
 components = ["clippy", "rustfmt"]
+# The target of the WASM binding (binding GN-18, GN-14), for which the core builds without the feature `fs` (F-28).
+targets = ["wasm32-unknown-unknown"]

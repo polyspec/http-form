@@ -34,8 +34,8 @@ CDYLIB := $(if $(filter Darwin,$(shell uname -s)),dylib,so)
 CORE := polyspec-http-form
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
-.PHONY: test clippy fmt check differential bindings bindings-check lint-bindings test-bindings test-crates test-python \
-	node-package test-node test-wasm test-php test-go
+.PHONY: test clippy fmt wasm-core check differential bindings bindings-check lint-bindings test-bindings test-crates \
+	test-python node-package test-node test-wasm test-php test-go
 
 test:
 	$(CARGO) test --locked --release -p $(CORE)
@@ -46,7 +46,15 @@ clippy:
 fmt:
 	$(CARGO) fmt --check -p $(CORE)
 
-check: fmt clippy test
+# The core as the WASM binding builds it (binding GN-4a): for wasm32-unknown-unknown with the features of
+# core.features.wasm of the contract, which hold no fs (spec F-28), and with fault-test, which a WASM crate turns on
+# for a contract with faults (binding GN-5).
+wasm-core:
+	$(CARGO) clippy --locked -p $(CORE) --target wasm32-unknown-unknown --no-default-features -- -D warnings
+	$(CARGO) clippy --locked -p $(CORE) --target wasm32-unknown-unknown --no-default-features --features fault-test \
+		-- -D warnings
+
+check: fmt clippy test wasm-core
 
 # HYPER is the directory packages/server/python/src of hyper. The test reads a module of hyper that is not public, so
 # its result is a reference only (docs/spec/forms.md, Verification); PYTHONPATH must hold the packages that hyper

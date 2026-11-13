@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `polyspec-http-form` builds for `wasm32-unknown-unknown` (spec F-28). The file I/O of a request, `RequestBody`, the
+  stored files and the moves of `UploadedFile` with the dependencies `rustix` and `tempfile`, is in the new Cargo
+  feature `fs`, which the default features turn on; `BodyLimits` moved from the module of the body to the root of the
+  crate, its path `polyspec_http_form::BodyLimits` unchanged. The contract states `core.features.wasm` as an empty
+  list, so the WASM crate depends on the core with `default-features = false` (binding GN-4a), and the check of F-14
+  for Linux and macOS is in the module of `fs`. `rust-toolchain.toml` adds the target `wasm32-unknown-unknown`, and
+  the new `make wasm-core`, which `make check` runs, runs clippy on the core for that target with and without
+  `fault-test`. Before, `cargo build -p polyspec-http-form --target wasm32-unknown-unknown` failed in `errno` 0.3.14,
+  which `rustix` takes, with "The target OS is "unknown" or "none", so it's unsupported by the errno crate.", and the
+  WASM crate could not build. `make check` passes with the 35 tests of the core.
+
 - `make test-bindings` names the five targets of the contract (BD-27): after `make lint-bindings` and `make
   test-crates` (the clippy and the Rust tests of the binding crates, which it ran before), `make test-python`,
   `make test-node`, `make test-wasm`, `make test-php` and `make test-go` run the tests that binding generates on

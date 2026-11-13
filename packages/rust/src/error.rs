@@ -43,6 +43,7 @@ pub struct IoFailure {
 impl IoFailure {
     /// A failure that the core found without a system error, such as a file whose size is not the size that was
     /// written (H-22). Its kind is `io` and it has no `errno`.
+    #[cfg(feature = "fs")]
     pub(crate) fn found(message: String) -> Self {
         IoFailure { kind: IoKind::Io, errno: None, message }
     }

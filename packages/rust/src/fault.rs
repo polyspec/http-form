@@ -2,6 +2,7 @@
 //! call of the system, or the invariant of `internal`, as `http_form.<id>`; the contract names the same points in
 //! `faults`. `binding_core::fault::point` does nothing without the feature `fault-test`, which only tests turn on.
 
+#[cfg(feature = "fs")]
 use std::io;
 
 use binding_core::fault::{point, Injected};
@@ -50,6 +51,7 @@ pub const REMOVE: &str = "http_form.remove";
 pub const INTERNAL: &str = "http_form.internal";
 
 /// What an armed point of a call of the system makes the call do.
+#[cfg(feature = "fs")]
 pub(crate) enum Fault {
     /// The call fails with this error of the system.
     Fail(io::Error),
@@ -60,6 +62,7 @@ pub(crate) enum Fault {
 /// The fault armed at the point `name` of a call of the system, if any. An `io` injection is the failure of the
 /// system with its `errno`, or a failure without one; `broken` is no injection of such a point, and the contract
 /// names no point of a call of the system that takes it.
+#[cfg(feature = "fs")]
 pub(crate) fn system(name: &'static str) -> Option<Fault> {
     match point(name)? {
         Injected::Io { errno: Some(errno) } => Some(Fault::Fail(io::Error::from_raw_os_error(errno))),
@@ -70,6 +73,7 @@ pub(crate) fn system(name: &'static str) -> Option<Fault> {
 }
 
 /// Fails the call of the point `name` when an `io` fault is armed there; a point that takes no `short` uses it.
+#[cfg(feature = "fs")]
 pub(crate) fn fail(name: &'static str) -> io::Result<()> {
     match system(name) {
         Some(Fault::Fail(error)) => Err(error),
@@ -83,6 +87,7 @@ pub(crate) fn broken(name: &'static str) -> bool {
 }
 
 /// The first `bytes` of `data`, for a `short` fault of a write.
+#[cfg(feature = "fs")]
 pub(crate) fn prefix(data: &[u8], bytes: u64) -> &[u8] {
     match usize::try_from(bytes) {
         Ok(bytes) if bytes < data.len() => &data[..bytes],

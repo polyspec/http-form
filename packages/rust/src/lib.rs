@@ -7,6 +7,7 @@
 
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "fs")]
 mod body;
 mod content;
 mod error;
@@ -17,12 +18,25 @@ mod multipart;
 mod store;
 mod urlencoded;
 
-pub use body::BodyLimits;
+#[cfg(feature = "fs")]
 pub use body::RequestBody;
 pub use error::{Error, IoFailure, IoKind};
 pub use fields::{file_over, Collector, Fields, Files, Form};
 pub use multipart::{Event, Limits, MultipartReader, Piece, ReadError, HEADER_LIMIT};
 pub use store::UploadedFile;
+
+/// The limits of a body (F-25), a record of the contract (design T-4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BodyLimits {
+    /// The body limit in bytes (F-25.1).
+    pub limit: u64,
+    /// The value limit: of a body that is one value, and of the names and text values of a body read in chunks.
+    pub value_limit: u64,
+    /// The part limit of a body read in chunks.
+    pub part_limit: u64,
+    /// The file limit of each file of a body read in chunks.
+    pub file_limit: u64,
+}
 
 /// The media type of a content type, its type and subtype in lowercase without parameters, or the empty text for a
 /// request without `Content-Type` (F-12.1); a server compares it with its form types. A value that is no media type
