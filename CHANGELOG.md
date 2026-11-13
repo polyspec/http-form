@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The repository had no plan, no checklist and no check of its documents. `docs/plans/rust-core` holds the plan and
+  the checklist with their Korean twins: the done steps name their commits, the contract and its workspace wait for
+  two case forms of binding, and the bindings, the runners of `legacy/`, the end-to-end check and the Go binding wait
+  for the generation that the binding check holds back. `make docs-check` runs check-documents of @polyspec/kit, which
+  `package.json` pins by the URL of its release and `package-lock.json` by its integrity and `make bootstrap`
+  installs, on the documents of `config/documents.json` and the checklist of `config/checklist.json`, and `make check`
+  runs it. `make documents-stamp` writes the `source-sha256` of a Korean twin.
+
 - The contract gives the kinds that only a receiver made by earlier calls reaches their cases (binding GN-13f), and
   `Cargo.lock` pins the binding whose case forms and check take them. A case gives such a receiver under the key
   `receiver` as an instance value: a body that `request_body.new` makes and the calls of `then` feed, finish or

@@ -50,3 +50,13 @@ rules of this repository.
   so `make bindings` writes no binding, and no case runner of a language exists before a generated binding that it can
   run against. A case gives a receiver that earlier calls make as an instance value (binding GN-13f), which
   `tests/common` makes for the tests of the core.
+
+## Checks
+
+- `make check` runs rustfmt, clippy, the tests, `make wasm-core` and `make docs-check`.
+- `make docs-check` reads each document that `config/documents.json` selects, with its links, anchors and fences and
+  the `doc-id` and `source-sha256` of each Korean twin, and the checklist `docs/plans/rust-core/checklist.md`, whose
+  rows `config/checklist.json` declares; `make bootstrap` installs the @polyspec/kit that it runs. The plan of the
+  repository is `docs/plans/rust-core/plan.md`; a task is a row of that checklist, marked `[o]` only after its
+  verification command passed on the committed tree. Run it before a commit. After a Korean twin is translated again,
+  `make documents-stamp PATHS=<twin>` writes its `source-sha256`; no marker is written by hand.

@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 894bca70de43dc158f5cc1412cc12475ddf3158b4b3debc7eaf40c7c67bb85b3 -->
+<!-- source-sha256: 99032dfc092da9b119592323a9da5b198d63a57908471cab0fb212b971d7e24d -->
 
 ## Unreleased
+
+- 저장소에는 계획도 checklist도 문서 검사도 없었다. `docs/plans/rust-core`가 계획과 checklist를 한국어 쌍과 함께
+  담는다. 끝난 단계는 자기 commit을 적고, 계약과 그 workspace는 binding의 두 case 꼴을 기다리며, 바인딩, `legacy/`의
+  runner, end-to-end 검사, Go 바인딩은 binding check가 막는 생성을 기다린다. `make docs-check`는 @polyspec/kit의
+  check-documents를 `config/documents.json`의 문서와 `config/checklist.json`의 checklist에 실행하고, `make check`가
+  그것을 실행한다. @polyspec/kit은 `package.json`이 release의 URL로, `package-lock.json`이 integrity로 고정하며
+  `make bootstrap`이 설치한다. `make documents-stamp`는 한국어 쌍의 `source-sha256`을 쓴다.
 
 - 계약이 앞선 호출이 만든 receiver만 닿는 kind에 case를 준다(binding GN-13f). `Cargo.lock`은 그 case 꼴을 받고
   검사하는 binding을 고정한다. case는 그런 receiver를 키 `receiver` 아래에 instance 값으로 준다. 그것은

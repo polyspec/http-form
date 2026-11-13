@@ -1,0 +1,17 @@
+<!-- doc-id: checklist-rust-core -->
+<!-- source-sha256: 8b16be7cbe9d5f876cb817b5b40f512d2e9b74fd977766f13e9005a3fa104f92 -->
+# Rust 코어 체크리스트
+
+| ID | Task | Deliverables | Verification | State |
+|---|---|---|---|---|
+| T1.1 | form, part, 한도, 기다림을 읽는 규칙과 그 case를 정의한다(46ae47a, 73fabba, 863c272, d094507, e57f1fe, 0a2634f, ee2be0f, 8950d26, e2426e8, 2d4a942) | `docs/spec/forms.md`, `contracts/` | `make test` | [o] |
+| T1.2 | 규칙을 Rust crate polyspec-http-form으로 쓴다. I/O가 막히는 곳에서 기다림 토큰 `Io`를 받고, 모든 실패에 error kind를 준다(32eb82f, 888fcb0, 4571d70, 8e28553, 65c64f2, f726829, 779dca1, 651baec, 4969d31, b873266, 46c1b16, 3b860f0, 0f3e370) | `packages/rust` | `make test`, `make clippy`, `make fmt` | [o] |
+| T1.3 | 코어를 feature `fs` 없이 `wasm32-unknown-unknown`으로 빌드하고, 요청의 파일을 메모리에 둔다(b42bdea, 0f1a098) | `packages/rust`, `rust-toolchain.toml` | `make wasm-core` | [o] |
+| T1.4 | 저장된 파일을 다른 파일 시스템으로 옮기는 것을 Linux와 macOS에서 시험한다. macOS에서는 시험이 disk image를 붙인다(7eddf1d, c93856c, f1561be) | `packages/rust/tests/behavior.rs` | `make test` | [o] |
+| T1.5 | binding의 다섯 target을 위한 인터페이스 계약을 crate에 담아 쓰고, kind마다 case를 두며 코어의 fault 주입점을 둔다(bfa110d, 64e2990, e590483, 5f712d0, e67b4e9, 2d4a942) | `packages/rust/interface.json`, `packages/rust/src/fault.rs`, `contracts/` | `make bindings-check` | [!] 원인: binding check가 CK-22 지적 열 건을 낸다. `then`의 단계에서 장전한 fault가 닿는 `request_body.finish`와 `request_body.parts`의 `Io` kind 넷씩, 그리고 `pick` 뒤의 body 호출이 닿는 `uploaded_file.content`와 `uploaded_file.move_to`의 `removed`다. binding에는 두 case 꼴이 모두 없다(GN-13f); 재시도: binding이 두 case 꼴을 주고 계약이 열 case를 담는다 |
+| T1.6 | 코어와 binding scaffold가 쓰는 바인딩 crate를 binding의 한 commit에 고정된 하나의 workspace에 둔다(6546c52, 9fd552d, 07ff470, 9474d54, 2614242, a6bbc64, c4c9fa4, 0595bbc, decdc53, e67b4e9) | `Cargo.toml`, `Cargo.lock`, `packages/php-ext`, `packages/python`, `packages/ts`, `packages/ts/wasm`, `packages/go` | `make bindings-check` | [!] 원인: `make bindings-check`가 T1.5의 CK-22 지적으로 실패한다; 재시도: T1.5가 끝난다 |
+| T1.7 | 계획과 checklist를 한국어 쌍과 함께 두고, 모든 문서와 이 checklist를 `make docs-check`로 읽는다 | `docs/plans/rust-core`, `config/documents.json`, `config/checklist.json`, `package.json`, `package-lock.json`, `Makefile` | `make docs-check` | [~] |
+| T1.8 | PHP, Python, Node, WASM 바인딩을 binding이 생성하는 시험과 contract case로 각 언어의 표준 runner에서 시험한다. 각 target은 자기 `make bindings-<target>`이 생성한다 | `packages/php-ext/tests`, `packages/python/tests`, `packages/ts/tests`, `Makefile` | `make test-bindings` | [!] 원인: binding은 그 검사가 계약을 거부하는 동안 어떤 target도 생성하지 않는다(T1.5); 재시도: T1.5가 끝나고 binding이 php, python, node, wasm에서 packages/rust/interface.json을 생성한다 |
+| T1.9 | `legacy/conformance`의 runner를 생성된 PHP, Python, Node 바인딩으로 실행하고, 그다음 `legacy/`를 지운다 | `legacy/`, `Makefile` | `make test-bindings` | [!] 원인: 생성 바인딩이 없다(T1.8); 재시도: T1.8이 끝난다 |
+| T1.10 | 이 저장소에 대한 binding의 end-to-end 검사를 php, python, node, wasm에서 통과한다 | binding의 추적되지 않는 `var/report/e2e/http-form.json` | binding의 `make e2e` | [!] 원인: end-to-end 검사가 T1.5의 binding check에서 멈춘다; 재시도: T1.5가 끝난다 |
+| T1.11 | Go 바인딩을 binding이 생성하는 시험과 `packages/go/tests`의 contract case로 시험한다 | `packages/go` | `make test-go` | [!] 원인: binding은 그 검사가 계약을 거부하는 동안 어떤 target도 생성하지 않는다(T1.5); 재시도: T1.5가 끝나고 binding이 packages/rust/interface.json의 Go를 생성한다 |

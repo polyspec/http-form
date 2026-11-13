@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: f75c4f2911e903cf07a1eabd3522b5d061de2028884a5eed3c44427e984f77cc -->
+<!-- source-sha256: 44cd6506e7992377986933b34e9bcc575d3004a378974a8e19105637e5cfa6ec -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -47,3 +47,13 @@
   지점)가 이름하는, binding의 case 꼴을 기다리는 CK-22 finding 열 건으로 계약을 거부하므로 `make bindings`가 바인딩을
   쓰지 않는다. 언어의 case runner는 그것이 실행될 생성 바인딩이 생기기 전에는 두지 않는다. case는 앞선 호출이 만드는
   receiver를 instance 값으로 주며(binding GN-13f), 코어의 시험을 위해 `tests/common`이 그것을 만든다.
+
+## 검사
+
+- `make check`는 rustfmt, clippy, 시험, `make wasm-core`, `make docs-check`를 실행한다.
+- `make docs-check`는 `config/documents.json`이 고르는 각 문서를 그 링크, anchor, fence, 각 한국어 쌍의 `doc-id`와
+  `source-sha256`과 함께 읽고, `config/checklist.json`이 행을 선언하는 checklist `docs/plans/rust-core/checklist.md`를
+  읽는다. 그것이 실행하는 @polyspec/kit은 `make bootstrap`이 설치한다. 저장소의 계획은 `docs/plans/rust-core/plan.md`다.
+  작업은 그 checklist의 행이며, 확인 명령이 commit된 tree에서 통과한 뒤에만 `[o]`로 표시한다. commit 전에 그것을
+  실행한다. 한국어 쌍을 다시 번역한 뒤에는 `make documents-stamp PATHS=<쌍>`이 그 `source-sha256`을 쓴다. marker는 손으로
+  쓰지 않는다.

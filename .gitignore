@@ -11,3 +11,4 @@ __pycache__/
 /packages/go/internal/ffi/generated/
 # The virtual environment, the wheels and the installed npm packages of the binding tests.
 /var/
+/node_modules/

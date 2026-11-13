@@ -3,6 +3,9 @@
 # The bindings are generated from the interface contract (plan G-6); the hand-written bindings of an earlier API are in
 # legacy/, which no target builds.
 
+# The shared tools of polyspec, which make bootstrap installs from package-lock.json into node_modules: check-documents
+# and documents-stamp of @polyspec/kit run on the Node.js of the machine, whose release the engines of kit bound.
+KIT := $(CURDIR)/node_modules/@polyspec/kit/dist
 CARGO ?= cargo
 # Extra arguments of every cargo build of a binding.
 CARGOFLAGS ?=
@@ -36,7 +39,7 @@ CORE := polyspec-http-form
 TARGETS := php python node go wasm
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
-.PHONY: test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
+.PHONY: bootstrap docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
 	test-python node-package test-node test-wasm test-php test-go
 
 test:
@@ -58,7 +61,25 @@ wasm-core:
 	$(CARGO) clippy --locked -p $(CORE) --target wasm32-unknown-unknown --no-default-features --features fault-test \
 		-- -D warnings
 
-check: fmt clippy test wasm-core
+check: fmt clippy test wasm-core docs-check
+
+# The npm that devEngines of package.json names installs the lock, @polyspec/kit included. It runs outside the checkout with
+# --prefix, since an npm of another release refuses a folder whose devEngines names npm 12.2.0 (EBADDEVENGINES); npm reads
+# allow-remote of the .npmrc of the checkout.
+BOOTSTRAP_NPM := $(abspath $(shell command -v npm))
+bootstrap:
+	root="$$PWD"; version="$$(node -p 'require("./package.json").devEngines.packageManager.version')"; \
+	cd "$${TMPDIR:-/tmp}" && npm_config_cache="$$root/var/bootstrap/npm-cache" "$(BOOTSTRAP_NPM)" exec --yes --package="npm@$$version" -- npm --prefix "$$root" ci --ignore-scripts
+
+# The documents of config/documents.json, each on its own (links, anchors, fences and the doc-id and source-sha256 of each
+# Korean twin), and the checklists of docs/plans, whose rows config/checklist.json declares.
+docs-check:
+	$(NODE) $(KIT)/check-documents.mjs --checklist-place --private-path /Users/ --private-path /home/ --kit-rows
+
+# Writes the source-sha256 of each English document into the Korean twins that PATHS names, after they are translated
+# again; with no PATHS it lists each twin whose source moved.
+documents-stamp:
+	$(NODE) $(KIT)/documents-stamp.mjs $(PATHS)
 
 # HYPER is the directory packages/server/python/src of hyper. The test reads a module of hyper that is not public, so
 # its result is a reference only (docs/spec/forms.md, Verification); PYTHONPATH must hold the packages that hyper
