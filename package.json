@@ -1,7 +1,7 @@
 {
   "name": "http-form-development",
   "private": true,
-  "description": "The development tools of the repository: the shared tools of polyspec (@polyspec/kit), whose check-documents and documents-stamp read and stamp the documents",
+  "description": "The development tools of the repository: the shared tools of polyspec (@polyspec/kit), which install the toolchains of mise.toml into var/tools and read and stamp the documents",
   "license": "MIT",
   "devEngines": {
     "packageManager": {

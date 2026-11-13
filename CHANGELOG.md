@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Every tool of a recipe is pinned in a tracked file and installed into `var/tools`, and the repository has its checks
+  on GitHub and its release. Before, the Makefile took php, php-config, phpunit, maturin, go, gofmt, wasm-bindgen, node
+  and npm from the machine and the cli of binding from the variable `BINDING`, so a result depended on the machine,
+  and no workflow ran a check or tagged a commit. `mise.toml` with `mise.lock`, `config/toolchain.json`,
+  `.php-version` and `composer.json` with `composer.lock` pin the tools, `make install` installs them, and
+  `scripts/binding.mts` runs the binding that `Cargo.lock` pins. `.github/workflows/ci.yml` runs `make check`, `make
+  bindings-check`, `make test-bindings` and `make release-coverage` in the jobs `core` and `bindings` on
+  `ubuntu-26.04-arm`, and `.github/workflows/release.yml` tags the commit of a successful run and creates its GitHub
+  Release; `config/release.json` releases the core crate as a Git tag. The version of the core and of the binding
+  manifests is 0.0.1, where it was 0.1.0, because no version was released. `make test-scripts` runs
+  `tests/scripts/ci.test.mts`, whose 4 tests failed before and pass now; `make release-coverage` reports every package
+  file classified. `make bindings-check` still fails on the cases that the pinned binding does not read (T1.5).
+
 - A body is started by the static function `RequestBody::start` of the core and the static member
   `request_body.start` of the interface contract, which returns the body; `RequestBody` has no constructor (F-9).
   Before, the contract named the constructor `request_body.new` with `wait: blocking_io`, because the start creates

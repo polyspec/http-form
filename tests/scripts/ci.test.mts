@@ -66,7 +66,9 @@ test('a workflow runs pinned actions and one make target per command', () => {
   for (const file of files) {
     const lines = read(file).split('\n').filter((line) => !line.trim().startsWith('#'));
     assert.ok(!lines.some((line) => /timeout-minutes/.test(line)), `${file} sets a time limit`);
-    for (const line of lines) {
+    // The steps are below `jobs:` of a workflow and `runs:` of an action; a key `run` above them is an input of the workflow.
+    const steps = lines.slice(lines.findIndex((line) => /^(jobs|runs):/.test(line)));
+    for (const line of steps) {
       const runsOn = /^\s*runs-on:\s*(.+)$/.exec(line)?.[1];
       if (runsOn !== undefined) {
         jobs += 1;

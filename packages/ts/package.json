@@ -1,6 +1,6 @@
 {
   "name": "@polyspec/http-form",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "The http-form library of polyspec for Node and the browser",
   "license": "MIT",
   "main": "./generated/index.cjs",
@@ -30,8 +30,8 @@
     "wasm/generated/*.wasm"
   ],
   "optionalDependencies": {
-    "@polyspec/http-form-linux-x64-gnu": "0.1.0",
-    "@polyspec/http-form-linux-arm64-gnu": "0.1.0",
-    "@polyspec/http-form-darwin-arm64": "0.1.0"
+    "@polyspec/http-form-linux-x64-gnu": "0.0.1",
+    "@polyspec/http-form-linux-arm64-gnu": "0.0.1",
+    "@polyspec/http-form-darwin-arm64": "0.0.1"
   }
 }

@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 4bc9e9fd2c9f66151f395219cc1c3862fa7685687393ca0fbf06a333a9b0faf9 -->
+<!-- source-sha256: 58c222da30f024f1446d440c3ffb6aec9a1e1af22cfd60c1c3523c6e623b66c2 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -23,8 +23,11 @@
   node --test(Node, 그리고 `make node-package`가 묶어 설치하는 같은 package의 하위 경로 `./wasm`으로 WASM),
   PHPUnit, go test. 생성기가 받지 않는 target은 원인과 함께 실패하는 target으로 남는다. 어떤 target도 빼거나
   건너뛰지 않는다(binding BD-27).
-- 변수 `BINDING`(binding의 cli), `PYTHON`(3.14 이상), `MATURIN`, `PHP`, `PHP_CONFIG`, `PHPUNIT`, `NODE`, `NPM`, `GO`,
-  `GOFMT`, `WASM_BINDGEN`이 도구를 가리킨다. recipe는 도구를 설치하지 않는다. `make test-go`는
+- binding은 `Cargo.lock`이 고정한 `polyspec-binding-core`의 commit의 생성기다. `scripts/binding.mts`는 Cargo가 그
+  commit으로 만든 checkout을 `var/binding/<commit>`에 clone하고 그 `package-lock.json`으로 의존을 설치한다. 그래서
+  생성기와 `binding_core`는 한 version이다. 변수 `PYTHON`(3.14 이상), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`,
+  `WASM_BINDGEN`은 `var/tools`와 `vendor/`의 도구를 가리키고(도구 절 참고), `make test-python`은 `MATURIN`의 maturin을
+  시험의 가상 환경에 설치한다. `make test-go`는
   `packages/go/go.mod`의 go 지시문과 다른 release의 Go를 실패시키고 `GOTOOLCHAIN=local`로 실행해 toolchain을 받지
   않게 한다. `make node-package`는 `packages/ts/wasm/Cargo.toml`의 `wasm-bindgen` crate와 다른 release의
   wasm-bindgen CLI를 실패시킨다. CLI는 자기 release의 module만 읽기 때문이다(binding GN-18). `CARGOFLAGS`는 바인딩의
@@ -58,3 +61,34 @@
   작업은 그 checklist의 행이며, 확인 명령이 commit된 tree에서 통과한 뒤에만 `[o]`로 표시한다. commit 전에 그것을
   실행한다. 한국어 쌍을 다시 번역한 뒤에는 `make documents-stamp PATHS=<쌍>`이 그 `source-sha256`을 쓴다. marker는 손으로
   쓰지 않는다.
+
+## 도구
+
+- recipe의 모든 도구는 추적 파일에 고정되고 checkout의 `var/tools`에 설치되며, 기계의 도구를 쓰지 않는다. 그래야 결과가
+  기계에 있는 것에 따라 달라지지 않는다. `mise.toml`은 Node.js, npm, Go, Python, Composer, wasm-bindgen CLI를 binding의
+  release로 정하고 `mise.lock`은 그 digest를 정한다. `config/toolchain.json`은 mise의 release와 digest를,
+  `rust-toolchain.toml`은 Rust toolchain과 target `wasm32-unknown-unknown`을, `.php-version`은 `var/tools/bin`의 wrapper가
+  실행하는 PHP를, `composer.json`과 `composer.lock`은 `make install-php-tools`가 `vendor/`에 설치하는 PHPUnit을 정한다.
+  새 checkout은 `make bootstrap`을 실행하고(`package.json`의 `devEngines`의 npm으로 `package-lock.json`을 설치한다), 이어서
+  `make install`을 실행한다. 모든 recipe는 `var/tools/bin`과 mise의 shim을 `PATH` 맨 앞에 두고 돈다.
+- `make test-scripts`는 `tests/scripts/ci.test.mts`를 실행한다. 이 시험은 추적 파일이 정확한 release로 고정하지 않은
+  도구, 기계의 도구를 가리키는 Makefile의 도구 변수, Makefile의 make target 하나가 아닌 workflow step, commit으로
+  고정되지 않은 action, `ubuntu-26.04-arm`이 아닌 runner의 job, 시간 한도를 실패로 본다.
+
+## CI와 release
+
+- `.github/workflows/ci.yml`은 `main`의 push와 수동 실행에서 돈다. matrix 항목마다 job 하나다. `core`는 `fmt`, `clippy`,
+  `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts`, `release-coverage`를 실행하고, `bindings`는 `make
+  test-bindings`의 대상을 실행한다. 각 job은 그 대상을 `make ci-targets`로 실행한다. `make ci-targets`는 모든 대상을
+  끝까지 실행하고 보고서 `var/ci/<name>/`을 쓴다. 마지막 job `ci-passed`는 다른 모든 job이 통과했을 때만 통과한다.
+  `.github/actions/bootstrap`은 모든 job의 bootstrap이다.
+- `config/release.json`은 모든 package 파일을 분류하고, `make release-coverage`가 그것을 검사한다. tag `vX.Y.Z`는 코어
+  crate `packages/rust`를 Git tag로 release한다. Cargo 의존은 그것을 `tag = "vX.Y.Z"`로 가리킨다. 그 tag는 binding
+  manifest의 version이기도 하며, binding scaffold가 코어의 version으로 그 manifest를 쓴다.
+- release는 `main`에서 성공한 `ci.yml`의 push 실행이나 수동 실행의 commit이다. version-bump commit `chore(release):
+  Release X.Y.Z`는 코어의 version(루트 `Cargo.toml`의 `[workspace.package]`의 `version`)을 정하고, binding
+  scaffold(`node scripts/binding.mts scaffold --contract packages/rust/interface.json`)로 binding manifest를 다시 쓰며,
+  `Cargo.lock`의 로컬 package version을 맞추고, 두 changelog의 `## Unreleased`를 `## X.Y.Z`로 바꾸고 그 위에 빈
+  `## Unreleased`를 둔다. 그 push의 CI 실행이 성공하면 `.github/workflows/release.yml`이 스스로 시작하고, `gh workflow run
+  release.yml -f run=<id>`가 그것을 다시 시작한다. `make release-tag`가 그 commit에 annotated tag `vX.Y.Z`를 만들어
+  push하고, `make release-publish`와 `make release-undraft`가 GitHub Release를 만든다. tag를 손으로 만들지 않는다.

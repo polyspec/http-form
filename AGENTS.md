@@ -25,8 +25,11 @@ rules of this repository.
   node --test (Node, and WASM through the subpath `./wasm` of the same installed package, which `make node-package`
   packs and installs), PHPUnit and go test. A target that the generator does not take stays a failing target with its
   cause; no target is left out or skipped (binding BD-27).
-- The variables `BINDING` (the cli of binding), `PYTHON` (3.14 or later), `MATURIN`, `PHP`, `PHP_CONFIG`, `PHPUNIT`,
-  `NODE`, `NPM`, `GO`, `GOFMT` and `WASM_BINDGEN` name the tools; a recipe installs none. `make test-go` fails a Go of
+- binding is the generator of the commit of `polyspec-binding-core` that `Cargo.lock` pins: `scripts/binding.mts`
+  clones the checkout that Cargo made of that commit into `var/binding/<commit>` and installs its dependencies there by
+  its `package-lock.json`, so that the generator and `binding_core` are one version. The variables `PYTHON` (3.14 or
+  later), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT` and `WASM_BINDGEN` name the tools of `var/tools` and `vendor/`
+  (see Tools), and `make test-python` installs the maturin of `MATURIN` into the virtual environment of the test. `make test-go` fails a Go of
   another release than the go directive of `packages/go/go.mod` and runs it with `GOTOOLCHAIN=local`, so that it
   fetches no toolchain, and `make node-package` fails a wasm-bindgen CLI of another release than the `wasm-bindgen`
   crate of `packages/ts/wasm/Cargo.toml`, because the CLI reads only a module of its own release (binding GN-18).
@@ -61,3 +64,37 @@ rules of this repository.
   repository is `docs/plans/rust-core/plan.md`; a task is a row of that checklist, marked `[o]` only after its
   verification command passed on the committed tree. Run it before a commit. After a Korean twin is translated again,
   `make documents-stamp PATHS=<twin>` writes its `source-sha256`; no marker is written by hand.
+
+## Tools
+
+- Every tool of a recipe is pinned in a tracked file and installed into `var/tools` of the checkout, never taken from
+  the machine, so that a result does not depend on what a machine has: `mise.toml` names Node.js, npm, Go, Python,
+  Composer and the wasm-bindgen CLI at the releases of binding and `mise.lock` their digests, `config/toolchain.json`
+  the release of mise and its digests, `rust-toolchain.toml` the Rust toolchain with the target
+  `wasm32-unknown-unknown`, `.php-version` the PHP, which the wrappers of `var/tools/bin` run, and `composer.json` with
+  `composer.lock` PHPUnit, which `make install-php-tools` installs into `vendor/`. A fresh checkout runs `make
+  bootstrap`, which installs `package-lock.json` with the npm of `devEngines` of `package.json`, then `make install`.
+  Every recipe runs with `var/tools/bin` and the shims of mise first on `PATH`.
+- `make test-scripts` runs `tests/scripts/ci.test.mts`, which fails a tool that no tracked file pins by its exact
+  release, a tool variable of the Makefile that names a tool of the machine, and a workflow step that is not one make
+  target of the Makefile, an action that no commit pins, a job on another runner than `ubuntu-26.04-arm` and a time
+  limit.
+
+## CI and release
+
+- `.github/workflows/ci.yml` runs on the push of `main` and on a manual run, one job per matrix entry: `core` runs
+  `fmt`, `clippy`, `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts` and `release-coverage`, and
+  `bindings` runs the targets of `make test-bindings`. Each job runs them with `make ci-targets`, which runs every
+  target to its end and writes the report `var/ci/<name>/`, and the last job `ci-passed` passes only when every other
+  job passed. `.github/actions/bootstrap` is the bootstrap of every job.
+- `config/release.json` classifies every package file, which `make release-coverage` checks. A tag `vX.Y.Z` releases the
+  core crate `packages/rust` as a Git tag, which a Cargo dependency names with `tag = "vX.Y.Z"`, and it is the version
+  of the binding manifests, which binding scaffold writes from the version of the core.
+- A release is the commit of a successful push or manual run of `ci.yml` on `main`. The version-bump commit
+  `chore(release): Release X.Y.Z` sets the version of the core (`version` of `[workspace.package]` of the root
+  `Cargo.toml`), writes the binding manifests again with binding scaffold (`node scripts/binding.mts scaffold --contract
+  packages/rust/interface.json`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
+  of both changelogs to `## X.Y.Z`, with a new empty `## Unreleased` above it. When the CI run of that push succeeds,
+  `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make
+  release-tag` creates and pushes the annotated tag `vX.Y.Z` at that commit, and `make release-publish` and `make
+  release-undraft` create the GitHub Release. No tag is created by hand.

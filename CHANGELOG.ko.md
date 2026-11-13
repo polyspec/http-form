@@ -1,7 +1,20 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 853a9cba3a924eca9da9945d67e994ff12ad32d58bdd6e6611a89dec9d50e01f -->
+<!-- source-sha256: a9e151f2ac9cd95cb6db80b6346eb2075842205819dd6cda5a548045990378ea -->
 
 ## Unreleased
+
+- recipe의 모든 도구가 추적 파일에 고정되고 `var/tools`에 설치되며, 저장소에 GitHub의 검사와 release가 생겼다. 전에는
+  Makefile이 php, php-config, phpunit, maturin, go, gofmt, wasm-bindgen, node, npm을 기계에서 가져오고 binding의 cli를 변수
+  `BINDING`에서 받았으므로 결과가 기계에 따라 달랐고, 어떤 workflow도 검사를 실행하거나 commit을 tag하지 않았다.
+  `mise.toml`과 `mise.lock`, `config/toolchain.json`, `.php-version`, `composer.json`과 `composer.lock`이 도구를 고정하고,
+  `make install`이 그것을 설치하며, `scripts/binding.mts`가 `Cargo.lock`이 고정한 binding을 실행한다.
+  `.github/workflows/ci.yml`은 `ubuntu-26.04-arm` 위에서 `make check`, `make bindings-check`, `make test-bindings`, `make
+  release-coverage`를 job `core`와 `bindings`로 실행하고, `.github/workflows/release.yml`은 성공한 실행의 commit을
+  tag하고 그 GitHub Release를 만든다. `config/release.json`은 코어 crate를 Git tag로 release한다. 코어와 binding
+  manifest의 version은 0.1.0이었고 이제 0.0.1이다. release된 version이 없기 때문이다. `make test-scripts`는
+  `tests/scripts/ci.test.mts`를 실행하며, 그 시험 4개는 전에 실패했고 지금 통과한다. `make release-coverage`는 모든
+  package 파일이 분류되었다고 보고한다. `make bindings-check`는 고정된 binding이 읽지 못하는 case에서 여전히
+  실패한다(T1.5).
 
 - 본문은 코어의 static 함수 `RequestBody::start`와 인터페이스 계약의 static member `request_body.start`로 시작하며, 이
   member는 본문을 돌려준다. `RequestBody`에는 생성자가 없다(F-9). 전에는 계약이 생성자 `request_body.new`를
