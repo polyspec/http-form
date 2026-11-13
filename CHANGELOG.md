@@ -1,5 +1,17 @@
 <!-- doc-id: changelog -->
 
+- The contract declares the fourteen fault injection points in `faults` and gives cases to the kinds that one call
+  reaches (CK-22): `io` of `request_body.new`, `feed` and `remove` and of `uploaded_file.move_to` by an injection,
+  `exists` of `move_to` by the path `.`, a directory that exists, and the one case of X-1, `internal` of
+  `uploaded_file.content` by `http_form.internal`. The binding crates of PHP, Python and Node gain the feature
+  `fault-test` that binding scaffold writes for a contract with `faults`. The runners of the core arm the faults of a
+  case for its call, and `tests/forms.rs` calls `finish` and `parts` after each failure of a chunk. `make bindings-check`
+  now gives 23 CK-22 findings where it gave 29: each is a kind that only a receiver made by more than one call reaches
+  (a body that ended, failed or was removed, a file that is stored or was moved), which a case of one call cannot make
+  (binding G-5, T-5), and `partial_target` of `move_to`, whose target would stay at a path relative to the directory
+  of the binding test. A target other than PHP, Python and Node is refused by name for a contract with `faults`, because
+  binding generates the fault entry points for those three only.
+
 - The core calls the fault injection points of its spec (X-1, binding G-5): `packages/rust/src/fault.rs` names the
   fourteen points `http_form.<id>`, and the directory, the file of a part, its write and its size, the removal of the
   directory, the read of a stored file and each step of a move call `binding_core::fault::point`, which does nothing

@@ -1,5 +1,16 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: cacc80a04e63860bdeeab2373a8713c22221f0e6463c996118f5f5d10aeaa6a0 -->
+<!-- source-sha256: 3ce825a80dbfc6d733863e1b90f9f4f86065e2ac654aa9adbae526bc7d6a3d8f -->
+
+- 계약이 실패 주입점 열넷을 `faults`에 선언하고, 호출 하나가 닿는 kind에 case를 준다(CK-22): 주입으로
+  `request_body.new`, `feed`, `remove`와 `uploaded_file.move_to`의 `io`, 이미 있는 디렉터리인 경로 `.`로 `move_to`의
+  `exists`, 그리고 X-1의 case 하나인 `http_form.internal`로 `uploaded_file.content`의 `internal`이다. PHP, Python,
+  Node의 바인딩 crate는 binding scaffold가 `faults`가 있는 계약에 쓰는 feature `fault-test`를 얻는다. 코어의 runner는
+  case의 실패를 그 호출에 arming하고, `tests/forms.rs`는 chunk의 실패마다 그 뒤에 `finish`와 `parts`를 부른다.
+  `make bindings-check`는 이제 29개 대신 CK-22 finding 23개를 낸다: 하나하나가 호출 둘 이상으로 만든 receiver(끝났거나
+  실패했거나 지워진 본문, 저장되었거나 옮겨진 파일)만 닿는 kind로서 호출 하나의 case가 만들 수 없는 것이고(binding G-5,
+  T-5), 나머지 하나는 대상이 바인딩 시험의 디렉터리에 대한 상대 경로에 남을 `move_to`의 `partial_target`이다.
+  `faults`가 있는 계약에서 PHP, Python, Node가 아닌 target은 이름으로 거부된다. binding이 그 셋에만 실패 진입점을
+  생성하기 때문이다.
 
 - 코어가 spec의 실패 주입점을 부른다(X-1, binding G-5): `packages/rust/src/fault.rs`가 주입점 열넷
   `http_form.<id>`를 적고, 디렉터리, part의 파일과 그 쓰기와 크기, 디렉터리의 삭제, 저장된 파일의 읽기, 이동의 각

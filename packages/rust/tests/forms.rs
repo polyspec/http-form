@@ -5,8 +5,8 @@
 mod common;
 
 use common::{
-    bytes, content_type, contract, fields_json, files_json, group, id, io, latin1, limits, raises, string, text,
-    Failures,
+    bytes, content_type, contract, fields_json, files_json, group, id, io, latin1, limits, raised, raises, string,
+    text, Arming, Failures,
 };
 use polyspec_http_form::{
     file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, Collector, Error, Form,
@@ -144,33 +144,47 @@ fn files_over_a_limit() {
     failures.check("file_over");
 }
 
-/// The result of a body read in the given chunks: where it failed and with what, or its parts.
-fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
+/// The result of a body read in the given chunks: where it failed and with what, or its parts. The faults of a case
+/// of `member` are armed for its call: for `request_body.new`, and for `request_body.feed` for the chunks of a
+/// division together, so that the result does not depend on the division (F-24.6).
+fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
     let label = id(case);
+    let arming = |of: &str| match member {
+        Some(member) if member == of => Arming::of(case, member),
+        Some(_) | None => Arming::of(&json!({"id": label}), of),
+    };
     let content_length = match &case["content_length"] {
         Value::Null => None,
         given => Some(latin1(given)),
     };
     let kind = content_type(case);
-    let mut read = match RequestBody::new(
-        io(),
-        kind.as_deref(),
-        content_length.as_deref(),
-        case["stream"] == json!(true),
-        limits(case),
-    ) {
+    let made = arming("request_body.new");
+    let made_body = made.run(|| {
+        RequestBody::new(io(), kind.as_deref(), content_length.as_deref(), case["stream"] == json!(true), limits(case))
+    });
+    made.done();
+    let mut read = match made_body {
         Ok(read) => read,
-        Err(error) => return json!({"stage": "new", "raises": raises(&error)}),
+        Err(error) => return json!({"stage": "new", "raises": raised(case, &error)}),
     };
     let directory = read.directory();
     let mut result = json!({});
-    let mut failed = None;
-    for chunk in chunks {
-        if let Err(error) = read.feed(io(), chunk) {
-            // F-25: every later call gives the same error.
-            assert_eq!(read.feed(io(), b"more"), Err(error.clone()), "{label}");
-            failed = Some(("feed", error));
-            break;
+    let fed = arming("request_body.feed");
+    let mut failed = fed.run(|| {
+        for chunk in chunks {
+            if let Err(error) = read.feed(io(), chunk) {
+                return Some(("feed", error));
+            }
+        }
+        None
+    });
+    fed.done();
+    if let Some((_, error)) = &failed {
+        // F-9, F-25: every later call gives the same error, `finish` and `parts` included.
+        assert_eq!(read.feed(io(), b"more"), Err(error.clone()), "{label}");
+        assert_eq!(read.finish(io()), Err(error.clone()), "{label}: finish gives the first failure");
+        if read.streamed() {
+            assert_eq!(read.parts().err(), Some(error.clone()), "{label}: parts gives the first failure");
         }
     }
     if failed.is_none() && case.get("finish") != Some(&json!(false)) {
@@ -214,7 +228,7 @@ fn run_body(case: &Value, chunks: &[&[u8]]) -> Value {
     }
     if let Some((stage, error)) = failed {
         result["stage"] = json!(stage);
-        result["raises"] = raises(&error);
+        result["raises"] = raised(case, &error);
         if case.get("held").is_none() {
             assert_eq!(read.held(), b"", "{label}: a failed body holds no bytes");
         }
@@ -243,9 +257,10 @@ fn bodies() {
                 (None, None) => Vec::new(),
             };
             let all = divisions(&body);
-            let whole = run_body(case, &all[0]);
+            let member = stage.map(|stage| format!("request_body.{stage}"));
+            let whole = run_body(case, &all[0], member.as_deref());
             for chunks in &all[1..] {
-                let divided = run_body(case, chunks);
+                let divided = run_body(case, chunks, member.as_deref());
                 if divided != whole {
                     failures.push(format!("{label}: {} chunks give {divided}, one chunk {whole}", chunks.len()));
                     break;

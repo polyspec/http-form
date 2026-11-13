@@ -187,6 +187,182 @@
     "binding": [],
     "wrapped": []
   },
+  "faults": [
+    {
+      "id": "create_directory",
+      "core": "polyspec_http_form::fault::CREATE_DIRECTORY",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-10",
+      "place": "polyspec_http_form::RequestBody::new"
+    },
+    {
+      "id": "create_file",
+      "core": "polyspec_http_form::fault::CREATE_FILE",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-10",
+      "place": "polyspec_http_form::RequestBody::feed"
+    },
+    {
+      "id": "write_file",
+      "core": "polyspec_http_form::fault::WRITE_FILE",
+      "inject": [
+        "io",
+        "short"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-15",
+      "place": "polyspec_http_form::RequestBody::feed"
+    },
+    {
+      "id": "file_size",
+      "core": "polyspec_http_form::fault::FILE_SIZE",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-15",
+      "place": "polyspec_http_form::RequestBody::feed"
+    },
+    {
+      "id": "remove_directory",
+      "core": "polyspec_http_form::fault::REMOVE_DIRECTORY",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-10",
+      "place": "polyspec_http_form::RequestBody::remove"
+    },
+    {
+      "id": "read",
+      "core": "polyspec_http_form::fault::READ",
+      "inject": [
+        "io",
+        "short"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-15",
+      "place": "polyspec_http_form::UploadedFile::content"
+    },
+    {
+      "id": "rename",
+      "core": "polyspec_http_form::fault::RENAME",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io",
+        "exists"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "open",
+      "core": "polyspec_http_form::fault::OPEN",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "create",
+      "core": "polyspec_http_form::fault::CREATE",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io",
+        "exists"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "copy",
+      "core": "polyspec_http_form::fault::COPY",
+      "inject": [
+        "io",
+        "short"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "write",
+      "core": "polyspec_http_form::fault::WRITE",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "sync",
+      "core": "polyspec_http_form::fault::SYNC",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "io"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "remove",
+      "core": "polyspec_http_form::fault::REMOVE",
+      "inject": [
+        "io"
+      ],
+      "fills": [
+        "partial_target",
+        "source_left"
+      ],
+      "reason": "F-11",
+      "place": "polyspec_http_form::UploadedFile::move_to"
+    },
+    {
+      "id": "internal",
+      "core": "polyspec_http_form::fault::INTERNAL",
+      "inject": [
+        "broken"
+      ],
+      "fills": [
+        "internal"
+      ],
+      "reason": "X-1",
+      "place": "the lock of polyspec_http_form::UploadedFile, in content and move_to"
+    }
+  ],
   "units": [
     {
       "id": "partial_target_error",
@@ -1490,6 +1666,11 @@
       "member": "uploaded_file.move_to",
       "file": "contracts/fields.json",
       "group": "uploaded_file.move_to"
+    },
+    {
+      "member": "uploaded_file.content",
+      "file": "contracts/fields.json",
+      "group": "uploaded_file.content"
     },
     {
       "member": "forms.multipart_boundary",

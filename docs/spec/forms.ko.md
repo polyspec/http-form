@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: e9ab3101bc00b11a4a4e95038355f2069b04d0dfbd541221b100e906abdac703 -->
+<!-- source-sha256: 6fc10f8e6585cd954d3e37a164d56b3444bc63d1069db06ca42453f82ada0958 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -268,19 +268,20 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
 ## 실패 주입점
 
 코어는 아래 표의 주입점마다 의존성 `polyspec-binding-core`의 `binding_core::fault::point`를
-부른다(`packages/rust/src/fault.rs`, 그 상수가 주입점의 이름이다; binding G-5). 계약은 아직 어떤 주입점도 선언하지
-않으므로, 계약 검사는 주입점만 닿는 kind 하나하나를 어떤 case도 내지 않는 kind로 지적한다(CK-22). 주입점은 이 crate의
-feature `fault-test` 없이는 아무것도 하지 않으며, 그 feature는 `polyspec-binding-core`의 같은 feature를 켠다: 바인딩
-crate는 자기 feature `fault-test`로, 이 crate의 시험은 dev-dependency로 그것을 켜고, release 빌드에는 없다.
+부르고(`packages/rust/src/fault.rs`, 그 상수가 주입점의 이름이다), 계약은 같은 주입점을 `faults`에 선언한다(binding
+G-5). 주입점은 이 crate의 feature `fault-test` 없이는 아무것도 하지 않으며, 그 feature는 `polyspec-binding-core`의 같은
+feature를 켠다: 바인딩 crate는 자기 feature `fault-test`로, 이 crate의 시험은 dev-dependency로 그것을 켜고, release
+빌드에는 없다. 주입점을 arming하는 case는 호출 하나의 case이다(G-5): arming은 그 member의 호출에만 유효하다.
 
 파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤 인자도 그 실패에 닿지
 않는다. 주입점은 코어 안의 시스템 호출 하나이다. kind `io`의 주입은 그 호출을 주어진 `errno`로 실패시킨다. 그 실패는
 시스템의 실패처럼 오류 표에 따라 그 `errno`에서 kind를 얻으므로, `io` 주입은 그 행이 다른 결과를 적지 않는 한 variant
-`Io`의 다섯 kind(`not_found`, `permission_denied`, `cross_device`, `storage_full`, `io`)를 채운다. kind `short`의 주입은
-읽기, 쓰기, 복사가 주어진 수의 바이트만 처리하고 돌아오게 하며, 크기 검사가 그것을 `errno` 없는 `io`로 찾는다(F-15).
-`http_form.internal`에서 kind `broken`의 주입은 파일의 lock을 poison된 것으로 다룬다(H-8). arming한 주입점은 case가
-시험하는 member의 호출 동안, 그 호출을 실행하는 thread에서 유효하다. 코어는 thread를 시작하지 않으므로 모든 주입점은 그
-호출의 arming을 받는다.
+`Io`의 다섯 kind(`not_found`, `permission_denied`, `cross_device`, `storage_full`, `io`)를 채운다. 계약의 `fills`는 다섯
+가운데 `io`만 적는다. `errors.kinds`의 variant `Io` 행이 `kinds`를 적지 않고, 주입점은 그 표의 kind만 채우기
+때문이다(binding CK-3). kind `short`의 주입은 읽기, 쓰기, 복사가 주어진 수의 바이트만 처리하고 돌아오게 하며, 크기
+검사가 그것을 `errno` 없는 `io`로 찾는다(F-15). `http_form.internal`에서 kind `broken`의 주입은 파일의 lock을 poison된
+것으로 다룬다(H-8). arming한 주입점은 case가 시험하는 member의 호출 동안, 그 호출을 실행하는 thread에서 유효하다. 코어는
+thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 받는다.
 
 | Id | 자리(함수) | 주입 | 채우는 kind | 조건의 규칙 | arming을 받는가 |
 |---|---|---|---|---|---|
@@ -307,6 +308,22 @@ crate는 자기 feature `fault-test`로, 이 crate의 시험은 dev-dependency�
 
 `finish`와 `parts`는 실패할 수 있는 시스템 호출을 하지 않는다: 본문의 첫 실패를 다시 주므로(F-9),
 그 둘의 파일 시스템 실패는 앞선 `feed`가 만난 실패이다.
+
+주입점을 arming하는 계약의 case는 호출 하나의 group에 있다: `request_body.new`(`create_directory`),
+`request_body.feed`(`create_file`, `io`와 `short`의 `write_file`, `file_size`), `request_body.remove`
+(`remove_directory`), `uploaded_file.move_to`(값인 파일의 `create`, `write`, `sync`), `uploaded_file.content`
+(`internal`, X-1의 case 하나). 호출 하나의 case는 그 unit의 생성자로 case의 키에서 receiver를 만들므로(binding G-5,
+T-5), 그 receiver는 방금 만든 본문이나 값인 파일이다: 호출 하나의 case는 끝났거나 실패했거나 지워진 본문, 저장되었거나
+옮겨진 파일을 만들지 못한다. `tests/faults.rs`는 저장된 파일만 닿는 주입점(`read`, `rename`, `open`, `create`, `copy`,
+`sync`, `remove`, 이동의 `internal`)을 코어의 호출에서 arming한다. 그래서 그런 receiver만 닿는 kind에는 계약의 case가
+없고, 계약 검사는 그것을 하나하나 지적한다(CK-22): `feed`의 `finished`와 `removed`; `finish`와 `parts`가 다시 주는
+본문의 실패(F-9)와 `finish`의 `removed`; `content`의 `moved`, `removed`, `io`; `move_to`의 `moved`, `removed`,
+`source_left`. `move_to`의 `partial_target`에도 case가 없다: 값인 파일은 `http_form.write`와 `http_form.remove`로 그것에
+닿지만, 그때 대상이 case의 경로에 남고, 바인딩 시험은 그 경로를 자기를 실행하는 디렉터리에 대한 상대 경로로 받는다.
+코어의 시험은 이 kind 하나하나에 닿는다: `tests/forms.rs`의 `bodies`는 chunk의 실패마다 그 뒤에 `finish`와 `parts`를
+부르고, `tests/behavior.rs`는 본문의 `finished`와 `removed`를 주며, `tests/fields.rs`의 `streamed`와 `tests/forms.rs`의
+`bodies`는 파일의 `moved`와 `removed`를 주고, `tests/faults.rs`는 `content`의 `io`, `source_left`, `partial_target`을
+준다.
 
 ## 무시하는 입력 (plan P-4)
 
@@ -363,7 +380,7 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
   `RequestBody`, `UploadedFile`), 오류 표의 범주의 오류 class `HttpFormValueError`, `HttpFormTypeError`, `HttpFormIoError`,
   `HttpFormStoreError`, `HttpFormBusyError`, `HttpFormInternalError`
   (design E-2), `partial_target`의 오류 class `PartialTargetError`, 그리고 이전 바인딩과의 차이를
-  `changes`에 선언한다.
+  `changes`에, "실패 주입점" 절의 실패 주입점을 `faults`에 선언한다.
   `MultipartReader`, `parse_multipart`, `parse_multipart_chunks`는 Rust API로 남는다(F-3). `malformed_content_type`은 이
   라이브러리의 kind이며, 그런 `Content-Type`을 가진 요청이 받는 상태 400을 가진다. 그 오류는 http-media-type의
   실패를 가지므로(F-12) 계약은 그 라이브러리의 kind를 부르지 않고 그 property를 전달하지 않는다. `RequestBody`는
@@ -378,8 +395,8 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
 
 - `make test`: 코어에서 도는 `contracts/fields.json`과 `contracts/forms.json`의 case. 모든 multipart case와
   모든 body case는 바이트 하나씩으로도, 모든 위치에서 나눈 두 chunk로도 읽으며, reader는 두
-  chunk 사이에 최대 그 상한만큼 보관한다(F-24.1, F-24.6). `tests/faults.rs`는 저장된 파일의 실패 주입점을
-  arming하며, arming한 실패는 모두 일어나야 한다. 무작위 한도를 준 무작위 본문은 모든 분할에서 바이트
+  chunk 사이에 최대 그 상한만큼 보관한다(F-24.1, F-24.6). 실패 주입점을 arming하는 case는 그것과 함께 돌며,
+  arming한 실패는 모두 일어나야 한다. `tests/faults.rs`는 저장된 파일의 주입점을 arming한다. 무작위 한도를 준 무작위 본문은 모든 분할에서 바이트
   하나씩 읽은 본문의 결과를 준다(`HTTP_FORM_ROUNDS`, 기본값 3000). 다른 파일 시스템으로의 이동에는
   `HTTP_FORM_OTHER_FS`(기본값 `/dev/shm`)에 다른 파일 시스템이 필요하다. 이동의 각 단계의 실패는 일부러 실패하는
   연산으로 시험한다.

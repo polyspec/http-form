@@ -11,8 +11,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use common::{
-    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raises, string, text,
-    Failures,
+    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raised, raises, string,
+    text, Arming, Failures,
 };
 use polyspec_http_form::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Collector, Error, Form, Limits,
@@ -287,26 +287,59 @@ fn uploaded() {
     failures.check("uploaded");
 }
 
-/// F-11, F-10: one call of the members whose other cases are scenarios of `streamed`: a file that an application makes
-/// moves to a path that does not exist, under a scratch directory, and a body that was just made is removed.
+/// A file that an application makes from the keys of `from_value` (G-5).
+fn value_file(case: &Value) -> UploadedFile {
+    match UploadedFile::from_value(
+        string(case, "name").to_owned(),
+        string(case, "filename").to_owned(),
+        string(case, "content_type").to_owned(),
+        bytes(&case["content"]),
+    ) {
+        Ok(file) => file,
+        Err(error) => panic!("{}: {error}", id(case)),
+    }
+}
+
+/// F-11, F-10, X-1: one call of the members whose other cases are scenarios of `streamed`, with the faults that a
+/// case arms (G-5): a file that an application makes moves to a path below a scratch directory or fails, a body that
+/// was just made is removed or fails, and the content of a file fails with a broken invariant. A failed move leaves no
+/// file at its path.
 #[test]
 fn one_call() {
     let cases = contract("fields.json");
+    let mut failures = Failures::default();
     for case in group(&cases, "uploaded_file.move_to") {
         let label = id(case);
-        let file = UploadedFile::from_value(
-            string(case, "name").to_owned(),
-            string(case, "filename").to_owned(),
-            string(case, "content_type").to_owned(),
-            bytes(&case["content"]),
-        )
-        .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let file = value_file(case);
         let place = scratch(label);
         let target = place.join(string(case, "path"));
-        file.move_to(io(), &target).unwrap_or_else(|error| panic!("{label}: {error}"));
-        let moved = fs::read(&target).unwrap_or_else(|error| panic!("{label}: {error}"));
-        assert_eq!(moved, bytes(&case["content"]), "{label}: the moved bytes");
+        let arming = Arming::of(case, "uploaded_file.move_to");
+        let moved = arming.run(|| file.move_to(io(), &target));
+        arming.done();
+        match moved {
+            Ok(()) => {
+                let moved = fs::read(&target).unwrap_or_else(|error| panic!("{label}: {error}"));
+                assert_eq!(moved, bytes(&case["content"]), "{label}: the moved bytes");
+                assert!(case.get("raises").is_none(), "{label}: the file moved");
+            }
+            Err(error) => {
+                failures.compare(case, "raises", &raised(case, &error));
+                if target != place.join(".") {
+                    assert!(!target.exists(), "{label}: a failed move leaves no file at its path");
+                }
+            }
+        }
         fs::remove_dir_all(&place).unwrap_or_else(|error| panic!("{label}: {error}"));
+    }
+    for case in group(&cases, "uploaded_file.content") {
+        let file = value_file(case);
+        let arming = Arming::of(case, "uploaded_file.content");
+        let content = arming.run(|| file.content(io()));
+        arming.done();
+        match content {
+            Ok(content) => failures.compare(case, "content", &json!({"hex": hex(&content)})),
+            Err(error) => failures.compare(case, "raises", &raised(case, &error)),
+        }
     }
     for case in group(&cases, "request_body.remove") {
         let label = id(case);
@@ -314,9 +347,24 @@ fn one_call() {
             RequestBody::new(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
                 .unwrap_or_else(|error| panic!("{label}: {error}"));
         let directory = read.directory();
-        read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
+        let arming = Arming::of(case, "request_body.remove");
+        let removed = arming.run(|| read.remove(io()));
+        arming.done();
+        match removed {
+            Ok(()) => assert!(case.get("raises").is_none(), "{label}: the body was removed"),
+            Err(error) => {
+                failures.compare(case, "raises", &raised(case, &error));
+                // F-10: a removal that failed removes nothing, and a later call removes the directory.
+                read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
+            }
+        }
         if let Some(directory) = directory {
             assert!(!directory.exists(), "{label}: the directory was removed");
         }
     }
+    failures.check("one call");
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }

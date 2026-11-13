@@ -85,6 +85,7 @@ fn the_directory_of_a_request() {
     assert!(!path.exists());
     assert_eq!(read.remove(io()), Ok(()));
     assert_eq!(read.feed(io(), b"--X"), Err(Error::Removed));
+    assert_eq!(read.finish(io()), Err(Error::Removed), "F-10: the end of a removed body fails with removed");
 
     let mut gone = body(TYPE, true);
     let path = directory(&gone);
