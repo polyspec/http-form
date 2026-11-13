@@ -38,7 +38,7 @@ rules of this repository.
   `core.features.wasm`, an empty list, and the WASM crate depends on the core with `default-features = false` (binding
   GN-4a); no manifest splits a dependency by `[target.'cfg(...)'.dependencies]`, because `core.features` is the one
   place that states what a target builds. An item that needs `fs` carries `#[cfg(feature = "fs")]` and stays out of
-  the WASM binding through the `only` of its unit. `rust-toolchain.toml` installs the target, and `make wasm-core`,
+  the WASM binding through the `only` of its unit or member; `UploadedFile` is in WASM in its form in memory. `rust-toolchain.toml` installs the target, and `make wasm-core`,
   which `make check` runs, builds the core for it under clippy.
 - The contract cases of `contracts/` do not run through a binding yet: `binding check` refuses the contract with the
   CK-22 findings that `CHANGELOG.md` lists, so `make bindings` writes no binding, and no case runner of a language

@@ -1197,15 +1197,6 @@
       "module": "body",
       "kind": "class",
       "visibility": "public",
-      "only": {
-        "targets": [
-          "php",
-          "python",
-          "node",
-          "go"
-        ],
-        "reason": "F-28"
-      },
       "origin": "generated",
       "core_type": "polyspec_http_form::UploadedFile",
       "members": [
@@ -1323,6 +1314,15 @@
           ],
           "kind": "method",
           "visibility": "public",
+          "only": {
+            "targets": [
+              "php",
+              "python",
+              "node",
+              "go"
+            ],
+            "reason": "F-28"
+          },
           "parameters": [],
           "returns": "bytes",
           "raises": [
@@ -1338,6 +1338,30 @@
           }
         },
         {
+          "id": "uploaded_file.held_content",
+          "name": [
+            "content"
+          ],
+          "kind": "method",
+          "visibility": "public",
+          "only": {
+            "targets": [
+              "wasm"
+            ],
+            "reason": "F-28"
+          },
+          "parameters": [],
+          "returns": "bytes",
+          "raises": [
+            "polyspec_http_form::Error::Internal"
+          ],
+          "wait": "none",
+          "core": {
+            "path": "polyspec_http_form::UploadedFile::held_content",
+            "receiver": "&self"
+          }
+        },
+        {
           "id": "uploaded_file.move_to",
           "name": [
             "move",
@@ -1345,6 +1369,15 @@
           ],
           "kind": "method",
           "visibility": "public",
+          "only": {
+            "targets": [
+              "php",
+              "python",
+              "node",
+              "go"
+            ],
+            "reason": "F-28"
+          },
           "parameters": [
             {
               "name": [
@@ -1714,6 +1747,16 @@
     },
     {
       "member": "uploaded_file.content",
+      "file": "contracts/fields.json",
+      "group": "uploaded_file.content"
+    },
+    {
+      "member": "uploaded_file.held_content",
+      "file": "contracts/fields.json",
+      "group": "uploaded"
+    },
+    {
+      "member": "uploaded_file.held_content",
       "file": "contracts/fields.json",
       "group": "uploaded_file.content"
     },

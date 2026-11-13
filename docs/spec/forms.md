@@ -258,13 +258,19 @@ is no path, are the binding's (plan B-2, B-3).
   `construct`, which the tests of this crate enable as a dev-dependency. No other public function does I/O. `Drop` of
   `RequestBody` removes the directory of a body whose host did not call `remove` (F-10) without a token, because `Drop`
   takes no argument; it is the safety net of a missing cleanup call, which the binding reports (plan B-10).
-- **F-28** A body read in chunks and its files have no WASM binding: they keep their files in a directory below the
-  temporary directory of the system (F-10) and wait on file I/O (F-17), which WebAssembly in a browser cannot do
-  (binding Q-4). `RequestBody` and `UploadedFile` are classes of PHP, Python, Node and Go. The core holds that file
-  I/O in its Cargo feature `fs`, which its default features turn on: `RequestBody`, the directory and the files of a
-  request, the stored content of an `UploadedFile` and `UploadedFile::move_to`, with the dependencies `rustix` and
+- **F-28** A body read in chunks has no WASM binding: it keeps its files in a directory below the temporary directory
+  of the system (F-10) and waits on file I/O (F-17), which WebAssembly in a browser cannot do (binding Q-4).
+  `RequestBody` is a class of PHP, Python, Node and Go. `UploadedFile` is a class of the five targets, and in WASM it
+  has its form in memory only: a file of WASM holds its bytes as a value, because WASM has no file system, and
+  `files_from_body` and `file_over`, functions of WASM, give and take such files. In WASM the class has `new`, the
+  properties `name`, `filename`, `content_type` and `size`, and `content`, which calls
+  `UploadedFile::held_content` and waits on nothing; `move_to`, which takes a path, and the `content` of the other
+  targets, which reads a stored file, are members of PHP, Python, Node and Go only. The core holds the file I/O in its
+  Cargo feature `fs`, which its default features turn on: `RequestBody`, the directory and the files of a request, the
+  stored, moved and removed states of an `UploadedFile` and `UploadedFile::move_to`, with the dependencies `rustix` and
   `tempfile`, which do not build for `wasm32-unknown-unknown`. Without `fs` the core keeps the functions of a body
-  held as one value and `UploadedFile` with its bytes as a value. The contract builds the WASM binding with the
+  held as one value and `UploadedFile` with its bytes as a value, and has `UploadedFile::held_content`. One feature
+  holds both the paths and the blocking I/O, because every blocking I/O of the core is file I/O. The contract builds the WASM binding with the
   features of `core.features.wasm`, which are none, so the generated WASM crate depends on the core with
   `default-features = false` (binding GN-4a); every other target builds the default features.
 - **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate with the feature `fs` builds for
@@ -411,8 +417,8 @@ These are the decisions of a server that uses the library, which no rule of this
   file system needs one at `HTTP_FORM_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are
   tested with operations that fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
-- `make wasm-core`: the core for `wasm32-unknown-unknown` without `fs`, with and without `fault-test`, under clippy
-  (F-28); `make check` runs it after `make fmt`, `make clippy` and `make test`.
+- `make wasm-core`: the unit tests of the core without `fs` on this machine, and the core for
+  `wasm32-unknown-unknown` without `fs`, with and without `fault-test`, under clippy (F-28); `make check` runs it after `make fmt`, `make clippy` and `make test`.
 - `make bindings-check BINDING=<cli>`: the interface contract passes the contract check of `@polyspec/binding` with
   the contract of `polyspec-http-media-type` as its dependency, and the binding packages `packages/ts`,
   `packages/ts/wasm`, `packages/python`, `packages/php-ext` and `packages/go` are what `binding scaffold` writes

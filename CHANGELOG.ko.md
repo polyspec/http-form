@@ -1,7 +1,15 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: af4fd5df821c0d9a9de77be2932a492297a5d797aae141344e09e2f50300a474 -->
+<!-- source-sha256: 5a9aedc20e8d2e46467d119a0017f15f2d6c6f8fe57fbe1a903cf0947b577987 -->
 
 ## Unreleased
+
+- `UploadedFile`이 메모리의 형태로 WASM의 클래스다(F-28): `new`, `name`, `filename`, `content_type`, `size`, 그리고
+  `fs` 없는 코어의 새 `UploadedFile::held_content`를 부르고 아무것도 기다리지 않는 `content`이다. `move_to`와,
+  저장된 파일을 읽는 다른 target의 `content`는 WASM이 없는 `only`를 가진다. 전에는 클래스 전체가 WASM이 없는
+  `only`를 가졌는데, WASM의 함수인 `files_from_body`와 `file_over`가 그 파일을 주고 받으므로 계약이 WASM에서 맞지
+  않았다. `make wasm-core`는 `fs` 없는 코어의 unit 시험도 실행한다. 파일 I/O는 feature `fs` 하나로 두고 따로
+  `blocking-io`를 두지 않는다: 코어의 blocking I/O는 모두 파일 I/O이므로, 둘째 feature는 같은 항목을 두 이름으로
+  부르게 된다.
 
 - kind `cross_device`와 `IoKind::CrossDevice`를 없앤다: `EXDEV`는 이제 `errno`를 가진 `io`이다(F-2). `EXDEV`는
   rename만 주고 이동은 그때 복사하므로(F-11) 그 kind는 어떤 호출자에게도 닿지 않았다. 계약의 `Error::Io` 행이 kind

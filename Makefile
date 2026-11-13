@@ -48,8 +48,10 @@ fmt:
 
 # The core as the WASM binding builds it (binding GN-4a): for wasm32-unknown-unknown with the features of
 # core.features.wasm of the contract, which hold no fs (spec F-28), and with fault-test, which a WASM crate turns on
-# for a contract with faults (binding GN-5).
+# for a contract with faults (binding GN-5). The unit tests of the core without fs run on this machine, because a test
+# executable of wasm32-unknown-unknown has no runner here.
 wasm-core:
+	$(CARGO) test --locked -p $(CORE) --lib --no-default-features
 	$(CARGO) clippy --locked -p $(CORE) --target wasm32-unknown-unknown --no-default-features -- -D warnings
 	$(CARGO) clippy --locked -p $(CORE) --target wasm32-unknown-unknown --no-default-features --features fault-test \
 		-- -D warnings

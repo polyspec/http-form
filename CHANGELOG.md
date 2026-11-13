@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `UploadedFile` is a class of WASM in its form in memory (F-28): `new`, `name`, `filename`, `content_type`, `size`
+  and `content`, which calls the new `UploadedFile::held_content` of the core without `fs` and waits on nothing.
+  `move_to` and the `content` of the other targets, which reads a stored file, carry `only` without WASM. Before, the
+  whole class carried `only` without WASM, while `files_from_body` and `file_over`, functions of WASM, give and take
+  its files, so the contract did not hold for WASM. `make wasm-core` also runs the unit tests of the core without
+  `fs`. The file I/O stays one feature `fs` and has no separate `blocking-io`: every blocking I/O of the core is file
+  I/O, so a second feature would name the same items twice.
+
 - The kind `cross_device` is removed, and `IoKind::CrossDevice` with it: `EXDEV` is now `io` with its `errno` (F-2).
   Only a rename gives `EXDEV`, and the move then copies (F-11), so the kind reached no caller. The contract row of
   `Error::Io` names its kinds `not_found`, `permission_denied`, `storage_full` and `io`, the `fills` of every point

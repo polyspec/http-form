@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: ede82678b37c33cdb7fc2863105cfafa1d4ffb1b4f0122ad0139458d2c647540 -->
+<!-- source-sha256: f4be96c45fd96f2b9963b388adb08f44391b00211c5ecbfefcb97d970f38f970 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -259,12 +259,18 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   `construct`를 통해 만들며, 이 crate의 시험은 그 feature를 dev-dependency로 켠다. 다른 public 함수는 I/O를 하지 않는다. `RequestBody`의
   `Drop`은 host가 `remove`를 호출하지 않은 본문의 디렉터리를(F-10) token 없이 삭제한다. `Drop`은
   인자를 받지 않기 때문이다. 이것은 빠진 cleanup 호출의 안전망이며, 바인딩이 그 누락을 보고한다(plan B-10).
-- **F-28** 조각으로 읽는 본문과 그 파일에는 WASM 바인딩이 없다: 이것들은 시스템 임시 디렉터리 아래의 디렉터리에
-  파일을 두고(F-10) 파일 I/O를 기다리는데(F-17), 브라우저의 WebAssembly는 그것을 할 수 없다(binding Q-4).
-  `RequestBody`와 `UploadedFile`은 PHP, Python, Node, Go의 클래스다. 코어는 그 파일 I/O를 Cargo feature `fs`에
-  두고, 기본 feature가 그것을 켠다: `RequestBody`, 요청의 디렉터리와 파일, `UploadedFile`의 저장된 내용과
-  `UploadedFile::move_to`, 그리고 `wasm32-unknown-unknown`으로 빌드되지 않는 의존성 `rustix`와 `tempfile`이다.
-  `fs` 없이 코어는 한 값으로 든 본문의 함수와, 바이트를 값으로 가진 `UploadedFile`을 둔다. 계약은 WASM 바인딩을
+- **F-28** 조각으로 읽는 본문에는 WASM 바인딩이 없다: 그것은 시스템 임시 디렉터리 아래의 디렉터리에 파일을
+  두고(F-10) 파일 I/O를 기다리는데(F-17), 브라우저의 WebAssembly는 그것을 할 수 없다(binding Q-4). `RequestBody`는
+  PHP, Python, Node, Go의 클래스다. `UploadedFile`은 다섯 target의 클래스이고, WASM에서는 메모리의 형태만 가진다:
+  WASM에는 파일 시스템이 없으므로 WASM의 파일은 바이트를 값으로 가지며, WASM의 함수인 `files_from_body`와
+  `file_over`가 그런 파일을 주고 받는다. WASM에서 그 클래스는 `new`, property `name`, `filename`, `content_type`,
+  `size`, 그리고 `UploadedFile::held_content`를 부르고 아무것도 기다리지 않는 `content`를 가진다. 경로를 받는
+  `move_to`와, 저장된 파일을 읽는 다른 target의 `content`는 PHP, Python, Node, Go에만 있는 member다. 코어는 파일
+  I/O를 Cargo feature `fs`에 두고, 기본 feature가 그것을 켠다: `RequestBody`, 요청의 디렉터리와 파일,
+  `UploadedFile`의 저장됨·이동됨·삭제됨 상태와 `UploadedFile::move_to`, 그리고 `wasm32-unknown-unknown`으로 빌드되지
+  않는 의존성 `rustix`와 `tempfile`이다. `fs` 없이 코어는 한 값으로 든 본문의 함수와, 바이트를 값으로 가진
+  `UploadedFile`을 두고, `UploadedFile::held_content`를 가진다. 경로와 blocking I/O를 feature 하나가 담는다. 코어의
+  blocking I/O는 모두 파일 I/O이기 때문이다. 계약은 WASM 바인딩을
   `core.features.wasm`의 feature로 빌드하고 그 목록은 비어 있으므로, 생성 WASM crate는 코어에
   `default-features = false`로 의존한다(binding GN-4a). 다른 모든 target은 기본 feature로 빌드한다.
 - **F-14** 대체하지 않는 이동에는 `renameat2`나 `renameatx_np`가 필요하므로 feature `fs`를 켠 이 crate는 Linux와
@@ -407,8 +413,8 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
   `HTTP_FORM_OTHER_FS`(기본값 `/dev/shm`)에 다른 파일 시스템이 필요하다. 이동의 각 단계의 실패는 일부러 실패하는
   연산으로 시험한다.
 - `make clippy`: plan R-1의 lint와 `as_conversions`.
-- `make wasm-core`: `fs` 없이 `wasm32-unknown-unknown`으로 빌드한 코어를 `fault-test`가 있을 때와 없을 때 clippy로
-  검사한다(F-28). `make check`는 `make fmt`, `make clippy`, `make test` 뒤에 그것을 실행한다.
+- `make wasm-core`: `fs` 없는 코어의 unit 시험을 이 기계에서 실행하고, `fs` 없이 `wasm32-unknown-unknown`으로
+  빌드한 코어를 `fault-test`가 있을 때와 없을 때 clippy로 검사한다(F-28). `make check`는 `make fmt`, `make clippy`, `make test` 뒤에 그것을 실행한다.
 - `make bindings-check BINDING=<cli>`: 인터페이스 계약은 `polyspec-http-media-type`의 계약을 의존성으로 하여
   `@polyspec/binding`의 계약 검사를 통과하고, 바인딩 package `packages/ts`,
   `packages/ts/wasm`, `packages/python`, `packages/php-ext`, `packages/go`는 `binding scaffold`가 쓰는 것과 같다(binding design L-2). `make clippy`,

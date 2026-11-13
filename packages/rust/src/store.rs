@@ -95,6 +95,18 @@ impl UploadedFile {
     /// Fails with `moved` after a move (F-11) and with `removed` after the removal of the directory (H-16). It
     /// reads a stored file, so it takes the wait token `Io` (spec F-17).
     pub fn content(&self, _io: Io) -> Result<Vec<u8>, Error> {
+        self.bytes()
+    }
+
+    /// The bytes of the part as one value in a build without the feature `fs` (F-28): every file there holds its
+    /// bytes as a value, so the read does no I/O and takes no wait token (spec F-17). The WASM binding calls it as
+    /// `content`.
+    #[cfg(not(feature = "fs"))]
+    pub fn held_content(&self) -> Result<Vec<u8>, Error> {
+        self.bytes()
+    }
+
+    fn bytes(&self) -> Result<Vec<u8>, Error> {
         let content = self.lock()?;
         match &*content {
             Content::Value(bytes) => Ok(bytes.clone()),
@@ -105,5 +117,23 @@ impl UploadedFile {
             #[cfg(feature = "fs")]
             Content::Removed => Err(Error::Removed),
         }
+    }
+}
+
+#[cfg(all(test, not(feature = "fs")))]
+mod tests {
+    //! F-28: without the feature `fs` a file holds its bytes as a value, and `held_content` gives them.
+
+    use super::*;
+
+    #[test]
+    fn a_file_without_fs_gives_its_bytes() {
+        let file = UploadedFile::from_value("f".into(), "f.txt".into(), "text/plain".into(), b"abc".to_vec()).unwrap();
+        assert_eq!(file.held_content(), Ok(b"abc".to_vec()));
+        assert_eq!(file.held_content(), file.content(Io::for_generated_call()));
+        assert_eq!(
+            (file.name(), file.filename(), file.content_type(), file.size()),
+            ("f".into(), "f.txt".into(), "text/plain".into(), 3)
+        );
     }
 }
