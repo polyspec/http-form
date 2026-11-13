@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: a70cd1350530a7f6964e7d1dab34ef7507150afd806c903c0f1714f7685292db -->
+<!-- source-sha256: 3f030982b68bd5a32776bedb7e2bf53f29685a4ac24d968aaca97db68f6d1f94 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -334,11 +334,13 @@ T-5), 앞선 호출이 만드는 instance 값으로 키 `receiver` 아래에 준
 `request_body.finish.made`, `request_body.parts.made`는 `feed`의 `finished`와 `removed`, `finish`의 `removed`, 그리고
 `finish`와 `parts`가 다시 주는 chunk의 실패(F-9)를 준다. `contracts/fields.json`의 `uploaded_file.content.stored`와
 `uploaded_file.move_to.stored`는 `content`의 `moved`와 `Io`의 kind 넷, `move_to`의 `moved`, `source_left`,
-`partial_target`을 준다. case의 경로는 상대 경로이고, 코어의 시험은 그것을 case의 디렉터리 아래에서 받는다. 꼴 둘이
-아직 없으므로 계약 검사는 다음 kind를 지적한다(CK-22). `finish`와 `parts`가 다시 주는 파일 시스템의 실패에는 주입점을
-arming하는 `then`의 호출이 필요하다. case의 arming은 그 case 자신의 호출에만 유효하기 때문이다. `content`와
-`move_to`의 `removed`에는 파일을 고른 뒤 본문을 지우는 호출, 곧 `then`이 부르는 instance가 아닌 다른 instance의
-호출이 필요하다. 코어의 시험은 이 kind 하나하나에 닿는다: `tests/forms.rs`의 `bodies`는 chunk의 실패마다 그 뒤에
+`partial_target`을 준다. case의 경로는 상대 경로이고, 코어의 시험은 그것을 case의 디렉터리 아래에서 받는다. `finish`와
+`parts`가 다시 주는 파일 시스템의 실패도 같은 group에 case를 가진다. case의 arming은 그 case 자신의 호출에만 유효하므로,
+`then`의 호출 `feed`가 자기만을 위해 `http_form.create_file`을 `ENOENT`, `EACCES`, `ENOSPC`, `EIO`로 arming하고
+`not_found`, `permission_denied`, `storage_full`, `io`로 실패하며, `finish`와 `parts`는 그것을 errno와 함께 다시
+준다(binding GN-13f). `content`와 `move_to`의 `removed`는 `uploaded_file.content.stored`와
+`uploaded_file.move_to.stored`에 case를 가진다. `"on": "receiver"`를 가진 `then`의 호출 `request_body.remove`가 파일을
+꺼낸 본문을 지운다(binding GN-13f). 코어의 시험도 이 kind 하나하나에 닿는다: `tests/forms.rs`의 `bodies`는 chunk의 실패마다 그 뒤에
 `finish`와 `parts`를 부르고, `tests/fields.rs`의 `streamed`와 `tests/forms.rs`의 `bodies`는 파일의 `removed`를 주며,
 `tests/faults.rs`는 저장된 파일의 파일 시스템 실패를 준다.
 

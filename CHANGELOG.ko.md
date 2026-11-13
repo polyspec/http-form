@@ -1,7 +1,17 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6147d84e43591446b5fe1ff191ff8daf4710872ce5b31521dce1e78a9ffb7311 -->
+<!-- source-sha256: b84ddb51c7460314a8e382f842796fd3e00fb88277f174c59673ec3eb811dcaf -->
 
 ## Unreleased
+
+- 계약 검사가 지적한 kind 열 개(CK-22)가 binding c9f78a0의 `then` 호출의 두 꼴(GN-13f)로 case를 가진다.
+  `contracts/forms.json`의 `request_body.finish.made`와 `request_body.parts.made`에서 `then`의 호출 `feed`는 자기만을 위해
+  `http_form.create_file`을 `ENOENT`, `EACCES`, `ENOSPC`, `EIO`로 장전하고, `finish`와 `parts`는 `not_found`,
+  `permission_denied`, `storage_full`, `io`를 errno와 함께 다시 준다(F-9, F-10). `contracts/fields.json`의
+  `uploaded_file.content.stored`와 `uploaded_file.move_to.stored`에서 `"on": "receiver"`를 가진 호출
+  `request_body.remove`가 꺼낸 파일의 본문을 지우고, `content`와 `move_to`는 `removed`로 실패한다. `tests/common`은
+  `then` 호출의 fault를 그 member에 장전하고 `"on": "receiver"`에서 본문을 부르며, `tests/forms.rs`는 case가 적는
+  실패의 errno를 비교한다. binding c9f78a0의 검사는 CK-22 지적을 내지 않는다. `Cargo.lock`의 고정은 그 commit이 나온 뒤
+  따르며, `make check`는 통과 50, 실패 0을 낸다.
 
 - `Cargo.lock`은 binding 3b4bc6b를 고정하고, `binding scaffold`가 바인딩 패키지를 다시 쓴다. 바인딩 crate의 allow는
   자기 규칙 id를 이유로 주고, Go crate의 manifest에는 새 줄이 있다. 그 binding의 검사는 같은 CK-22 지적 열 건만 내고,

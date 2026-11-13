@@ -178,7 +178,15 @@ pub struct Arming {
 impl Arming {
     /// Arms the `faults` of the case for `member`, as the generated tests do.
     pub fn of(case: &Value, member: &str) -> Arming {
-        let label = id(case).to_owned();
+        Arming::labelled(case, member, id(case).to_owned())
+    }
+
+    /// Arms the `faults` of a call of `then` for its member alone (binding GN-13f).
+    pub fn of_call(call: &Value, member: &str) -> Arming {
+        Arming::labelled(call, member, call.to_string())
+    }
+
+    fn labelled(case: &Value, member: &str, label: String) -> Arming {
         match case.get("faults") {
             None => Arming { id: None, armed: Armed::empty(), label },
             Some(faults) => match fault::arm(member, &faults.to_string()) {
@@ -265,7 +273,8 @@ impl Failures {
 
 /// A receiver of a case that earlier calls make (binding GN-13f): `{"new": "request_body.new", "args": {...}, "then":
 /// [...]}`, a body made by its constructor from `args` and given the calls of `then` in order. A call of `then` with
-/// `raises` must fail with that kind before the next call, and a call without it must succeed.
+/// `raises` must fail with that kind before the next call, and a call without it must succeed; a call with `faults`
+/// runs with them armed for its member, and every one must fire.
 pub fn made_body(value: &Value) -> polyspec_http_form::RequestBody {
     assert_eq!(value["new"], json!("request_body.new"), "a body is made by request_body.new: {value}");
     let args = &value["args"];
@@ -282,24 +291,32 @@ pub fn made_body(value: &Value) -> polyspec_http_form::RequestBody {
     );
     let mut read = made.unwrap_or_else(|error| panic!("request_body.new of {value}: {error}"));
     for call in then(value) {
-        let done = match call["call"].as_str() {
-            Some("request_body.feed") => read.feed(io(), &bytes(&call["args"]["chunk"])),
-            Some("request_body.finish") => read.finish(io()),
-            Some("request_body.remove") => read.remove(io()),
-            _ => panic!("no call of a body: {call}"),
-        };
-        then_done(call, done);
+        body_call(&mut read, call);
     }
     read
 }
 
+/// A call of `then` on a body, with the faults that it arms for itself.
+fn body_call(read: &mut polyspec_http_form::RequestBody, call: &Value) {
+    let Some(member) = call["call"].as_str() else { panic!("no call: {call}") };
+    let arming = Arming::of_call(call, member);
+    let done = arming.run(|| match member {
+        "request_body.feed" => read.feed(io(), &bytes(&call["args"]["chunk"])),
+        "request_body.finish" => read.finish(io()),
+        "request_body.remove" => read.remove(io()),
+        _ => panic!("no call of a body: {call}"),
+    });
+    arming.done();
+    then_done(call, done);
+}
+
 /// A stored file of a case (binding GN-13f): `{"from": "request_body.parts", "receiver": <body>, "pick": ["files",
 /// {"index": n}, {"tuple": 1}, {"index": m}], "then": [...]}`, the file that the steps of `pick` reach in the parts of
-/// the body, given the calls of `then` in order. A path of a call is below `place`. The body is given too, because the
-/// test removes it when the case ends.
+/// the body, given the calls of `then` in order; a call with `"on": "receiver"` is a call of the body. A path of a call
+/// is below `place`. The body is given too, because the test removes it when the case ends.
 pub fn stored_file(value: &Value, place: &Path) -> (polyspec_http_form::UploadedFile, polyspec_http_form::RequestBody) {
     assert_eq!(value["from"], json!("request_body.parts"), "a stored file is picked from request_body.parts: {value}");
-    let read = made_body(&value["receiver"]);
+    let mut read = made_body(&value["receiver"]);
     let form = read.parts().unwrap_or_else(|error| panic!("request_body.parts of {value}: {error}"));
     let Some(steps) = value["pick"].as_array() else { panic!("no pick: {value}") };
     let [field, index, tuple, item] = steps.as_slice() else {
@@ -315,10 +332,17 @@ pub fn stored_file(value: &Value, place: &Path) -> (polyspec_http_form::Uploaded
     };
     let file = file.clone();
     for call in then(value) {
-        let done = match call["call"].as_str() {
-            Some("uploaded_file.move_to") => file.move_to(io(), &place.join(string(&call["args"], "path"))),
+        if call.get("on") == Some(&json!("receiver")) {
+            body_call(&mut read, call);
+            continue;
+        }
+        let Some(member) = call["call"].as_str() else { panic!("no call: {call}") };
+        let arming = Arming::of_call(call, member);
+        let done = arming.run(|| match member {
+            "uploaded_file.move_to" => file.move_to(io(), &place.join(string(&call["args"], "path"))),
             _ => panic!("no call of a file: {call}"),
-        };
+        });
+        arming.done();
         then_done(call, done);
     }
     (file, read)

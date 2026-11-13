@@ -45,11 +45,12 @@ rules of this repository.
   place that states what a target builds. An item that needs `fs` carries `#[cfg(feature = "fs")]` and stays out of
   the WASM binding through the `only` of its unit or member; `UploadedFile` is in WASM in its form in memory. `rust-toolchain.toml` installs the target, and `make wasm-core`,
   which `make check` runs, builds the core for it under clippy.
-- The contract cases of `contracts/` do not run through a binding yet: `binding check` refuses the contract with the
-  ten CK-22 findings that `docs/spec/forms.md` (Fault injection points) names, which wait for case forms of binding,
-  so `make bindings` writes no binding, and no case runner of a language exists before a generated binding that it can
-  run against. A case gives a receiver that earlier calls make as an instance value (binding GN-13f), which
-  `tests/common` makes for the tests of the core.
+- The contract cases of `contracts/` do not run through a binding yet: ten cases take two forms of a call of `then`
+  (binding GN-13f), its own `faults` and `"on": "receiver"`, which the binding that `Cargo.lock` pins does not read, so
+  its check refuses them and `make bindings` writes no binding; no case runner of a language exists before a
+  generated binding that it can run against. A case gives a receiver that earlier calls make as an instance value
+  (binding GN-13f), which `tests/common` makes for the tests of the core, the faults and the receiver of a call of
+  `then` included.
 
 ## Checks
 

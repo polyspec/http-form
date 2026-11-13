@@ -339,13 +339,15 @@ of `contracts/forms.json` give `finished` and `removed` of `feed`, `removed` of 
 that `finish` and `parts` give again (F-9); `uploaded_file.content.stored` and `uploaded_file.move_to.stored` of
 `contracts/fields.json` give `moved` and the four kinds of `Io` of `content`, and `moved`, `source_left` and
 `partial_target` of `move_to`. A path of a case is relative, and the tests of the core take it below a directory of
-the case. Two forms are still missing, so the contract check reports these kinds (CK-22): the failures of the file
-system that `finish` and `parts` give again need a call of `then` that arms points, because the arming of a case holds
-for its own call alone; `removed` of `content` and `move_to` needs a removal of the body after the file is picked, a
-call on another instance than the one that `then` calls. The tests of the core reach each of these kinds:
-`tests/forms.rs` `bodies` calls `finish` and `parts` after each failure of a chunk, `tests/fields.rs` `streamed` and
-`tests/forms.rs` `bodies` give `removed` of a file, and `tests/faults.rs` gives the failures of the file system of a
-stored file.
+the case. The failures of the file system that `finish` and `parts` give again have their cases in the same groups:
+the call `feed` of `then` arms `http_form.create_file` for itself alone with `ENOENT`, `EACCES`, `ENOSPC` and `EIO`,
+because the arming of a case holds for its own call, and fails with `not_found`, `permission_denied`, `storage_full`
+and `io`, which `finish` and `parts` give again with the errno (binding GN-13f). `removed` of `content` and `move_to`
+has its case in `uploaded_file.content.stored` and `uploaded_file.move_to.stored`: the call `request_body.remove` of
+`then` with `"on": "receiver"` removes the body that the file was picked from (binding GN-13f). The tests of the core
+also reach each of these kinds: `tests/forms.rs` `bodies` calls `finish` and `parts` after each failure of a chunk,
+`tests/fields.rs` `streamed` and `tests/forms.rs` `bodies` give `removed` of a file, and `tests/faults.rs` gives the
+failures of the file system of a stored file.
 
 ## Ignored inputs (plan P-4)
 

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- The ten kinds that the contract check reported (CK-22) have their cases, in the two forms of a call of `then` of
+  binding c9f78a0 (GN-13f). In `request_body.finish.made` and `request_body.parts.made` of `contracts/forms.json`, the
+  call `feed` of `then` arms `http_form.create_file` for itself alone with `ENOENT`, `EACCES`, `ENOSPC` and `EIO`, and
+  `finish` and `parts` give `not_found`, `permission_denied`, `storage_full` and `io` again with the errno (F-9,
+  F-10). In `uploaded_file.content.stored` and `uploaded_file.move_to.stored` of `contracts/fields.json`, the call
+  `request_body.remove` with `"on": "receiver"` removes the body of the picked file, and `content` and `move_to` fail
+  with `removed`. `tests/common` arms the faults of a call of `then` for its member and calls the body for
+  `"on": "receiver"`, and `tests/forms.rs` compares the errno of a failure that a case names. The check of binding
+  c9f78a0 gives no CK-22 finding; the pin of `Cargo.lock` follows once that commit is released, and `make check` gives
+  50 passed and 0 failed.
+
 - `Cargo.lock` pins binding 3b4bc6b, and `binding scaffold` writes the binding packages again: the allow of a binding
   crate gives its rule id as its reason, and the Go crate holds a new line of its manifest. The check of that binding
   gives the same ten CK-22 findings and no other, and `make check` gives 50 passed and 0 failed.

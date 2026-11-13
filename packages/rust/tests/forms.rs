@@ -311,28 +311,28 @@ fn one_call() {
     let mut failures = Failures::default();
     for case in group(&cases, "request_body.finish") {
         let mut read = made(case);
-        failures.compare(case, "raises", &failure(read.finish(io()).err()));
+        failures.compare(case, "raises", &failure(case, read.finish(io()).err()));
         cleanup(read, case);
     }
     for case in group(&cases, "request_body.parts") {
         let read = made(case);
-        failures.compare(case, "raises", &failure(read.parts().err()));
+        failures.compare(case, "raises", &failure(case, read.parts().err()));
         cleanup(read, case);
     }
     // GN-13f: a body that earlier calls made, its finish or its removal, takes a chunk or its finish.
     for case in group(&cases, "request_body.feed.made") {
         let mut read = made_body(&case["receiver"]);
-        failures.compare(case, "raises", &failure(read.feed(io(), &bytes(&case["chunk"])).err()));
+        failures.compare(case, "raises", &failure(case, read.feed(io(), &bytes(&case["chunk"])).err()));
         cleanup(read, case);
     }
     for case in group(&cases, "request_body.finish.made") {
         let mut read = made_body(&case["receiver"]);
-        failures.compare(case, "raises", &failure(read.finish(io()).err()));
+        failures.compare(case, "raises", &failure(case, read.finish(io()).err()));
         cleanup(read, case);
     }
     for case in group(&cases, "request_body.parts.made") {
         let read = made_body(&case["receiver"]);
-        failures.compare(case, "raises", &failure(read.parts().err()));
+        failures.compare(case, "raises", &failure(case, read.parts().err()));
         cleanup(read, case);
     }
     for case in group(&cases, "request_body.properties") {
@@ -350,9 +350,10 @@ fn one_call() {
     failures.check("one call");
 }
 
-fn failure(error: Option<Error>) -> Value {
+/// The failure of a call as the `raises` of the case, with its errno when the case names one (G-5).
+fn failure(case: &Value, error: Option<Error>) -> Value {
     match error {
-        Some(error) => raises(&error),
+        Some(error) => raised(case, &error),
         None => Value::Null,
     }
 }
@@ -363,7 +364,7 @@ fn boundary() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
     for case in group(&cases, "boundary") {
-        failures.compare(case, "raises", &failure(multipart_boundary(content_type(case).as_deref()).err()));
+        failures.compare(case, "raises", &failure(case, multipart_boundary(content_type(case).as_deref()).err()));
     }
     failures.check("boundary");
 }

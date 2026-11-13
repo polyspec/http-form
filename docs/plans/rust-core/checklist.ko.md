@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: 479163e227bce7f97f09a99902a351934f30a883e12b9d32d2df17cee4dd7a1a -->
+<!-- source-sha256: d4cc5b56084e34706af0e3fb5ec95e5621eb0d8d381704bc12fb9f450a1c8a2b -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -8,7 +8,7 @@
 | T1.2 | 규칙을 Rust crate polyspec-http-form으로 쓴다. I/O가 막히는 곳에서 기다림 토큰 `Io`를 받고, 모든 실패에 error kind를 준다(32eb82f, 888fcb0, 4571d70, 8e28553, 65c64f2, f726829, 779dca1, 651baec, 4969d31, b873266, 46c1b16, 3b860f0, 0f3e370) | `packages/rust` | `make test`, `make clippy`, `make fmt` | [o] |
 | T1.3 | 코어를 feature `fs` 없이 `wasm32-unknown-unknown`으로 빌드하고, 요청의 파일을 메모리에 둔다(b42bdea, 0f1a098) | `packages/rust`, `rust-toolchain.toml` | `make wasm-core` | [o] |
 | T1.4 | 저장된 파일을 다른 파일 시스템으로 옮기는 것을 Linux와 macOS에서 시험한다. macOS에서는 시험이 disk image를 붙인다(7eddf1d, c93856c, f1561be) | `packages/rust/tests/behavior.rs` | `make test` | [o] |
-| T1.5 | binding의 다섯 target을 위한 인터페이스 계약을 crate에 담아 쓰고, kind마다 case를 두며 코어의 fault 주입점을 둔다(bfa110d, 64e2990, e590483, 5f712d0, e67b4e9, 2d4a942) | `packages/rust/interface.json`, `packages/rust/src/fault.rs`, `contracts/` | `make bindings-check` | [!] 원인: binding check가 CK-22 지적 열 건을 낸다. `then`의 단계에서 장전한 fault가 닿는 `request_body.finish`와 `request_body.parts`의 `Io` kind 넷씩, 그리고 `pick` 뒤의 body 호출이 닿는 `uploaded_file.content`와 `uploaded_file.move_to`의 `removed`다. binding에는 두 case 꼴이 모두 없다(GN-13f); 재시도: binding이 두 case 꼴을 주고 계약이 열 case를 담는다 |
+| T1.5 | binding의 다섯 target을 위한 인터페이스 계약을 crate에 담아 쓰고, kind마다 case를 두며 코어의 fault 주입점을 둔다(bfa110d, 64e2990, e590483, 5f712d0, e67b4e9, 2d4a942) | `packages/rust/interface.json`, `packages/rust/src/fault.rs`, `contracts/` | `make bindings-check` | [!] 원인: binding check가 지적한 kind(CK-22)의 case 열 개가 binding c9f78a0의 `then` 호출의 두 꼴(GN-13f), 곧 자기 faults와 on: receiver를 쓰는데, Cargo.lock이 고정하는 binding(3b4bc6b)은 그것을 읽지 않아 그 검사가 그것을 거부한다. c9f78a0의 검사는 지적을 내지 않는다(01517f6); 재시도: 나온 binding이 c9f78a0을 담고 Cargo.lock이 그것을 고정한다 |
 | T1.6 | 코어와 binding scaffold가 쓰는 바인딩 crate를 binding의 한 commit에 고정된 하나의 workspace에 둔다(6546c52, 9fd552d, 07ff470, 9474d54, 2614242, a6bbc64, c4c9fa4, 0595bbc, decdc53, e67b4e9) | `Cargo.toml`, `Cargo.lock`, `packages/php-ext`, `packages/python`, `packages/ts`, `packages/ts/wasm`, `packages/go` | `make bindings-check` | [!] 원인: `make bindings-check`가 T1.5의 CK-22 지적으로 실패한다; 재시도: T1.5가 끝난다 |
 | T1.7 | 계획과 checklist를 한국어 쌍과 함께 두고, 모든 문서와 이 checklist를 `make docs-check`로 읽는다(3b71218) | `docs/plans/rust-core`, `config/documents.json`, `config/checklist.json`, `package.json`, `package-lock.json`, `Makefile` | `make docs-check` | [o] |
 | T1.8 | PHP, Python, Node, WASM 바인딩을 binding이 생성하는 시험과 contract case로 각 언어의 표준 runner에서 시험한다. 각 target은 자기 `make bindings-<target>`이 생성한다 | `packages/php-ext/tests`, `packages/python/tests`, `packages/ts/tests`, `Makefile` | `make test-bindings` | [!] 원인: binding은 그 검사가 계약을 거부하는 동안 어떤 target도 생성하지 않는다(T1.5); 재시도: T1.5가 끝나고 binding이 php, python, node, wasm에서 packages/rust/interface.json을 생성한다 |
