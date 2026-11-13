@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: d4e4c721733e68314533c4df031f393e83111a5add93233df2d9c368c1bf3e1e -->
+<!-- source-sha256: cf369faeb8a541001430a1cae0375d855624f9972d90ae7f6cffd64a8b8853ac -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -17,4 +17,4 @@
 | T1.11 | Go 바인딩을 binding이 생성하는 시험과 `packages/go/tests`의 contract case로 시험한다 | `packages/go` | `make test-go` | [!] 원인: T1.5 밖에도 더 뒤의 binding이 모든 target에서 계약의 생성을 거부한다(G-4). error unit `partial_target_error`의 property `removal_kind`와 `removal_errno`, `request_body`의 only와 native, `uploaded_file.content`와 `uploaded_file.move_to`의 wait blocking_io를 아직 생성하지 않는다; 재시도: T1.5가 끝나고 binding이 packages/rust/interface.json의 Go를 생성한다 |
 | T1.12 | recipe의 모든 도구를 고정해 `var/tools`에 설치하고, GitHub에서 검사를 실행하고 tag를 release한다: `mise.toml`과 그 lock, workflow `ci`와 `release`, release 구성, 그 make target. version은 0.0.1이다 | `mise.toml`, `mise.lock`, `config/toolchain.json`, `.php-version`, `composer.json`, `composer.lock`, `scripts/binding.mts`, `.github/`, `config/release.json`, `Makefile`, `tests/scripts/ci.test.mts` | `make test-scripts`, `make release-coverage` | [o] |
 | T1.13 | `main`에서 `ci.yml`의 모든 job을 통과하고 Go module의 tag `packages/go/vX.Y.Z`와 바인딩의 package를 갖춘 첫 version을 release한다. 선행 조건: T1.5~T1.11의 바인딩; `config/release.json`의 package 행을 위한 kit 0.0.111과 binding의 release. release는 `main`이 없는 `origin`에 `main`을 만들고 기본 브랜치로 한다 | `main`의 CI 실행, release의 tag | `make ci-passed` | [ ] |
-| T1.14 | 추적 파일에 Git commit을 적지 않는다: changelog와 checklist에는 사실을 적고, 규칙을 `AGENTS.md`에 두고 검사한다 | `CHANGELOG.md`, `docs/plans/rust-core/checklist.md`, `AGENTS.md`, `tests/scripts/commits.test.mts` | `make test-scripts` | [ ] |
+| T1.14 | 추적 파일에 Git commit을 적지 않는다: changelog와 checklist에는 사실을 적고, 규칙을 `AGENTS.md`에 두고 검사한다 | `CHANGELOG.md`, `docs/plans/rust-core/checklist.md`, `AGENTS.md`, `tests/scripts/commits.test.mts` | `make test-scripts` | [o] |
