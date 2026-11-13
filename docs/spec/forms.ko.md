@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 3f030982b68bd5a32776bedb7e2bf53f29685a4ac24d968aaca97db68f6d1f94 -->
+<!-- source-sha256: 248ec618ed17f9a7b15a09f9221f54745548aae99f2c62c4161145c79b9f4185 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
