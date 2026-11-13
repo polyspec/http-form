@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: b002ddbcb5a2778a660d3a030a017191bfaf283b07b5353c03963181fd21c912 -->
+<!-- source-sha256: f3430d9809f04665d117447a4ad149928403068407388976c721a622d69213d6 -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -18,4 +18,4 @@
 | T1.12 | recipe의 모든 도구를 고정해 `var/tools`에 설치하고, GitHub에서 검사를 실행하고 tag를 release한다: `mise.toml`과 그 lock, workflow `ci`와 `release`, release 구성, 그 make target. version은 0.0.1이다 | `mise.toml`, `mise.lock`, `config/toolchain.json`, `.php-version`, `composer.json`, `composer.lock`, `scripts/binding.mts`, `.github/`, `config/release.json`, `Makefile`, `tests/scripts/ci.test.mts` | `make test-scripts`, `make release-coverage` | [o] |
 | T1.13 | `main`에서 `ci.yml`의 모든 job을 통과하고 Go module의 tag `packages/go/vX.Y.Z`와 바인딩의 package를 갖춘 첫 version을 release한다. 선행 조건: T1.5~T1.11의 바인딩; `config/release.json`의 package 행을 위한 kit 0.0.111과 binding의 release. release는 `main`이 없는 `origin`에 `main`을 만들고 기본 브랜치로 한다 | `main`의 CI 실행, release의 tag | `make ci-passed` | [ ] |
 | T1.14 | 추적 파일에 Git commit을 적지 않는다: changelog와 checklist에는 사실을 적고, 규칙을 `AGENTS.md`에 두고 검사한다 | `CHANGELOG.md`, `docs/plans/rust-core/checklist.md`, `AGENTS.md`, `tests/scripts/commits.test.mts` | `make test-scripts` | [o] |
-| T1.15 | `request_body`에 생성자가 없음을 계약에 적는다: unit이 `constructible: false`를 적는다(spec F-9). binding은 그 말이 없는 class를 생성자가 있는 것으로 받아, static member `start`만 있는 `request_body`를 모든 target에서 거부하기 때문이다(binding U-1) | `docs/spec/forms.md`, `packages/rust/interface.json`, `packages/rust/tests/start.rs` | `make test` | [v] |
+| T1.15 | `request_body`에 생성자가 없음을 계약에 적는다: unit이 `constructible: false`를 적는다(spec F-9). binding은 그 말이 없는 class를 생성자가 있는 것으로 받아, static member `start`만 있는 `request_body`를 모든 target에서 거부하기 때문이다(binding U-1) | `docs/spec/forms.md`, `packages/rust/interface.json`, `packages/rust/tests/start.rs` | `make test` | [o] |
