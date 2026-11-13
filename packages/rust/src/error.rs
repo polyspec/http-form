@@ -297,3 +297,32 @@ impl std::error::Error for Error {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    //! F-2: the kinds of `Io` are the kinds that the core gives, and the contract names them.
+
+    use super::*;
+
+    const EXDEV: i32 = 18;
+
+    /// The kinds of `IoKind`, which the contract names in the row of `Error::Io`.
+    const KINDS: [&str; 4] = ["not_found", "permission_denied", "storage_full", "io"];
+
+    #[test]
+    fn exdev_is_io_with_its_errno() {
+        // EXDEV comes from a rename alone, which takes the copy (F-11), so it reaches no caller with a kind of its own.
+        let failure = IoFailure::from(io::Error::from_raw_os_error(EXDEV));
+        assert_eq!((failure.io_kind().kind(), failure.errno()), ("io", Some(EXDEV)));
+    }
+
+    #[test]
+    fn the_contract_names_the_kinds_of_io() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/interface.json");
+        let text = std::fs::read_to_string(path).unwrap();
+        let contract: serde_json::Value = serde_json::from_str(&text).unwrap();
+        let rows = contract["errors"]["kinds"].as_array().unwrap();
+        let row = rows.iter().find(|row| row["variant"] == "polyspec_http_form::Error::Io").unwrap();
+        assert_eq!(row["kinds"], serde_json::json!(KINDS));
+    }
+}
