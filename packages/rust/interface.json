@@ -210,7 +210,7 @@
         "io"
       ],
       "reason": "F-10",
-      "place": "polyspec_http_form::RequestBody::new"
+      "place": "polyspec_http_form::RequestBody::start"
     },
     {
       "id": "create_file",
@@ -953,11 +953,11 @@
       "cleanup": "request_body.remove",
       "members": [
         {
-          "id": "request_body.new",
+          "id": "request_body.start",
           "name": [
-            "new"
+            "start"
           ],
-          "kind": "constructor",
+          "kind": "static",
           "visibility": "public",
           "parameters": [
             {
@@ -997,6 +997,9 @@
               "required": true
             }
           ],
+          "returns": {
+            "unit": "request_body"
+          },
           "raises": [
             "polyspec_http_form::Error::InvalidContentLength",
             "polyspec_http_form::Error::BodyLimit",
@@ -1007,7 +1010,7 @@
           ],
           "wait": "blocking_io",
           "core": {
-            "path": "polyspec_http_form::RequestBody::new"
+            "path": "polyspec_http_form::RequestBody::start"
           }
         },
         {
@@ -1564,7 +1567,7 @@
         "python": "RequestBody(content_type: str, limit: int, stream: bool, value_limit: int, part_limit: int, file_limit: int)",
         "node": "new RequestBody(contentType: string, limit: number, stream: boolean, valueLimit: number, partLimit: number, fileLimit: number)"
       },
-      "to": "request_body.new"
+      "to": "request_body.start"
     },
     {
       "id": "request-body-feed",
@@ -1766,9 +1769,9 @@
       "group": "boundary"
     },
     {
-      "member": "request_body.new",
+      "member": "request_body.start",
       "file": "contracts/forms.json",
-      "group": "request_body.new"
+      "group": "request_body.start"
     },
     {
       "member": "request_body.feed",

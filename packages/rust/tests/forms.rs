@@ -160,12 +160,18 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
     let kind = content_type(case);
     let made = arming("request_body.start");
     let made_body = made.run(|| {
-        RequestBody::start(io(), kind.as_deref(), content_length.as_deref(), case["stream"] == json!(true), limits(case))
+        RequestBody::start(
+            io(),
+            kind.as_deref(),
+            content_length.as_deref(),
+            case["stream"] == json!(true),
+            limits(case),
+        )
     });
     made.done();
     let mut read = match made_body {
         Ok(read) => read,
-        Err(error) => return json!({"stage": "new", "raises": raised(case, &error)}),
+        Err(error) => return json!({"stage": "start", "raises": raised(case, &error)}),
     };
     let directory = read.directory();
     let mut result = json!({});
@@ -249,7 +255,7 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
 fn bodies() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
-    for (name, stage) in [("body", None), ("request_body.start", Some("new")), ("request_body.feed", Some("feed"))] {
+    for (name, stage) in [("body", None), ("request_body.start", Some("start")), ("request_body.feed", Some("feed"))] {
         for case in group(&cases, name) {
             let label = id(case);
             let body = match (case.get("body"), case.get("chunk")) {

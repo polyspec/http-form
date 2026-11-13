@@ -1,7 +1,17 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5f022ac51570953379989f1e9f5aebfe72bab5dbd434c6bfe51e4ed4b6bae825 -->
+<!-- source-sha256: 853a9cba3a924eca9da9945d67e994ff12ad32d58bdd6e6611a89dec9d50e01f -->
 
 ## Unreleased
+
+- 본문은 코어의 static 함수 `RequestBody::start`와 인터페이스 계약의 static member `request_body.start`로 시작하며, 이
+  member는 본문을 돌려준다. `RequestBody`에는 생성자가 없다(F-9). 전에는 계약이 생성자 `request_body.new`를
+  `wait: blocking_io`로 두었다. 시작이 본문의 디렉터리를 만들기 때문이다(F-10, F-17). 생성자를 await할 수 없는 언어에는
+  기다리는 생성자의 형태가 없고 binding은 그런 생성자를 거부하므로(binding GN-6m), 계약의 어떤 바인딩도 생성할 수
+  없었다. 호출자는 `RequestBody::new(...)`를 쓰던 자리에 `RequestBody::start(...)`를 쓰고, `contracts/forms.json`의 group
+  `request_body.new`와 그것으로 만드는 case의 모든 receiver는 이름이 `request_body.start`이다. 시험 `tests/start.rs`는
+  기다리는 member가 생성자나 property가 아니고 `request_body.start`가 본문을 돌려주는 static member임을 요구한다.
+  `make test`는 41개 통과, 0개 실패다. binding이 계약에서 생성하는 시험은 실행하지 않았다. binding이 아직 이 계약을
+  생성하지 않기 때문이다.
 
 - binding c9f78a0의 end-to-end 검사가 `contracts/forms.json`의 group `content_type`의 키 `mediaType`을
   거부했다. 인터페이스 계약이 가리키는 group의 case 키는 snake_case이기 때문이다(G-5). 그 키는 이제

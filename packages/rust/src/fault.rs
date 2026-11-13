@@ -7,7 +7,7 @@ use std::io;
 
 use binding_core::fault::{point, Injected};
 
-/// `create_directory` of `RequestBody::new` (F-10).
+/// `create_directory` of `RequestBody::start` (F-10).
 #[doc(hidden)]
 pub const CREATE_DIRECTORY: &str = "http_form.create_directory";
 /// The new file of a file part, in `feed` (F-10).

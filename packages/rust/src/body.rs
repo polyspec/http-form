@@ -130,7 +130,7 @@ impl RequestBody {
     /// which it is when `multipart/form-data` is a form type of the application (F-24.1); such a body needs its
     /// boundary (H-17, H-18) and gets its directory now. The limits are those of [`BodyLimits`]. It creates the
     /// directory, so it takes the wait token `Io` (spec F-17).
-    pub fn new(
+    pub fn start(
         _io: Io,
         content_type: Option<&[u8]>,
         content_length: Option<&[u8]>,

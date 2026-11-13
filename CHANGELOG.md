@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- A body is started by the static function `RequestBody::start` of the core and the static member
+  `request_body.start` of the interface contract, which returns the body; `RequestBody` has no constructor (F-9).
+  Before, the contract named the constructor `request_body.new` with `wait: blocking_io`, because the start creates
+  the directory of the body (F-10, F-17). A language whose constructor cannot be awaited has no form of a constructor
+  that waits, and binding refuses one (binding GN-6m), so no binding of the contract could be generated. A caller
+  writes `RequestBody::start(...)` where it wrote `RequestBody::new(...)`, and the group `request_body.new` of
+  `contracts/forms.json` and every receiver of a case made by it are named `request_body.start`. The test
+  `tests/start.rs` requires that no member that waits is a constructor or a property and that `request_body.start` is
+  a static member that returns the body; `make test` gives 41 passed and 0 failed. The tests that binding generates
+  from the contract did not run, because binding does not generate the contract yet.
+
 - The end-to-end check of binding c9f78a0 refused the key `mediaType` of the group `content_type` of
   `contracts/forms.json`, because a case key of a group that the interface contract names is in snake_case (G-5). The
   key is `media_type` now, and `after_removal` of the group `body` follows the same convention. The test

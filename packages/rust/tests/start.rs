@@ -38,15 +38,24 @@ fn no_constructor_and_no_property_waits() {
 fn a_body_starts_by_a_static_member_that_returns_it() {
     let contract = interface();
     let members = members(&contract);
-    let of_body: Vec<&&Value> =
-        members.iter().filter(|member| member["id"].as_str().is_some_and(|id| id.starts_with("request_body."))).collect();
+    let of_body: Vec<&&Value> = members
+        .iter()
+        .filter(|member| member["id"].as_str().is_some_and(|id| id.starts_with("request_body.")))
+        .collect();
     assert!(!of_body.is_empty(), "the contract has no member of request_body");
-    assert!(of_body.iter().all(|member| member["kind"] != json!("constructor")), "request_body has a constructor (F-9)");
+    assert!(
+        of_body.iter().all(|member| member["kind"] != json!("constructor")),
+        "request_body has a constructor (F-9)"
+    );
     let Some(start) = of_body.iter().find(|member| member["id"] == json!("request_body.start")) else {
         panic!("the contract has no member request_body.start (F-9)")
     };
     assert_eq!(start["kind"], json!("static"), "request_body.start is a static member (F-9)");
     assert_eq!(start["returns"], json!({"unit": "request_body"}), "request_body.start returns the body (F-9)");
     assert_eq!(start["wait"], json!("blocking_io"), "request_body.start waits on the directory (F-10, F-17)");
-    assert_eq!(start["core"]["path"], json!("polyspec_http_form::RequestBody::start"), "the core function of the start");
+    assert_eq!(
+        start["core"]["path"],
+        json!("polyspec_http_form::RequestBody::start"),
+        "the core function of the start"
+    );
 }
