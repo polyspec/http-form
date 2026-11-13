@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 7061d0af65257b203de7db5ac880975d74c987872205e4c06b97c964e979978e -->
+<!-- source-sha256: b9d58d230ec45109bf4fc4cdf01a6e422ab70fe3987544cebaa5afa1e6537d67 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -16,7 +16,8 @@ urlencoded 텍스트, multipart 본문, chunk로 읽는 본문, 바이트로 만
 가리키는 member의 매개변수 이름이고, 바이트는 `{"hex": ...}`이며, content type은 문자가 곧 바이트인 텍스트이고,
 한도는 record `limits`이다. `RequestBody`의 method는 receiver를 생성자의 키에서
 받으므로, `request_body.feed`는 chunk 하나의 실패를 담고, `request_body.finish`와 `request_body.parts`는
-방금 만든 본문의 실패를 담는다. 호출이 둘 이상인 scenario(`forms.json`의 `body`,
+방금 만든 본문의 실패를 담는다. 앞선 호출이 만든 receiver의 case는 그것을 instance 값으로 키 `receiver` 아래에
+주며(binding GN-13f), 이름이 `.made`와 `.stored`로 끝나는 group에 있다(결함 주입 지점). 호출이 둘 이상인 scenario(`forms.json`의 `body`,
 `fields.json`의 `streamed`)는 코어의 시험만 읽는 case이다.
 
 ## 구현 하나
@@ -325,18 +326,21 @@ thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 
 주입점을 arming하는 계약의 case는 호출 하나의 group에 있다: `request_body.new`(`create_directory`),
 `request_body.feed`(`create_file`, `io`와 `short`의 `write_file`, `file_size`), `request_body.remove`
 (`remove_directory`), `uploaded_file.move_to`(값인 파일의 `create`, `write`, `sync`), `uploaded_file.content`
-(`internal`, X-1의 case 하나). 호출 하나의 case는 그 unit의 생성자로 case의 키에서 receiver를 만들므로(binding G-5,
-T-5), 그 receiver는 방금 만든 본문이나 값인 파일이다: 호출 하나의 case는 끝났거나 실패했거나 지워진 본문, 저장되었거나
-옮겨진 파일을 만들지 못한다. `tests/faults.rs`는 저장된 파일만 닿는 주입점(`read`, `rename`, `open`, `create`, `copy`,
-`sync`, `remove`, 이동의 `internal`)을 코어의 호출에서 arming한다. 그래서 그런 receiver만 닿는 kind에는 계약의 case가
-없고, 계약 검사는 그것을 하나하나 지적한다(CK-22): `feed`의 `finished`와 `removed`; `finish`와 `parts`가 다시 주는
-본문의 실패(F-9)와 `finish`의 `removed`; `content`의 `moved`, `removed`, `io`; `move_to`의 `moved`, `removed`,
-`source_left`. `move_to`의 `partial_target`에도 case가 없다: 값인 파일은 `http_form.write`와 `http_form.remove`로 그것에
-닿지만, 그때 대상이 case의 경로에 남고, 바인딩 시험은 그 경로를 자기를 실행하는 디렉터리에 대한 상대 경로로 받는다.
-코어의 시험은 이 kind 하나하나에 닿는다: `tests/forms.rs`의 `bodies`는 chunk의 실패마다 그 뒤에 `finish`와 `parts`를
-부르고, `tests/behavior.rs`는 본문의 `finished`와 `removed`를 주며, `tests/fields.rs`의 `streamed`와 `tests/forms.rs`의
-`bodies`는 파일의 `moved`와 `removed`를 주고, `tests/faults.rs`는 `content`의 `io`, `source_left`, `partial_target`을
-준다.
+(`internal`, X-1의 case 하나), `uploaded_file.content.stored`(`read`), `uploaded_file.move_to.stored`(`EXDEV`의
+`rename`, `copy`, `remove`). 호출 하나의 case는 그 unit의 생성자로 case의 키에서 receiver를 만들거나(binding G-5,
+T-5), 앞선 호출이 만드는 instance 값으로 키 `receiver` 아래에 준다(binding GN-13f). 그런 값은 `request_body.new`로
+만들고 `then`의 호출을 준 본문이거나(그 호출 하나는 자기가 이름하는 kind로 실패할 수 있다), 그런 본문의 `parts`에서
+`pick`의 단계가 닿는 저장된 파일이다. `contracts/forms.json`의 group `request_body.feed.made`,
+`request_body.finish.made`, `request_body.parts.made`는 `feed`의 `finished`와 `removed`, `finish`의 `removed`, 그리고
+`finish`와 `parts`가 다시 주는 chunk의 실패(F-9)를 준다. `contracts/fields.json`의 `uploaded_file.content.stored`와
+`uploaded_file.move_to.stored`는 `content`의 `moved`와 `Io`의 kind 넷, `move_to`의 `moved`, `source_left`,
+`partial_target`을 준다. case의 경로는 상대 경로이고, 코어의 시험은 그것을 case의 디렉터리 아래에서 받는다. 꼴 둘이
+아직 없으므로 계약 검사는 다음 kind를 지적한다(CK-22). `finish`와 `parts`가 다시 주는 파일 시스템의 실패에는 주입점을
+arming하는 `then`의 호출이 필요하다. case의 arming은 그 case 자신의 호출에만 유효하기 때문이다. `content`와
+`move_to`의 `removed`에는 파일을 고른 뒤 본문을 지우는 호출, 곧 `then`이 부르는 instance가 아닌 다른 instance의
+호출이 필요하다. 코어의 시험은 이 kind 하나하나에 닿는다: `tests/forms.rs`의 `bodies`는 chunk의 실패마다 그 뒤에
+`finish`와 `parts`를 부르고, `tests/fields.rs`의 `streamed`와 `tests/forms.rs`의 `bodies`는 파일의 `removed`를 주며,
+`tests/faults.rs`는 저장된 파일의 파일 시스템 실패를 준다.
 
 ## 무시하는 입력 (plan P-4)
 

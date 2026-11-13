@@ -15,7 +15,9 @@ other rules. A case follows the case convention of binding (G-5): its keys are t
 its group names in the interface contract, bytes are `{"hex": ...}`, a content type is a text whose characters are its
 bytes, and the limits are the record `limits`. A method of `RequestBody` takes its receiver from the keys of the
 constructor, so `request_body.feed` holds the failures of one chunk, `request_body.finish` and `request_body.parts` the
-failures of a body that was just made. A scenario of more than one call (`body` of `forms.json`, `streamed` of
+failures of a body that was just made; a case of a receiver that earlier calls made gives it under the key `receiver`
+as an instance value (binding GN-13f), in the groups whose names end in `.made` and `.stored` (Fault injection
+points). A scenario of more than one call (`body` of `forms.json`, `streamed` of
 `fields.json`) is a case of the core's tests only.
 
 ## One implementation
@@ -326,20 +328,24 @@ their failures of the file system are those that an earlier `feed` met.
 
 The cases of the contract that arm points are in the groups of one call: `request_body.new` (`create_directory`),
 `request_body.feed` (`create_file`, `write_file` with `io` and with `short`, `file_size`), `request_body.remove`
-(`remove_directory`), `uploaded_file.move_to` (`create`, `write` and `sync` of a file that is a value) and
-`uploaded_file.content` (`internal`, the one case of X-1). A case of one call makes its receiver with the constructor of
-its unit from the keys of the case (binding G-5, T-5), so its receiver is a body that was just made or a file that is a
-value: no case of one call makes a body that ended, failed or was removed, or a file that is stored or was moved.
-`tests/faults.rs` arms the points that only a stored file reaches (`read`, `rename`, `open`, `create`, `copy`, `sync`,
-`remove`, and `internal` of a move) in calls of the core. The kinds that only such a receiver reaches therefore have no
-case of the contract, and the contract check reports each (CK-22): `finished` and `removed` of `feed`; the failures of a
-body that `finish` and `parts` give again (F-9) and `removed` of `finish`; `moved`, `removed` and `io` of `content`;
-`moved`, `removed` and `source_left` of `move_to`. `partial_target` of `move_to` has no case either: a file that is a
-value reaches it with `http_form.write` and `http_form.remove`, but its target then stays at the path of the case, which
-a binding test takes relative to the directory that runs it. The tests of the core reach each of these kinds:
-`tests/forms.rs` `bodies` calls `finish` and `parts` after each failure of a chunk, `tests/behavior.rs` gives `finished`
-and `removed` of a body, `tests/fields.rs` `streamed` and `tests/forms.rs` `bodies` give `moved` and `removed` of a
-file, and `tests/faults.rs` gives `io` of `content`, `source_left` and `partial_target`.
+(`remove_directory`), `uploaded_file.move_to` (`create`, `write` and `sync` of a file that is a value),
+`uploaded_file.content` (`internal`, the one case of X-1), `uploaded_file.content.stored` (`read`) and
+`uploaded_file.move_to.stored` (`rename` with `EXDEV`, `copy` and `remove`). A case of one call makes its receiver
+with the constructor of its unit from the keys of the case (binding G-5, T-5), or gives it under the key `receiver` as
+an instance value that earlier calls make (binding GN-13f): a body made by `request_body.new` and given the calls of
+`then`, of which one may fail with a kind that it names, and a stored file that the steps of `pick` reach in the
+`parts` of such a body. The groups `request_body.feed.made`, `request_body.finish.made` and `request_body.parts.made`
+of `contracts/forms.json` give `finished` and `removed` of `feed`, `removed` of `finish`, and the failures of a chunk
+that `finish` and `parts` give again (F-9); `uploaded_file.content.stored` and `uploaded_file.move_to.stored` of
+`contracts/fields.json` give `moved` and the four kinds of `Io` of `content`, and `moved`, `source_left` and
+`partial_target` of `move_to`. A path of a case is relative, and the tests of the core take it below a directory of
+the case. Two forms are still missing, so the contract check reports these kinds (CK-22): the failures of the file
+system that `finish` and `parts` give again need a call of `then` that arms points, because the arming of a case holds
+for its own call alone; `removed` of `content` and `move_to` needs a removal of the body after the file is picked, a
+call on another instance than the one that `then` calls. The tests of the core reach each of these kinds:
+`tests/forms.rs` `bodies` calls `finish` and `parts` after each failure of a chunk, `tests/fields.rs` `streamed` and
+`tests/forms.rs` `bodies` give `removed` of a file, and `tests/faults.rs` gives the failures of the file system of a
+stored file.
 
 ## Ignored inputs (plan P-4)
 

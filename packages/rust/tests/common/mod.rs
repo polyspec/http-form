@@ -262,3 +262,83 @@ impl Failures {
         assert!(self.compared > 0, "{group}: nothing was compared");
     }
 }
+
+/// A receiver of a case that earlier calls make (binding GN-13f): `{"new": "request_body.new", "args": {...}, "then":
+/// [...]}`, a body made by its constructor from `args` and given the calls of `then` in order. A call of `then` with
+/// `raises` must fail with that kind before the next call, and a call without it must succeed.
+pub fn made_body(value: &Value) -> polyspec_http_form::RequestBody {
+    assert_eq!(value["new"], json!("request_body.new"), "a body is made by request_body.new: {value}");
+    let args = &value["args"];
+    let content_length = match &args["content_length"] {
+        Value::Null => None,
+        given => Some(latin1(given)),
+    };
+    let made = polyspec_http_form::RequestBody::new(
+        io(),
+        content_type(args).as_deref(),
+        content_length.as_deref(),
+        args["stream"] == json!(true),
+        limits(args),
+    );
+    let mut read = made.unwrap_or_else(|error| panic!("request_body.new of {value}: {error}"));
+    for call in then(value) {
+        let done = match call["call"].as_str() {
+            Some("request_body.feed") => read.feed(io(), &bytes(&call["args"]["chunk"])),
+            Some("request_body.finish") => read.finish(io()),
+            Some("request_body.remove") => read.remove(io()),
+            _ => panic!("no call of a body: {call}"),
+        };
+        then_done(call, done);
+    }
+    read
+}
+
+/// A stored file of a case (binding GN-13f): `{"from": "request_body.parts", "receiver": <body>, "pick": ["files",
+/// {"index": n}, {"tuple": 1}, {"index": m}], "then": [...]}`, the file that the steps of `pick` reach in the parts of
+/// the body, given the calls of `then` in order. A path of a call is below `place`. The body is given too, because the
+/// test removes it when the case ends.
+pub fn stored_file(value: &Value, place: &Path) -> (polyspec_http_form::UploadedFile, polyspec_http_form::RequestBody) {
+    assert_eq!(value["from"], json!("request_body.parts"), "a stored file is picked from request_body.parts: {value}");
+    let read = made_body(&value["receiver"]);
+    let form = read.parts().unwrap_or_else(|error| panic!("request_body.parts of {value}: {error}"));
+    let Some(steps) = value["pick"].as_array() else { panic!("no pick: {value}") };
+    let [field, index, tuple, item] = steps.as_slice() else {
+        panic!("a pick of a stored file is files, an index, the tuple 1 and an index: {value}")
+    };
+    assert!(field == &json!("files") && tuple == &json!({"tuple": 1}), "a pick of the files of a part: {value}");
+    let at = |step: &Value| -> usize {
+        let Some(index) = step["index"].as_u64() else { panic!("no index: {step}") };
+        usize::try_from(index).unwrap_or_else(|error| panic!("{step}: {error}"))
+    };
+    let Some(file) = form.files.get(at(index)).and_then(|(_, files)| files.get(at(item))) else {
+        panic!("the pick reaches no file: {value}")
+    };
+    let file = file.clone();
+    for call in then(value) {
+        let done = match call["call"].as_str() {
+            Some("uploaded_file.move_to") => file.move_to(io(), &place.join(string(&call["args"], "path"))),
+            _ => panic!("no call of a file: {call}"),
+        };
+        then_done(call, done);
+    }
+    (file, read)
+}
+
+/// The result of a call of `then`: the kind of its `raises`, or a success when it has none (binding GN-13f).
+fn then_done(call: &Value, done: Result<(), Error>) {
+    match (call.get("raises"), done) {
+        (None, Ok(())) => {}
+        (None, Err(error)) => panic!("{call}: {error}"),
+        (Some(raises), Ok(())) => panic!("{call}: succeeded where it raises {raises}"),
+        (Some(raises), Err(error)) => assert_eq!(&raises["kind"], &json!(error.kind()), "{call}: {error}"),
+    }
+}
+
+/// The calls of `then` of an instance value, none when it has no `then`.
+fn then(value: &Value) -> &[Value] {
+    match value.get("then") {
+        Some(Value::Array(calls)) => calls,
+        Some(other) => panic!("then is no list: {other}"),
+        None => &[],
+    }
+}

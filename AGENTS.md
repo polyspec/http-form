@@ -46,5 +46,7 @@ rules of this repository.
   the WASM binding through the `only` of its unit or member; `UploadedFile` is in WASM in its form in memory. `rust-toolchain.toml` installs the target, and `make wasm-core`,
   which `make check` runs, builds the core for it under clippy.
 - The contract cases of `contracts/` do not run through a binding yet: `binding check` refuses the contract with the
-  CK-22 findings that `CHANGELOG.md` lists, so `make bindings` writes no binding, and no case runner of a language
-  exists before a generated binding that it can run against.
+  ten CK-22 findings that `docs/spec/forms.md` (Fault injection points) names, which wait for case forms of binding,
+  so `make bindings` writes no binding, and no case runner of a language exists before a generated binding that it can
+  run against. A case gives a receiver that earlier calls make as an instance value (binding GN-13f), which
+  `tests/common` makes for the tests of the core.

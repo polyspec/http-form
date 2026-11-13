@@ -1,7 +1,21 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: cfd852c9e5714d34a0ffd3de36cd78d4f1300d42e71fe94027d6d075f69d768f -->
+<!-- source-sha256: 83f5d995956642e9c18ecf48a32c80e262e1e347b3282ab975a4a275ac8a1854 -->
 
 ## Unreleased
+
+- 계약이 앞선 호출이 만든 receiver만 닿는 kind에 case를 준다(binding GN-13f). `Cargo.lock`은 그 case 꼴을 받고
+  검사하는 binding을 고정한다. case는 그런 receiver를 키 `receiver` 아래에 instance 값으로 준다. 그것은
+  `request_body.new`가 만들고 `then`의 호출이 feed, finish, remove하는 본문이며(그 호출 하나는 자기가 이름하는 kind로
+  실패할 수 있다), 또는 그런 본문의 `parts`에서 `pick`이 닿는 저장된 파일이다. `contracts/forms.json`의 새 group
+  `request_body.feed.made`, `request_body.finish.made`, `request_body.parts.made`는 case 14개를 담는다: `feed`의
+  `finished`와 `removed`, `finish`의 `removed`, 그리고 `finish`와 `parts`가 다시 주는 chunk의 `invalid`,
+  `header_limit`, `body_limit`, `value_limit`, `part_limit`, `file_limit`(F-9)이다. `contracts/fields.json`의 새 group
+  `uploaded_file.content.stored`와 `uploaded_file.move_to.stored`는 case 8개를 담는다: `content`의 `moved`, 지점
+  `http_form.read`에 의한 `content`의 `Io` kind 넷, `move_to`의 `moved`, `source_left`, `partial_target`이며, 마지막
+  둘은 `EXDEV`의 `http_form.rename`, `http_form.copy`, `http_form.remove` 지점에 의한다. `tests/common`이 코어의 시험을
+  위해 instance 값을 만든다. `make bindings-check`는 32건이던 CK-22 finding을 10건으로 낸다: `finish`와 `parts`의
+  `Io` kind 넷에는 주입점을 arming하는 `then`의 호출이 필요하고, `content`와 `move_to`의 `removed`에는 파일을 고른 뒤
+  본문을 지우는 호출이 필요하다. `make check`는 시험 50개 통과, 0개 실패를 낸다.
 
 - 코어가 결함 주입 지점이 macro `binding_core::fault::point!`인 binding을 받는다. 이 macro는 지점을 쓰는 crate의 feature
   `fault-test`로 지점을 판정한다(binding GN-5): `fault.rs`가 `point!`를 부르고, 코어의 시험은 crate 자신에 대한

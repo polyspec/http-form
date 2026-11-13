@@ -11,8 +11,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use common::{
-    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raised, raises, string,
-    text, Arming, Failures,
+    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raised, raises, stored_file,
+    string, text, Arming, Failures,
 };
 use polyspec_http_form::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Collector, Error, Form, Limits,
@@ -340,6 +340,36 @@ fn one_call() {
             Ok(content) => failures.compare(case, "content", &json!({"hex": hex(&content)})),
             Err(error) => failures.compare(case, "raises", &raised(case, &error)),
         }
+    }
+    // GN-13f: a file that a body stored, picked from its parts, read or moved after earlier calls, with the faults
+    // that the case arms for the call alone.
+    for case in group(&cases, "uploaded_file.content.stored") {
+        let label = id(case);
+        let place = scratch(label);
+        let (file, mut read) = stored_file(&case["receiver"], &place);
+        let arming = Arming::of(case, "uploaded_file.content");
+        let content = arming.run(|| file.content(io()));
+        arming.done();
+        match content {
+            Ok(content) => failures.compare(case, "content", &json!({"hex": hex(&content)})),
+            Err(error) => failures.compare(case, "raises", &raised(case, &error)),
+        }
+        read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
+        fs::remove_dir_all(&place).unwrap_or_else(|error| panic!("{label}: {error}"));
+    }
+    for case in group(&cases, "uploaded_file.move_to.stored") {
+        let label = id(case);
+        let place = scratch(label);
+        let (file, mut read) = stored_file(&case["receiver"], &place);
+        let arming = Arming::of(case, "uploaded_file.move_to");
+        let moved = arming.run(|| file.move_to(io(), &place.join(string(case, "path"))));
+        arming.done();
+        match moved {
+            Ok(()) => assert!(case.get("raises").is_none(), "{label}: the file moved"),
+            Err(error) => failures.compare(case, "raises", &raised(case, &error)),
+        }
+        read.remove(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
+        fs::remove_dir_all(&place).unwrap_or_else(|error| panic!("{label}: {error}"));
     }
     for case in group(&cases, "request_body.remove") {
         let label = id(case);

@@ -1824,6 +1824,31 @@
       "member": "uploaded_file.size",
       "file": "contracts/fields.json",
       "group": "uploaded"
+    },
+    {
+      "member": "request_body.feed",
+      "file": "contracts/forms.json",
+      "group": "request_body.feed.made"
+    },
+    {
+      "member": "request_body.finish",
+      "file": "contracts/forms.json",
+      "group": "request_body.finish.made"
+    },
+    {
+      "member": "uploaded_file.content",
+      "file": "contracts/fields.json",
+      "group": "uploaded_file.content.stored"
+    },
+    {
+      "member": "uploaded_file.move_to",
+      "file": "contracts/fields.json",
+      "group": "uploaded_file.move_to.stored"
+    },
+    {
+      "member": "request_body.parts",
+      "file": "contracts/forms.json",
+      "group": "request_body.parts.made"
     }
   ]
 }

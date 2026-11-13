@@ -5,8 +5,8 @@
 mod common;
 
 use common::{
-    bytes, content_type, contract, fields_json, files_json, group, id, io, latin1, limits, raised, raises, string,
-    text, Arming, Failures,
+    bytes, content_type, contract, fields_json, files_json, group, id, io, latin1, limits, made_body, raised, raises,
+    string, text, Arming, Failures,
 };
 use polyspec_http_form::{
     file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, Collector, Error, Form,
@@ -316,6 +316,22 @@ fn one_call() {
     }
     for case in group(&cases, "request_body.parts") {
         let read = made(case);
+        failures.compare(case, "raises", &failure(read.parts().err()));
+        cleanup(read, case);
+    }
+    // GN-13f: a body that earlier calls made, its finish or its removal, takes a chunk or its finish.
+    for case in group(&cases, "request_body.feed.made") {
+        let mut read = made_body(&case["receiver"]);
+        failures.compare(case, "raises", &failure(read.feed(io(), &bytes(&case["chunk"])).err()));
+        cleanup(read, case);
+    }
+    for case in group(&cases, "request_body.finish.made") {
+        let mut read = made_body(&case["receiver"]);
+        failures.compare(case, "raises", &failure(read.finish(io()).err()));
+        cleanup(read, case);
+    }
+    for case in group(&cases, "request_body.parts.made") {
+        let read = made_body(&case["receiver"]);
         failures.compare(case, "raises", &failure(read.parts().err()));
         cleanup(read, case);
     }

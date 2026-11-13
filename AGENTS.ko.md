@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 8e29aa4ceb61ee84b6454eb1ab037e893528b4ec8e304d36a59e0923bf32c5f5 -->
+<!-- source-sha256: f75c4f2911e903cf07a1eabd3522b5d061de2028884a5eed3c44427e984f77cc -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -43,6 +43,7 @@
   항목은 `#[cfg(feature = "fs")]`를 달고, 그 unit이나 member의 `only`로 WASM 바인딩에서 빠진다. `UploadedFile`은
   메모리의 형태로 WASM에 있다. `rust-toolchain.toml`이 그
   target을 설치하고, `make check`가 실행하는 `make wasm-core`가 그 target으로 코어를 clippy와 함께 빌드한다.
-- `contracts/`의 계약 case는 아직 바인딩으로 실행되지 않는다: `binding check`가 `CHANGELOG.md`에 적은 CK-22
-  finding으로 계약을 거부하므로 `make bindings`가 바인딩을 쓰지 않는다. 언어의 case runner는 그것이 실행될 생성
-  바인딩이 생기기 전에는 두지 않는다.
+- `contracts/`의 계약 case는 아직 바인딩으로 실행되지 않는다: `binding check`가 `docs/spec/forms.md`(결함 주입
+  지점)가 이름하는, binding의 case 꼴을 기다리는 CK-22 finding 열 건으로 계약을 거부하므로 `make bindings`가 바인딩을
+  쓰지 않는다. 언어의 case runner는 그것이 실행될 생성 바인딩이 생기기 전에는 두지 않는다. case는 앞선 호출이 만드는
+  receiver를 instance 값으로 주며(binding GN-13f), 코어의 시험을 위해 `tests/common`이 그것을 만든다.

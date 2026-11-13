@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- The contract gives the kinds that only a receiver made by earlier calls reaches their cases (binding GN-13f), and
+  `Cargo.lock` pins the binding whose case forms and check take them. A case gives such a receiver under the key
+  `receiver` as an instance value: a body that `request_body.new` makes and the calls of `then` feed, finish or
+  remove, one of which may fail with the kind that it names, or a stored file that `pick` reaches in the `parts` of
+  such a body. The new groups `request_body.feed.made`, `request_body.finish.made` and `request_body.parts.made` of
+  `contracts/forms.json` hold 14 cases: `finished` and `removed` of `feed`, `removed` of `finish`, and `invalid`,
+  `header_limit`, `body_limit`, `value_limit`, `part_limit` and `file_limit` of a chunk that `finish` and `parts` give
+  again (F-9). The new groups `uploaded_file.content.stored` and `uploaded_file.move_to.stored` of
+  `contracts/fields.json` hold 8 cases: `moved` of `content`, the four kinds of `Io` of `content` by the point
+  `http_form.read`, and `moved`, `source_left` and `partial_target` of `move_to`, the last two by the points
+  `http_form.rename` with `EXDEV`, `http_form.copy` and `http_form.remove`. `tests/common` makes the instance values
+  for the tests of the core. `make bindings-check` gives 10 CK-22 findings where it gave 32: the four kinds of `Io` of
+  `finish` and of `parts` need a call of `then` that arms points, and `removed` of `content` and `move_to` needs a
+  removal of the body after the file is picked. `make check` gives 50 tests passed and 0 failed.
+
 - The core takes binding whose fault injection point is the macro `binding_core::fault::point!`, which judges a point
   by the feature `fault-test` of the crate that writes it (binding GN-5): `fault.rs` calls `point!`, and the tests of
   the core turn on `fault-test` of `polyspec-http-form` through a dev-dependency on the crate itself, so that its
