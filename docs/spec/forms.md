@@ -15,7 +15,7 @@ other rules. A case follows the case convention of binding (G-5): its keys are t
 its group names in the interface contract, bytes are `{"hex": ...}`, a content type is a text whose characters are its
 bytes, and the limits are the record `limits`. Every key of a case is in snake_case, also in a group that only the
 core's tests read, and `tests/case_keys.rs` checks that. A method of `RequestBody` takes its receiver from the keys of the
-constructor, so `request_body.feed` holds the failures of one chunk, `request_body.finish` and `request_body.parts` the
+static member `request_body.start`, so `request_body.feed` holds the failures of one chunk, `request_body.finish` and `request_body.parts` the
 failures of a body that was just made; a case of a receiver that earlier calls made gives it under the key `receiver`
 as an instance value (binding GN-13f), in the groups whose names end in `.made` and `.stored` (Fault injection
 points). A scenario of more than one call (`body` of `forms.json`, `streamed` of
@@ -199,7 +199,11 @@ is no path, are the binding's (plan B-2, B-3).
   one byte, a limit (413) comes before a failure of the bytes (400), and `body_limit` before the other limits. A chunk
   that passes the body limit is read up to the limit, and `body_limit` is its failure only when those bytes do not fail.
   The result therefore does not depend on the chunks, also when the body fails.
-- **F-9** `RequestBody::new(content type, Content-Length, stream, limits)` starts a body; `limits` is the record
+- **F-9** `RequestBody::start(content type, Content-Length, stream, limits)` starts a body. It is a static function of
+  the core and the static member `request_body.start` of the contract, and `RequestBody` has no constructor: the start
+  waits on the creation of the directory (F-10, F-17), a language whose constructor cannot be awaited has no form of a
+  constructor that waits, and binding refuses one (binding GN-6m), so every binding makes a body by the call
+  `RequestBody.start(...)` in the form of its language and none by `new`. `limits` is the record
   `BodyLimits` of the body limit, the value limit, the part limit and the file limit. A `Content-Length` that is no
   number fails with `invalid_content_length`, and one above the limit fails with `body_limit` before a byte is read
   (F-25.1); a number of more digits than 64 bits hold is above every limit. A body read in chunks (`stream` and the type
@@ -255,7 +259,7 @@ is no path, are the binding's (plan B-2, B-3).
   file before it is closed, and the number of bytes that `content()` reads, are the number of bytes that were written;
   another number fails with `io` without `errno`. Every number of bytes is converted with a range check.
 - **F-17** A public function that does blocking I/O takes the wait token `binding_core::Io` of the dependency
-  `polyspec-binding-core` as its first argument (binding design I-2 (4), plan B-5 (a)): `RequestBody::new` (it creates
+  `polyspec-binding-core` as its first argument (binding design I-2 (4), plan B-5 (a)): `RequestBody::start` (it creates
   the directory), `feed` (it writes files), `finish` (it closes the file of a failed body), `remove`,
   `UploadedFile::content` and `UploadedFile::move_to`. Only generated code makes a token, through the feature
   `construct`, which the tests of this crate enable as a dev-dependency. No other public function does I/O. `Drop` of
@@ -302,7 +306,7 @@ that the case tests, on the thread that runs it; the core starts no thread, so e
 
 | Id | Place (function) | Inject | Fills | Rule of the condition | Takes the arming |
 |---|---|---|---|---|---|
-| `http_form.create_directory` | `create_directory` of `RequestBody::new` | `io` | the kinds of `Io` | F-10 | yes |
+| `http_form.create_directory` | `create_directory` of `RequestBody::start` | `io` | the kinds of `Io` | F-10 | yes |
 | `http_form.create_file` | the new file of a file part, `Parts::take` of `feed` | `io` | the kinds of `Io` | F-10 | yes |
 | `http_form.write_file` | the write of the content of a file part, `Parts::take` of `feed` | `io`, `short` | the kinds of `Io` | F-10, F-15 | yes |
 | `http_form.file_size` | the size of a written file before it is closed, `Parts::take` of `feed` | `io` | the kinds of `Io` | F-15 | yes |
@@ -327,13 +331,13 @@ target path that exists.
 `finish` and `parts` do no call of the system that can fail: they give the first failure of the body again (F-9), so
 their failures of the file system are those that an earlier `feed` met.
 
-The cases of the contract that arm points are in the groups of one call: `request_body.new` (`create_directory`),
+The cases of the contract that arm points are in the groups of one call: `request_body.start` (`create_directory`),
 `request_body.feed` (`create_file`, `write_file` with `io` and with `short`, `file_size`), `request_body.remove`
 (`remove_directory`), `uploaded_file.move_to` (`create`, `write` and `sync` of a file that is a value),
 `uploaded_file.content` (`internal`, the one case of X-1), `uploaded_file.content.stored` (`read`) and
 `uploaded_file.move_to.stored` (`rename` with `EXDEV`, `copy` and `remove`). A case of one call makes its receiver
-with the constructor of its unit from the keys of the case (binding G-5, T-5), or gives it under the key `receiver` as
-an instance value that earlier calls make (binding GN-13f): a body made by `request_body.new` and given the calls of
+with the factory of its unit, `request_body.start`, from the keys of the case (binding G-5, T-5), or gives it under the key `receiver` as
+an instance value that earlier calls make (binding GN-13f): a body made by `request_body.start` and given the calls of
 `then`, of which one may fail with a kind that it names, and a stored file that the steps of `pick` reach in the
 `parts` of such a body. The groups `request_body.feed.made`, `request_body.finish.made` and `request_body.parts.made`
 of `contracts/forms.json` give `finished` and `removed` of `feed`, `removed` of `finish`, and the failures of a chunk
@@ -391,7 +395,7 @@ These are the decisions of a server that uses the library, which no rule of this
 | `read_held_body(content type, body, limits)` | F-25.6 |
 | `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)`, `Collector`: `take`, `collect`, `into_form` | F-24 |
 | `MultipartReader::new(boundary, limits)`: `feed`, `feed_with`, `finish`, `closed`, `buffered`, `parts` | F-24, F-25, F-8, F-13 |
-| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |
+| `RequestBody`: `start`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |
 | `Form`: `fields`, `files`; `Fields`, `Files`: lists of a name and its values | F-20.3, F-22.6 |
 | `file_over(files, limit)` | F-27 |
 | `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | F-22.2, F-11, F-17 |

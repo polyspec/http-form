@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 248ec618ed17f9a7b15a09f9221f54745548aae99f2c62c4161145c79b9f4185 -->
+<!-- source-sha256: b61175bd7832d66f91d213db1d9b13bbbd44718aa46063944434c572cfda5d3a -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -15,7 +15,7 @@ urlencoded 텍스트, multipart 본문, chunk로 읽는 본문, 바이트로 만
 나머지 규칙의 case를 담는다. case는 binding의 case 규약(G-5)을 따른다: case의 키는 인터페이스 계약에서 그 group이
 가리키는 member의 매개변수 이름이고, 바이트는 `{"hex": ...}`이며, content type은 문자가 곧 바이트인 텍스트이고,
 한도는 record `limits`이다. case의 키는 core의 test만 읽는 group에서도 모두 snake_case이며,
-`tests/case_keys.rs`가 이를 검사한다. `RequestBody`의 method는 receiver를 생성자의 키에서
+`tests/case_keys.rs`가 이를 검사한다. `RequestBody`의 method는 receiver를 static member `request_body.start`의 키에서
 받으므로, `request_body.feed`는 chunk 하나의 실패를 담고, `request_body.finish`와 `request_body.parts`는
 방금 만든 본문의 실패를 담는다. 앞선 호출이 만든 receiver의 case는 그것을 instance 값으로 키 `receiver` 아래에
 주며(binding GN-13f), 이름이 `.made`와 `.stored`로 끝나는 group에 있다(결함 주입 지점). 호출이 둘 이상인 scenario(`forms.json`의 `body`,
@@ -199,7 +199,11 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   바이트가 같으면 한도(413)가 바이트의 실패(400)보다 먼저이고, `body_limit`이 다른 한도보다 먼저이다. 본문 한도를
   넘는 chunk는 한도까지 읽으며, 그 바이트가 실패하지 않을 때에만 `body_limit`이 그 chunk의 실패이다.
   따라서 본문이 실패할 때에도 결과는 chunk에 의존하지 않는다.
-- **F-9** `RequestBody::new(content type, Content-Length, stream, limits)`는 본문을 시작한다. `limits`는 본문 한도,
+- **F-9** `RequestBody::start(content type, Content-Length, stream, limits)`는 본문을 시작한다. 이것은 코어의 static
+  함수이고 계약의 static member `request_body.start`이며, `RequestBody`에는 생성자가 없다. 시작은 디렉터리 생성을
+  기다리는데(F-10, F-17), 생성자를 await할 수 없는 언어에는 기다리는 생성자의 형태가 없고 binding은 그런 생성자를
+  거부한다(binding GN-6m). 그래서 모든 바인딩은 본문을 그 언어 형태의 호출 `RequestBody.start(...)`로 만들고 `new`로는
+  만들지 않는다. `limits`는 본문 한도,
   값 한도, part 한도, 파일 한도의 record `BodyLimits`이다. 수가 아닌 `Content-Length`는
   `invalid_content_length`로 실패하고, 한도보다 큰 `Content-Length`는 바이트를 읽기 전에 `body_limit`으로 실패한다
   (F-25.1). 64비트가 담는 것보다 자릿수가 많은 수는 모든 한도보다 크다. chunk로 읽는 본문(`stream`과 type
@@ -255,7 +259,7 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   파일을 닫기 전의 크기와 `content()`가 읽는 바이트 수는 쓴 바이트 수이다.
   다른 수는 `errno` 없는 `io`로 실패한다. 모든 바이트 수는 범위 검사와 함께 변환한다.
 - **F-17** blocking I/O를 하는 public 함수는 의존성
-  `polyspec-binding-core`의 wait token `binding_core::Io`를 첫 인자로 받는다(binding design I-2 (4), plan B-5 (a)): `RequestBody::new`(디렉터리를
+  `polyspec-binding-core`의 wait token `binding_core::Io`를 첫 인자로 받는다(binding design I-2 (4), plan B-5 (a)): `RequestBody::start`(디렉터리를
   만든다), `feed`(파일을 쓴다), `finish`(실패한 본문의 파일을 닫는다), `remove`,
   `UploadedFile::content`, `UploadedFile::move_to`이다. token은 생성된 코드만 feature
   `construct`를 통해 만들며, 이 crate의 시험은 그 feature를 dev-dependency로 켠다. 다른 public 함수는 I/O를 하지 않는다. `RequestBody`의
@@ -300,7 +304,7 @@ thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 
 
 | Id | 자리(함수) | 주입 | 채우는 kind | 조건의 규칙 | arming을 받는가 |
 |---|---|---|---|---|---|
-| `http_form.create_directory` | `RequestBody::new`의 `create_directory` | `io` | `Io`의 kind | F-10 | 예 |
+| `http_form.create_directory` | `RequestBody::start`의 `create_directory` | `io` | `Io`의 kind | F-10 | 예 |
 | `http_form.create_file` | 파일 part의 새 파일, `feed`의 `Parts::take` | `io` | `Io`의 kind | F-10 | 예 |
 | `http_form.write_file` | 파일 part의 content 쓰기, `feed`의 `Parts::take` | `io`, `short` | `Io`의 kind | F-10, F-15 | 예 |
 | `http_form.file_size` | 쓴 파일을 닫기 전의 크기, `feed`의 `Parts::take` | `io` | `Io`의 kind | F-15 | 예 |
@@ -324,12 +328,12 @@ thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 
 `finish`와 `parts`는 실패할 수 있는 시스템 호출을 하지 않는다: 본문의 첫 실패를 다시 주므로(F-9),
 그 둘의 파일 시스템 실패는 앞선 `feed`가 만난 실패이다.
 
-주입점을 arming하는 계약의 case는 호출 하나의 group에 있다: `request_body.new`(`create_directory`),
+주입점을 arming하는 계약의 case는 호출 하나의 group에 있다: `request_body.start`(`create_directory`),
 `request_body.feed`(`create_file`, `io`와 `short`의 `write_file`, `file_size`), `request_body.remove`
 (`remove_directory`), `uploaded_file.move_to`(값인 파일의 `create`, `write`, `sync`), `uploaded_file.content`
 (`internal`, X-1의 case 하나), `uploaded_file.content.stored`(`read`), `uploaded_file.move_to.stored`(`EXDEV`의
-`rename`, `copy`, `remove`). 호출 하나의 case는 그 unit의 생성자로 case의 키에서 receiver를 만들거나(binding G-5,
-T-5), 앞선 호출이 만드는 instance 값으로 키 `receiver` 아래에 준다(binding GN-13f). 그런 값은 `request_body.new`로
+`rename`, `copy`, `remove`). 호출 하나의 case는 그 unit의 factory `request_body.start`로 case의 키에서 receiver를 만들거나(binding G-5,
+T-5), 앞선 호출이 만드는 instance 값으로 키 `receiver` 아래에 준다(binding GN-13f). 그런 값은 `request_body.start`로
 만들고 `then`의 호출을 준 본문이거나(그 호출 하나는 자기가 이름하는 kind로 실패할 수 있다), 그런 본문의 `parts`에서
 `pick`의 단계가 닿는 저장된 파일이다. `contracts/forms.json`의 group `request_body.feed.made`,
 `request_body.finish.made`, `request_body.parts.made`는 `feed`의 `finished`와 `removed`, `finish`의 `removed`, 그리고
@@ -386,7 +390,7 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
 | `read_held_body(content type, body, limits)` | F-25.6 |
 | `parse_multipart(body, boundary)`, `parse_multipart_chunks(chunks, boundary)`, `Collector`: `take`, `collect`, `into_form` | F-24 |
 | `MultipartReader::new(boundary, limits)`: `feed`, `feed_with`, `finish`, `closed`, `buffered`, `parts` | F-24, F-25, F-8, F-13 |
-| `RequestBody`: `new`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |
+| `RequestBody`: `start`, `feed`, `finish`, `parts`, `held`, `size`, `streamed`, `directory`, `remove`; `BodyLimits` | F-9, F-10, F-17 |
 | `Form`: `fields`, `files`; `Fields`, `Files`: 이름과 그 값의 list | F-20.3, F-22.6 |
 | `file_over(files, limit)` | F-27 |
 | `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | F-22.2, F-11, F-17 |
