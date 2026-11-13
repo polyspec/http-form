@@ -127,9 +127,9 @@ fn a_file_that_exists_in_the_directory_is_io() {
     assert_eq!(read.remove(io()), Ok(()));
 }
 
-/// H-9: a move to another file system copies, writes to the disk and removes the source. The other file system is
-/// `HTTP_FORM_OTHER_FS`, or `/dev/shm`; the test fails when it is on the file system of the temporary directory.
-#[cfg(target_os = "linux")]
+/// H-9: a move to another file system copies, writes to the disk and removes the source. The other file system is the
+/// directory `HTTP_FORM_OTHER_FS`, which `make test` gives on every platform of the library; the test fails when it is
+/// not given or is on the file system of the temporary directory.
 #[test]
 fn a_move_to_another_file_system_copies() {
     use polyspec_http_form::{Files, UploadedFile};
@@ -140,10 +140,9 @@ fn a_move_to_another_file_system_copies() {
         files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
     }
 
-    let other = PathBuf::from(match std::env::var_os("HTTP_FORM_OTHER_FS") {
-        Some(path) => path,
-        None => "/dev/shm".into(),
-    });
+    let Some(other) = std::env::var_os("HTTP_FORM_OTHER_FS").map(PathBuf::from) else {
+        panic!("HTTP_FORM_OTHER_FS names no directory on another file system; make test gives one");
+    };
     let device = |path: &std::path::Path| match fs::metadata(path) {
         Ok(metadata) => metadata.dev(),
         Err(error) => panic!("{}: {error}", path.display()),
