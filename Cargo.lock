@@ -1018,6 +1018,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "polyspec-http-form-go"
+version = "0.1.0"
+dependencies = [
+ "polyspec-binding-core",
+ "polyspec-http-form",
+]
+
+[[package]]
 name = "polyspec-http-form-node"
 version = "0.1.0"
 dependencies = [
@@ -1044,6 +1052,16 @@ dependencies = [
  "polyspec-binding-core",
  "polyspec-http-form",
  "pyo3",
+]
+
+[[package]]
+name = "polyspec-http-form-wasm"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "polyspec-binding-core",
+ "polyspec-http-form",
+ "wasm-bindgen",
 ]
 
 [[package]]

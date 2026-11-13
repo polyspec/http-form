@@ -1,14 +1,16 @@
 <!-- doc-id: readme -->
-<!-- source-sha256: 3c7d91e1337f865fc3ba1891d227f55ed62ca95828c4a113d8ed00b01a740890 -->
+<!-- source-sha256: fe9e9c645435ca634c145a78611ef4252b3f38eab59d24e72936e6dbe013d1f1 -->
 # http-form
 
-form 값과 `multipart/form-data` 본문을 읽는 라이브러리이다. Rust 구현 하나가 읽고, PHP, Python,
-Node가 그 구현을 바인딩한다. 바인딩은 type을 변환한다. 모든 규칙은 코어에 있으므로 세 서버는 같은 코드를 실행하고
+form 값과 `multipart/form-data` 본문을 읽는 라이브러리이다. Rust 구현 하나가 읽고, 모든 계약이 적는 다섯
+target인 PHP, Python, Node, 브라우저(WASM), Go가 그 구현을 바인딩한다. 조각으로 읽는 본문과 그 파일은 WASM 바인딩에
+없다(F-28). 바인딩은 type을 변환한다. 모든 규칙은 코어에 있으므로 세 서버는 같은 코드를 실행하고
 같은 결과를 낸다.
 
 ```
 packages/rust/   Rust crate polyspec-http-form: 모든 규칙, 그리고 인터페이스 계약 interface.json
-packages/ts/ packages/python/ packages/php-ext/   binding scaffold가 쓰는 얇은 바인딩 package
+packages/ts/ packages/ts/wasm/ packages/python/ packages/php-ext/ packages/go/   binding scaffold가 쓰는 얇은
+                 바인딩 package
 docs/spec/       forms.md: 규칙, 오류, API
 contracts/       fields.json과 forms.json: 규칙의 case
 conformance/     hyper의 Python reader와 비교하는 differential 시험

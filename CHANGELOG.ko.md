@@ -1,5 +1,16 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: bcb604f1a558ae626a50305eca30368193ea3a9cec0ed3074ff065aa41be4494 -->
+<!-- source-sha256: 37ef532d5d291d49bc3182286bc1fc1bb98b1cf6ac3fc581f9cbea52794e6487 -->
+
+- 계약이 binding의 다섯 target을 적는다(BD-27): `packages/rust/interface.json`의 `targets`는 php, python, node,
+  go, wasm이고, `packages.go`는 Go 모듈 `github.com/polyspec/http-form/packages/go`를 적으며, npm 패키지의 entry
+  `.`는 조건 `{node: napi, browser: wasm}`을 받고, 각 오류 클래스는 WASM 클래스로 Node의 것을 적으며,
+  `errors.fixed`는 Node처럼 WASM에도 `TypeError`를 적는다. 전에는 계약이 php, python, node만 적어 Go와 WASM 바인딩이
+  생성되지 않았다. 조각으로 읽는 본문과 그 파일에는 WASM 바인딩이 없다(F-28, binding Q-4): unit `request_body`와
+  `uploaded_file`은 `only` php, python, node, go이며, 계약 검사는 blocking I/O를 기다리거나 경로를 받는 member에 이것을
+  요구한다(CK-15). 추적되는 바인딩 패키지에 binding scaffold가 두 target을 위해 쓰는 것(`packages/go/go.mod`,
+  `packages/go/internal/ffi`, `packages/ts/wasm`, `packages/ts/package.json`의 브라우저 exports)이 더해지고, 두
+  crate가 workspace의 member가 된다. `make bindings-check`는 이 변경 전부터 있던 CK-22 finding 29개를 그대로 낸다.
+  Go와 WASM 바인딩을 빌드하거나 시험하는 make target은 아직 없다.
 
 - `Cargo.lock`은 값 alias, 실패 주입, 오류 unit의 생성기를 한 개발 줄기에 가진 binding을 고정하고(CK-20), 바인딩
   package는 그 scaffold가 쓰는 것이다. 각 바인딩 crate는 `polyspec-binding-core`를 feature `construct`와 `lock`과 함께

@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 4a17c97866beb00d207a6c5a03bc35f0733728ba7e14e0a9352fa4fce59efe01 -->
+<!-- source-sha256: 13a2609ebfd2cab01d45538f38f4e391371c3503bde6711742e26aa47f3373ee -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -259,6 +259,9 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
   `construct`를 통해 만들며, 이 crate의 시험은 그 feature를 dev-dependency로 켠다. 다른 public 함수는 I/O를 하지 않는다. `RequestBody`의
   `Drop`은 host가 `remove`를 호출하지 않은 본문의 디렉터리를(F-10) token 없이 삭제한다. `Drop`은
   인자를 받지 않기 때문이다. 이것은 빠진 cleanup 호출의 안전망이며, 바인딩이 그 누락을 보고한다(plan B-10).
+- **F-28** 조각으로 읽는 본문과 그 파일에는 WASM 바인딩이 없다: 이것들은 시스템 임시 디렉터리 아래의 디렉터리에
+  파일을 두고(F-10) 파일 I/O를 기다리는데(F-17), 브라우저의 WebAssembly는 그것을 할 수 없다(binding Q-4).
+  `RequestBody`와 `UploadedFile`은 PHP, Python, Node, Go의 클래스다.
 - **F-14** 대체하지 않는 이동에는 `renameat2`나 `renameatx_np`가 필요하므로 이 crate는 Linux와 macOS에서만
   빌드된다(plan T-2).
 
@@ -381,9 +384,9 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
 - `make clippy`: plan R-1의 lint와 `as_conversions`.
 - `make bindings-check BINDING=<cli>`: 인터페이스 계약은 `polyspec-http-media-type`의 계약을 의존성으로 하여
   `@polyspec/binding`의 계약 검사를 통과하고, 바인딩 package `packages/ts`,
-  `packages/python`, `packages/php-ext`는 `binding scaffold`가 쓰는 것과 같다(binding design L-2). `make clippy`,
+  `packages/ts/wasm`, `packages/python`, `packages/php-ext`, `packages/go`는 `binding scaffold`가 쓰는 것과 같다(binding design L-2). `make clippy`,
   `make fmt`, `make test`는 코어 crate를 가리키고, `make lint-bindings`와 `make test-bindings`는 `make bindings` 뒤에
-  바인딩 crate를 검사한다.
+  PHP, Python, Node의 바인딩 crate를 검사한다. Go와 WASM 바인딩을 빌드하거나 시험하는 make target은 아직 없다.
 - `make differential HYPER=<dir> PYTHONPATH=...`: 무작위 본문을 코어와 hyper의 Python reader로 읽는다. 이 시험은
   hyper의 public이 아닌 module을 읽으므로 hyper가 reader를 export할 때까지 그 결과는 참고일 뿐이다(plan
   H-25). F-6이나 F-7이 설명하는 차이는 따로 센다.

@@ -2,7 +2,7 @@
 # L-2). One Cargo.lock at the root pins every dependency of all of them, the commit of polyspec-binding-core included.
 [workspace]
 resolver = "2"
-members = ["packages/rust", "packages/ts", "packages/python", "packages/php-ext"]
+members = ["packages/rust", "packages/ts", "packages/ts/wasm", "packages/python", "packages/php-ext", "packages/go/internal/ffi"]
 
 [workspace.package]
 version = "0.1.0"

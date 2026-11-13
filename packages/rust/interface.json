@@ -8,7 +8,9 @@
   "targets": [
     "php",
     "python",
-    "node"
+    "node",
+    "go",
+    "wasm"
   ],
   "packages": {
     "php": {
@@ -23,12 +25,19 @@
       "package": "@polyspec/http-form",
       "entries": {
         ".": {
+          "conditions": {
+            "node": "napi",
+            "browser": "wasm"
+          },
           "formats": [
             "import",
             "require"
           ]
         }
       }
+    },
+    "go": {
+      "module": "github.com/polyspec/http-form/packages/go"
     }
   },
   "naming": {
@@ -40,32 +49,38 @@
       "value": {
         "php": "Polyspec\\HttpForm\\HttpFormValueError",
         "python": "HTTPFormValueError",
-        "node": "HttpFormValueError"
+        "node": "HttpFormValueError",
+        "wasm": "HttpFormValueError"
       },
       "type": {
         "php": "Polyspec\\HttpForm\\HttpFormTypeError",
         "python": "HTTPFormTypeError",
-        "node": "HttpFormTypeError"
+        "node": "HttpFormTypeError",
+        "wasm": "HttpFormTypeError"
       },
       "io": {
         "php": "Polyspec\\HttpForm\\HttpFormIoError",
         "python": "HTTPFormIoError",
-        "node": "HttpFormIoError"
+        "node": "HttpFormIoError",
+        "wasm": "HttpFormIoError"
       },
       "store": {
         "php": "Polyspec\\HttpForm\\HttpFormStoreError",
         "python": "HTTPFormStoreError",
-        "node": "HttpFormStoreError"
+        "node": "HttpFormStoreError",
+        "wasm": "HttpFormStoreError"
       },
       "busy": {
         "php": "Polyspec\\HttpForm\\HttpFormBusyError",
         "python": "HTTPFormBusyError",
-        "node": "HttpFormBusyError"
+        "node": "HttpFormBusyError",
+        "wasm": "HttpFormBusyError"
       },
       "internal": {
         "php": "Polyspec\\HttpForm\\HttpFormInternalError",
         "python": "HTTPFormInternalError",
-        "node": "HttpFormInternalError"
+        "node": "HttpFormInternalError",
+        "wasm": "HttpFormInternalError"
       }
     },
     "fixed": [
@@ -83,6 +98,10 @@
       },
       {
         "lang": "node",
+        "class": "TypeError"
+      },
+      {
+        "lang": "wasm",
         "class": "TypeError"
       }
     ],
@@ -699,6 +718,15 @@
       "module": "body",
       "kind": "class",
       "visibility": "public",
+      "only": {
+        "targets": [
+          "php",
+          "python",
+          "node",
+          "go"
+        ],
+        "reason": "F-28"
+      },
       "origin": "generated",
       "core_type": "polyspec_http_form::RequestBody",
       "cleanup": "request_body.remove",
@@ -948,6 +976,15 @@
       "module": "body",
       "kind": "class",
       "visibility": "public",
+      "only": {
+        "targets": [
+          "php",
+          "python",
+          "node",
+          "go"
+        ],
+        "reason": "F-28"
+      },
       "origin": "generated",
       "core_type": "polyspec_http_form::UploadedFile",
       "members": [

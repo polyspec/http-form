@@ -258,6 +258,9 @@ is no path, are the binding's (plan B-2, B-3).
   `construct`, which the tests of this crate enable as a dev-dependency. No other public function does I/O. `Drop` of
   `RequestBody` removes the directory of a body whose host did not call `remove` (F-10) without a token, because `Drop`
   takes no argument; it is the safety net of a missing cleanup call, which the binding reports (plan B-10).
+- **F-28** A body read in chunks and its files have no WASM binding: they keep their files in a directory below the
+  temporary directory of the system (F-10) and wait on file I/O (F-17), which WebAssembly in a browser cannot do
+  (binding Q-4). `RequestBody` and `UploadedFile` are classes of PHP, Python, Node and Go.
 - **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate builds for Linux and macOS only
   (plan T-2).
 
@@ -380,9 +383,10 @@ These are the decisions of a server that uses the library, which no rule of this
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
 - `make bindings-check BINDING=<cli>`: the interface contract passes the contract check of `@polyspec/binding` with
   the contract of `polyspec-http-media-type` as its dependency, and the binding packages `packages/ts`,
-  `packages/python` and `packages/php-ext` are what `binding scaffold` writes (binding design L-2). `make clippy`,
+  `packages/ts/wasm`, `packages/python`, `packages/php-ext` and `packages/go` are what `binding scaffold` writes
+  (binding design L-2). `make clippy`,
   `make fmt` and `make test` name the core crate, and `make lint-bindings` and `make test-bindings` check the binding
-  crates after `make bindings`.
+  crates of PHP, Python and Node after `make bindings`; no make target builds or tests the Go and WASM bindings yet.
 - `make differential HYPER=<dir> PYTHONPATH=...`: random bodies through the core and through hyper's Python reader. It
   reads a module of hyper that is not public, so its result is a reference only until hyper exports the reader (plan
   H-25); a difference that F-6 or F-7 explains is counted apart.

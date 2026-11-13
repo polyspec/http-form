@@ -1,13 +1,15 @@
 <!-- doc-id: readme -->
 # http-form
 
-Form values and `multipart/form-data` bodies, read by one Rust implementation that PHP, Python and
-Node bind. A binding converts types; every rule is in the core, so the three servers run the same code and give the
-same results.
+Form values and `multipart/form-data` bodies, read by one Rust implementation that PHP, Python,
+Node, the browser (WASM) and Go bind, the five targets that every contract names; the body read in chunks and its
+files are not in the WASM binding (F-28). A binding converts types; every rule is in the core, so the three servers
+run the same code and give the same results.
 
 ```
 packages/rust/   the Rust crate polyspec-http-form: every rule, and interface.json, the interface contract
-packages/ts/ packages/python/ packages/php-ext/   the thin binding packages that binding scaffold writes
+packages/ts/ packages/ts/wasm/ packages/python/ packages/php-ext/ packages/go/   the thin binding packages that
+                 binding scaffold writes
 docs/spec/       forms.md: the rules, the errors and the API
 contracts/       fields.json and forms.json: the cases of the rules
 conformance/     the differential test against hyper's Python reader
