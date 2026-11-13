@@ -43,14 +43,9 @@ impl Parts {
                 }
                 self.stored = self.stored.checked_add(1).ok_or(Error::Internal("files"))?;
                 let path = self.directory.join(self.stored.to_string());
-                let file = match create_file(&path) {
-                    Ok(file) => file,
-                    // H-8: the directory is new and its files are numbered, so the path cannot exist.
-                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
-                        return Err(Error::Internal("a new file of the directory of a request exists"))
-                    }
-                    Err(error) => return Err(error.into()),
-                };
+                // F-10: a path that exists is a failure of the file system (`io`, `EEXIST`). The core numbers the
+                // files, but another process of the same user can create one in the directory.
+                let file = create_file(&path)?;
                 self.target = Some(Target { name, filename, content_type, path, file, size: 0 });
             }
             Piece::FileData(bytes) => {

@@ -103,6 +103,29 @@ fn the_directory_of_a_request() {
     assert!(held.directory().is_none());
 }
 
+/// F-10: a new file of the directory whose path exists is the failure `io` of the file system with the `errno`
+/// `EEXIST`, and the file that exists stays as it is.
+#[test]
+fn a_file_that_exists_in_the_directory_is_io() {
+    let mut read = body(TYPE, true);
+    let taken = directory(&read).join("1");
+    if let Err(error) = fs::write(&taken, b"other") {
+        panic!("{error}");
+    }
+    let data = b"--X\r\nContent-Disposition: form-data; name=\"f\"; filename=\"a\"\r\n\r\npayload\r\n--X--";
+    let failure = match read.feed(io(), data) {
+        Ok(()) => panic!("the chunk was read"),
+        Err(error) => error,
+    };
+    assert!(matches!(failure, Error::Io(_)), "{failure:?}");
+    assert_eq!(failure.kind(), "io");
+    assert_eq!(failure.errno(), Some(rustix::io::Errno::EXIST.raw_os_error()));
+    assert_eq!(fs::read(&taken).map_err(|error| error.kind()), Ok(b"other".to_vec()));
+    assert_eq!(read.feed(io(), b""), Err(failure.clone()), "F-9: the first failure is the error of every later call");
+    assert_eq!(read.finish(io()), Err(failure));
+    assert_eq!(read.remove(io()), Ok(()));
+}
+
 /// H-9: a move to another file system copies, writes to the disk and removes the source. The other file system is
 /// `HTTP_FORM_OTHER_FS`, or `/dev/shm`; the test fails when it is on the file system of the temporary directory.
 #[cfg(target_os = "linux")]

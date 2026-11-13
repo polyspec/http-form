@@ -59,7 +59,7 @@ a server answers. The category is the error class of the binding (plan F-3).
 | `moved` | none | value | a move or a read of a moved file (F-11), message `the file was moved (F-11)` |
 | `exists` | none | value | a move to a path that exists (F-11), message `the path exists (F-11)` |
 | `removed` | none | value | a move or a read of a stored file after the removal of its directory, a chunk after it (F-10) |
-| `not_found`, `permission_denied`, `cross_device`, `storage_full`, `io` | none | io | a failure of the file system, by its `io::ErrorKind`, with its `errno` (plan F-2); `io` without `errno` for a size check (F-12) |
+| `not_found`, `permission_denied`, `cross_device`, `storage_full`, `io` | none | io | a failure of the file system, by its `io::ErrorKind`, with its `errno` (plan F-2); `io` without `errno` for a size check (F-15); `io` with the `errno` `EEXIST` for a new file of the directory of a request whose path exists (F-10) |
 | `source_left` | none | io | a copied file whose source was not removed (F-11) |
 | `partial_target` | none | io | a failed copy or write whose incomplete target was not removed (F-11) |
 | `internal` | none | internal | an invariant of the core does not hold (H-8) |
@@ -222,7 +222,11 @@ is no path, are the binding's (plan B-2, B-3).
 - **F-10** The directory of a request is created below the temporary directory of the system by `tempfile` with the name
   `http-form-` and random characters, which `tempfile` draws again when the name exists, and with the mode `0700`; the
   content of a file part is written to a file of it as it arrives. Its files have the mode `0600` and are closed on
-  `exec`. `RequestBody::remove()` removes the directory with the files that were not moved; the directory belongs to the
+  `exec`. Each file is created as a new file whose name is the number of the file part in the body. The core itself
+  never makes one name twice, but the directory is on a file system that another process of the same user can write,
+  so a path that exists is a condition of the environment and no broken invariant of the core: the chunk fails with
+  the failure of the file system, `io` with the `errno` `EEXIST`, and the file that exists is not opened, written or
+  removed by the failed call. `RequestBody::remove()` removes the directory with the files that were not moved; the directory belongs to the
   request alone, so a directory that is gone fails with `not_found`, and after a removal a second call does nothing.
   After the removal every stored file of the body, through every `UploadedFile` that `parts()` gave, fails with
   `removed`, and so does a chunk. A body dropped without `remove()` removes its directory; a failure of that removal
