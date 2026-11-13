@@ -1,7 +1,16 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: d66b67f87f569c540367fb27121aafed90c3043c1c16100ee4c4907c5f04fe2c -->
+<!-- source-sha256: 3c1403d73181084d9badbc2c77364c63d3047809167cf6bd5ceb28699bd2f77a -->
 
 ## Unreleased
+
+- 계약은 `request_body`에 생성자가 없다고 적지 않았다. binding은 `constructible: false`가 없는 class를 생성자가 있는
+  것으로 읽으므로, `binding generate`는 static member `start`만 있는 `request_body`를 모든 target에서
+  거부했다(binding U-1). unit `request_body`가 `constructible: false`를 적고, F-9가 그 말을 적으며, `tests/start.rs`가
+  그것을 요구한다. 더 뒤의 binding의 `binding check`는 계약의 발견을 보고하지 않고, 그 `binding generate`는 그 거부를
+  더는 내지 않는다. 그 대신 모든 target에서 `request_body`를 거부한다. cleanup `request_body.remove`의 코어 receiver가
+  `&mut self`인데 binding은 receiver가 `self`인 cleanup만 받기 때문이다(binding GN-6p). Go에서는
+  `uploaded_file.content`와 `uploaded_file.move_to`도 거부한다(wait `blocking_io`). `make fmt`와 `make docs-check`는
+  통과한다. 실행하지 않음: `make test`, `make clippy`. 그래서 바뀐 시험은 아직 compile되지 않았다.
 
 - 추적 파일은 Git commit을 적지 않는다. changelog와 checklist가 이 저장소와 binding의 commit을 적고 있었는데, commit은
   저장소 없이 읽는 사람에게 아무것도 알려 주지 않고 history가 합쳐지거나 다시 쓰이면 아무것도 가리키지 않는다. 각

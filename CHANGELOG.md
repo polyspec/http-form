@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- The contract did not state that `request_body` has no constructor. binding reads a class without
+  `constructible: false` as one with a constructor, so `binding generate` refused `request_body`, which has the static
+  member `start` alone, for every target (binding U-1). The unit `request_body` names `constructible: false`, F-9 names
+  that statement, and `tests/start.rs` requires it. `binding check` of a later binding reports no finding of the
+  contract, and its `binding generate` no longer gives that refusal; it refuses `request_body` for every target
+  because the cleanup `request_body.remove` has the core receiver `&mut self` and binding takes a cleanup with the
+  receiver `self` alone (binding GN-6p), and `uploaded_file.content` and `uploaded_file.move_to` for Go (the wait
+  `blocking_io`). `make fmt` and `make docs-check` pass. Not run: `make test` and `make clippy`, so the changed test is
+  not compiled yet.
+
 - No tracked file names a Git commit. The changelog and the checklist named commits of this repository and of binding,
   which say nothing to a reader without the repository and name nothing after a history is joined or written again.
   Each record keeps its fact and states the binding as the pinned one or a later one. `AGENTS.md` holds the rule, and

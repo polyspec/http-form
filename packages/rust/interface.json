@@ -950,6 +950,7 @@
       },
       "origin": "generated",
       "core_type": "polyspec_http_form::RequestBody",
+      "constructible": false,
       "cleanup": "request_body.remove",
       "members": [
         {
