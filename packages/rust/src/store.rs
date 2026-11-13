@@ -63,6 +63,10 @@ impl UploadedFile {
 
     /// The content of the file. A lock that a panic left poisoned is `internal` (H-8); the point `internal` imitates
     /// it (X-1).
+    #[allow(
+        clippy::map_err_ignore,
+        reason = "H-8: the poisoned lock holds the content, not a cause, so the kind states all"
+    )]
     fn lock(&self) -> Result<MutexGuard<'_, Content>, Error> {
         const POISONED: &str = "a file was used after a panic in a call on it";
         if fault::broken(fault::INTERNAL) {

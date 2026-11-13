@@ -1,7 +1,20 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5a9aedc20e8d2e46467d119a0017f15f2d6c6f8fe57fbe1a903cf0947b577987 -->
+<!-- source-sha256: cbe1d24a1a4a5bcc2d34f9adacc7b603625e7db49851302b21d98adbe7d910ff -->
 
 ## Unreleased
+
+- 바인딩 패키지와 `Cargo.lock`이 지금 `v1/rust-core`의 binding을 받는다(binding L-2, CK-19, CK-20): `binding
+  scaffold`가 추적되는 바인딩 패키지를 다시 쓰고, `Cargo.lock`이 `polyspec-binding-core`의 그 commit을 고정하며,
+  `packages/php-ext/build.rs`가 새로 생겼다: macOS에서 확장 하나에만 PHP의 기호를 정의하지 않은 채 두라고 linker에
+  알린다. 이제 바인딩 manifest마다 자기 목록 대신 workspace의 lint를 받으므로(`[lints] workspace = true`),
+  workspace가 바인딩 crate들이 가졌던 lint를 모두 가진다: rustc의 `warnings`, `unsafe_code`, `unused_must_use`와
+  clippy의 `clippy::all`, `allow_attributes_without_reason`, `map_err_ignore`이며, 이제 코어도 이를 지킨다. 코어의
+  다섯 자리는 kind가 호출자에게 주는 것을 모두 말하는 오류를 버리고, 자리마다 그 규칙과 함께
+  `#[allow(clippy::map_err_ignore, reason = ...)]`를 가진다: `multipart.rs`의 `count`와 `store/files.rs`의
+  `read_stored`(H-22, 맞지 않는 수), `part_ended`가 앞서 검사한 값의 UTF-8(H-8), `UploadedFile`의 poison된
+  잠금(H-8), `urlencoded.rs`의 `utf8`(F-5). 전에는 지금 binding의 `make bindings-check`가 바인딩 패키지마다 binding
+  scaffold가 쓰는 것과 다르다고, `Cargo.lock`의 고정을 다른 commit이라고 보고했다. 이제는 둘 이상의 호출이 만드는
+  receiver의 CK-22 32건만 보고한다. `make check`는 시험 40개 통과, 0개 실패를 낸다.
 
 - `UploadedFile`이 메모리의 형태로 WASM의 클래스다(F-28): `new`, `name`, `filename`, `content_type`, `size`, 그리고
   `fs` 없는 코어의 새 `UploadedFile::held_content`를 부르고 아무것도 기다리지 않는 `content`이다. `move_to`와,

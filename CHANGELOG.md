@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- The binding packages and `Cargo.lock` take the binding of the current `v1/rust-core` (binding L-2, CK-19, CK-20):
+  `binding scaffold` writes the tracked binding packages again, `Cargo.lock` pins that commit of
+  `polyspec-binding-core`, and `packages/php-ext/build.rs` is new: on macOS it tells the linker to leave the symbols of
+  PHP undefined for the extension alone. Each binding manifest now takes the lints of the workspace
+  (`[lints] workspace = true`) instead of a list of its own, so the workspace holds every lint that the binding crates
+  held: `warnings`, `unsafe_code` and `unused_must_use` of rustc, and `clippy::all`, `allow_attributes_without_reason`
+  and `map_err_ignore` of clippy, which the core now obeys too. Five places of the core drop an error whose kind says
+  all that the caller is given, and each carries `#[allow(clippy::map_err_ignore, reason = ...)]` with its rule:
+  `count` of `multipart.rs` and `read_stored` of `store/files.rs` (H-22, a number that does not fit), the UTF-8 of a
+  value that `part_ended` checked before (H-8), the poisoned lock of `UploadedFile` (H-8) and `utf8` of
+  `urlencoded.rs` (F-5). Before, `make bindings-check` of the current binding reported each binding package as
+  different from what binding scaffold writes and the pin of `Cargo.lock` as another commit; now it reports only the
+  32 CK-22 findings of the receivers that more than one call makes. `make check` gives 40 tests passed and 0 failed.
+
 - `UploadedFile` is a class of WASM in its form in memory (F-28): `new`, `name`, `filename`, `content_type`, `size`
   and `content`, which calls the new `UploadedFile::held_content` of the core without `fs` and waits on nothing.
   `move_to` and the `content` of the other targets, which reads a stored file, carry `only` without WASM. Before, the

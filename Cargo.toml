@@ -12,8 +12,17 @@ rust-version = "1.99.0"
 
 # R-1: a failure reaches its caller as an error with a kind (P-2), and no input becomes a plausible value (P-3). Every
 # remaining use carries `#[allow(..., reason = "<rule id>")]`. The methods that turn an absence or a failure into a
-# value are in clippy.toml.
+# value are in clippy.toml. The lints hold for every crate of the workspace, the binding crates included, which take
+# them with `[lints] workspace = true`; a binding crate allows unsafe code with a reason (binding B-4).
+[workspace.lints.rust]
+warnings = "deny"
+unsafe_code = "deny"
+unused_must_use = "deny"
+
 [workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+allow_attributes_without_reason = "deny"
+map_err_ignore = "deny"
 unwrap_used = "deny"
 expect_used = "deny"
 let_underscore_must_use = "deny"

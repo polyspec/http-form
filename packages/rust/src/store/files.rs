@@ -144,6 +144,10 @@ fn mismatch(found: u64, size: u64) -> IoFailure {
 }
 
 pub(super) fn read_stored(path: &Path, size: u64) -> Result<Vec<u8>, Error> {
+    #[allow(
+        clippy::map_err_ignore,
+        reason = "H-22: a failed conversion says only that the number does not fit, which the kind states"
+    )]
     let capacity = usize::try_from(size).map_err(|_| Error::Internal("a size does not fit the memory"))?;
     let mut bytes = Vec::with_capacity(capacity);
     match fault::system(fault::READ) {

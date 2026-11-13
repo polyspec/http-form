@@ -116,6 +116,10 @@ enum Part {
 }
 
 /// A number of bytes as `u64`, which holds every `usize` of the supported targets (H-22).
+#[allow(
+    clippy::map_err_ignore,
+    reason = "H-22: a failed conversion says only that the number does not fit, which the kind states"
+)]
 pub(crate) fn count(length: usize) -> Result<u64, Error> {
     u64::try_from(length).map_err(|_| Error::Internal("a length does not fit 64 bits"))
 }
@@ -459,6 +463,10 @@ impl MultipartReader {
                 if valid != content.len() {
                     return Err(ReadError::Form(Error::Invalid));
                 }
+                #[allow(
+                    clippy::map_err_ignore,
+                    reason = "H-8: the content was checked as UTF-8 above, so a failure is an invariant"
+                )]
                 let value = String::from_utf8(content).map_err(|_| ReadError::Form(Error::Internal("UTF-8")))?;
                 sink(Piece::Field { name, value }).map_err(ReadError::Sink)
             }

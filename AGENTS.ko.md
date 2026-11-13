@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: ed9b7ddde15c76aabee2269fba1b23aeee1a5ef2fd283b1bc540c4c2bd03bb50 -->
+<!-- source-sha256: 2f8a4fcf7119c04ed825863f0b51dd9f35782685f4228edbfc864e9638234d80 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -9,7 +9,9 @@
 - 저장소는 Cargo workspace 하나다: 코어 `packages/rust`와, 계약의 다섯 target(binding BD-27)의 바인딩 crate
   `packages/python`, `packages/ts`, `packages/ts/wasm`, `packages/php-ext`, `packages/go/internal/ffi`
   (`packages/go/go.mod`와 함께)다. 이 crate들은 `binding scaffold`가 쓰고 `make bindings-check`가 비교한다. 루트의
-  `Cargo.lock`이 `polyspec-binding-core`의 commit을 포함한 모든 의존성을 고정한다.
+  `Cargo.lock`이 `polyspec-binding-core`의 commit을 포함한 모든 의존성을 고정한다. 모든 crate는 workspace의 lint를
+  받는다(`[lints] workspace = true`). binding scaffold가 이를 바인딩 manifest마다 쓰므로, 루트 `Cargo.toml`의 lint가
+  코어와 바인딩 crate에 똑같이 적용되고, 규칙이 필요로 하는 사용은 `#[allow(..., reason = "<규칙 id>")]`를 가진다.
 - 바인딩은 인터페이스 계약 `packages/rust/interface.json`에서 생성되며 손으로 쓰지 않는다. 이전 API의 손으로 쓴
   바인딩은 `legacy/`에 있고 어떤 target도 그것을 빌드하지 않는다. 생성된 바인딩이 시험을 통과할 때까지 남는다.
 - `make bindings`가 생성한다. 바인딩을 빌드하거나 시험하는 모든 make target은 그것을 먼저 실행한다.

@@ -9,7 +9,10 @@ rules of this repository.
 - The repository is one Cargo workspace: the core `packages/rust` and the binding crates of the five targets of the
   contract (binding BD-27) `packages/python`, `packages/ts`, `packages/ts/wasm`, `packages/php-ext` and
   `packages/go/internal/ffi` (with `packages/go/go.mod`), which `binding scaffold` writes and `make bindings-check`
-  compares. `Cargo.lock` at the root pins every dependency, the commit of `polyspec-binding-core` included.
+  compares. `Cargo.lock` at the root pins every dependency, the commit of `polyspec-binding-core` included. Every
+  crate takes the lints of the workspace (`[lints] workspace = true`), which binding scaffold writes into each binding
+  manifest, so the lints of the root `Cargo.toml` hold for the core and the binding crates alike, and a use that a
+  rule needs carries `#[allow(..., reason = "<rule id>")]`.
 - The bindings are generated from the interface contract `packages/rust/interface.json` and are not written by hand.
   The hand-written bindings of an earlier API are in `legacy/`, which no target builds; they stay until the generated
   bindings pass their tests.

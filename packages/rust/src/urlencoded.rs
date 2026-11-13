@@ -58,6 +58,10 @@ fn hex(byte: Option<&u8>) -> Option<u8> {
     }
 }
 
+#[allow(
+    clippy::map_err_ignore,
+    reason = "F-5: text that is not UTF-8 is invalid, and the kind states all that the caller is given"
+)]
 fn utf8(bytes: Vec<u8>) -> Result<String, Error> {
     String::from_utf8(bytes).map_err(|_| Error::Invalid)
 }
