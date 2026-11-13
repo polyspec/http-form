@@ -1,7 +1,11 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 99032dfc092da9b119592323a9da5b198d63a57908471cab0fb212b971d7e24d -->
+<!-- source-sha256: 6147d84e43591446b5fe1ff191ff8daf4710872ce5b31521dce1e78a9ffb7311 -->
 
 ## Unreleased
+
+- `Cargo.lock`은 binding 3b4bc6b를 고정하고, `binding scaffold`가 바인딩 패키지를 다시 쓴다. 바인딩 crate의 allow는
+  자기 규칙 id를 이유로 주고, Go crate의 manifest에는 새 줄이 있다. 그 binding의 검사는 같은 CK-22 지적 열 건만 내고,
+  `make check`는 통과 50, 실패 0을 낸다.
 
 - 저장소에는 계획도 checklist도 문서 검사도 없었다. `docs/plans/rust-core`가 계획과 checklist를 한국어 쌍과 함께
   담는다. 끝난 단계는 자기 commit을 적고, 계약과 그 workspace는 binding의 두 case 꼴을 기다리며, 바인딩, `legacy/`의

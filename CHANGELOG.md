@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Cargo.lock` pins binding 3b4bc6b, and `binding scaffold` writes the binding packages again: the allow of a binding
+  crate gives its rule id as its reason, and the Go crate holds a new line of its manifest. The check of that binding
+  gives the same ten CK-22 findings and no other, and `make check` gives 50 passed and 0 failed.
+
 - The repository had no plan, no checklist and no check of its documents. `docs/plans/rust-core` holds the plan and
   the checklist with their Korean twins: the done steps name their commits, the contract and its workspace wait for
   two case forms of binding, and the bindings, the runners of `legacy/`, the end-to-end check and the Go binding wait
