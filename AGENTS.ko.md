@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 4ba47abb36e838ecc702ff01c281ac3fb6e6d8b748a92f5bda18786a9abd0a46 -->
+<!-- source-sha256: 36322c89d1b6d6452ba5283d0ff81120338b288557509f0273e4131a5712499e -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -98,3 +98,11 @@
   거부하기 때문이다. release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로도 tag한다(`config/release.json`의
   `goModules`). Go는 저장소 루트 아래의 module을 그 형태의 tag로 가져오기 때문이다(binding GN-15g). 첫 release는
   바인딩도 기다린다(T1.13).
+
+## Commit과 변경
+
+- 추적 파일은 이 저장소든 다른 저장소든 Git commit을 적지 않는다. 기록은 무엇이 바뀌었고 검사가 무엇을 냈는지를 적고,
+  의존은 `Cargo.lock`이 고정한 것("고정된 binding")이나 그 release로 가리킨다. commit id는 저장소 없이 읽는 사람에게
+  아무것도 알려 주지 않고, history가 다른 history와 합쳐지거나 다시 쓰이면 아무것도 가리키지 않는다. `v1/rust-core`를
+  `main`으로 옮길 때가 그렇다. commit으로 고정하는 파일은 예외다. lock 파일과 workflow의 action이다. `make
+  test-scripts`는 `tests/scripts/commits.test.mts`를 실행하며, 이 시험은 commit id를 가진 추적 파일을 실패로 본다.

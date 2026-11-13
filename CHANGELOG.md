@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- No tracked file names a Git commit. The changelog and the checklist named commits of this repository and of binding,
+  which say nothing to a reader without the repository and name nothing after a history is joined or written again.
+  Each record keeps its fact and states the binding as the pinned one or a later one. `AGENTS.md` holds the rule, and
+  `make test-scripts` runs `tests/scripts/commits.test.mts`, which failed on the committed tree and passes now.
+
 - The release tags the Go module `packages/go` with `packages/go/vX.Y.Z` at the release commit: `goModules` of
   `config/release.json` names the module. Before, `goModules` was empty and the rules said that a tag tags no Go
   module; Go takes a module below the root of a repository only by a tag of that form, so no other repository could
@@ -33,24 +38,24 @@
   a static member that returns the body; `make test` gives 41 passed and 0 failed. The tests that binding generates
   from the contract did not run, because binding does not generate the contract yet.
 
-- The end-to-end check of binding c9f78a0 refused the key `mediaType` of the group `content_type` of
+- The end-to-end check of a later binding refused the key `mediaType` of the group `content_type` of
   `contracts/forms.json`, because a case key of a group that the interface contract names is in snake_case (G-5). The
   key is `media_type` now, and `after_removal` of the group `body` follows the same convention. The test
   `tests/case_keys.rs` checks every key of every case of both contract files, and `make check` gives 51 passed and 0
   failed.
 
 - The ten kinds that the contract check reported (CK-22) have their cases, in the two forms of a call of `then` of
-  binding c9f78a0 (GN-13f). In `request_body.finish.made` and `request_body.parts.made` of `contracts/forms.json`, the
+  a later binding (GN-13f). In `request_body.finish.made` and `request_body.parts.made` of `contracts/forms.json`, the
   call `feed` of `then` arms `http_form.create_file` for itself alone with `ENOENT`, `EACCES`, `ENOSPC` and `EIO`, and
   `finish` and `parts` give `not_found`, `permission_denied`, `storage_full` and `io` again with the errno (F-9,
   F-10). In `uploaded_file.content.stored` and `uploaded_file.move_to.stored` of `contracts/fields.json`, the call
   `request_body.remove` with `"on": "receiver"` removes the body of the picked file, and `content` and `move_to` fail
   with `removed`. `tests/common` arms the faults of a call of `then` for its member and calls the body for
-  `"on": "receiver"`, and `tests/forms.rs` compares the errno of a failure that a case names. The check of binding
-  c9f78a0 gives no CK-22 finding; the pin of `Cargo.lock` follows once that commit is released, and `make check` gives
+  `"on": "receiver"`, and `tests/forms.rs` compares the errno of a failure that a case names. The check of a later
+  binding gives no CK-22 finding; the pin of `Cargo.lock` follows once that commit is released, and `make check` gives
   50 passed and 0 failed.
 
-- `Cargo.lock` pins binding 3b4bc6b, and `binding scaffold` writes the binding packages again: the allow of a binding
+- `Cargo.lock` pins a later commit of binding, and `binding scaffold` writes the binding packages again: the allow of a binding
   crate gives its rule id as its reason, and the Go crate holds a new line of its manifest. The check of that binding
   gives the same ten CK-22 findings and no other, and `make check` gives 50 passed and 0 failed.
 
@@ -146,7 +151,7 @@
   CLI of another release than the crate. `var/`, `packages/ts/wasm/generated` and `packages/go/internal/ffi/generated`
   are ignored. `AGENTS.md` and `AGENTS.ko.md` are new and state these rules. Before, `make test-bindings` ran only
   the Rust tests of the PHP, Python and Node crates, and no target built or tested the Go and WASM bindings.
-  With binding at 8faad21 every one of the five targets fails at `make bindings`: `binding generate` refuses the
+  With the binding of that change every one of the five targets fails at `make bindings`: `binding generate` refuses the
   contract with the 23 CK-22 findings of the entry below, each a kind that only a receiver made by more than one call
   reaches, or `partial_target` of `move_to`, so no binding is generated and no generated test runs. `make check`
   passes (35 tests of the core). No case runner of a language runs the cases of `contracts/` yet, and the files
@@ -214,5 +219,5 @@
   file system, which runs on Linux, and it is now inside that test. Before, clippy failed the helper as dead code on
   macOS.
 
-- `Cargo.lock` pins binding at 9de9d03, the commit that every repository of the library family pins (CK-20), and the
+- `Cargo.lock` pins binding at the commit that every repository of the library family pins (CK-20), and the
   commit of `polyspec-http-media-type` on it; its scaffold writes the same binding packages.

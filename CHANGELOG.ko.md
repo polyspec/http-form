@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: f1143589189754e55058b484f05ceda01031e33bd91c0524003cf2b23424816c -->
+<!-- source-sha256: d66b67f87f569c540367fb27121aafed90c3043c1c16100ee4c4907c5f04fe2c -->
 
 ## Unreleased
+
+- 추적 파일은 Git commit을 적지 않는다. changelog와 checklist가 이 저장소와 binding의 commit을 적고 있었는데, commit은
+  저장소 없이 읽는 사람에게 아무것도 알려 주지 않고 history가 합쳐지거나 다시 쓰이면 아무것도 가리키지 않는다. 각
+  기록은 사실을 그대로 두고 binding을 고정된 것 또는 더 뒤의 것으로 적는다. `AGENTS.md`에 규칙이 있고, `make
+  test-scripts`가 `tests/scripts/commits.test.mts`를 실행한다. 이 시험은 commit된 tree에서 실패했고 지금 통과한다.
 
 - release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로 tag한다. `config/release.json`의
   `goModules`가 그 module을 가리킨다. 전에는 `goModules`가 비어 있었고 규칙은 tag가 Go module을 tag하지 않는다고 했다.
@@ -32,22 +37,22 @@
   `make test`는 41개 통과, 0개 실패다. binding이 계약에서 생성하는 시험은 실행하지 않았다. binding이 아직 이 계약을
   생성하지 않기 때문이다.
 
-- binding c9f78a0의 end-to-end 검사가 `contracts/forms.json`의 group `content_type`의 키 `mediaType`을
+- 더 뒤의 binding의 end-to-end 검사가 `contracts/forms.json`의 group `content_type`의 키 `mediaType`을
   거부했다. 인터페이스 계약이 가리키는 group의 case 키는 snake_case이기 때문이다(G-5). 그 키는 이제
   `media_type`이고, group `body`의 `after_removal`도 같은 규약을 따른다. test `tests/case_keys.rs`는 두 계약 파일의
   모든 case의 모든 키를 검사하며, `make check`는 51 passed, 0 failed를 준다.
 
-- 계약 검사가 지적한 kind 열 개(CK-22)가 binding c9f78a0의 `then` 호출의 두 꼴(GN-13f)로 case를 가진다.
+- 계약 검사가 지적한 kind 열 개(CK-22)가 더 뒤의 binding의 `then` 호출의 두 꼴(GN-13f)로 case를 가진다.
   `contracts/forms.json`의 `request_body.finish.made`와 `request_body.parts.made`에서 `then`의 호출 `feed`는 자기만을 위해
   `http_form.create_file`을 `ENOENT`, `EACCES`, `ENOSPC`, `EIO`로 장전하고, `finish`와 `parts`는 `not_found`,
   `permission_denied`, `storage_full`, `io`를 errno와 함께 다시 준다(F-9, F-10). `contracts/fields.json`의
   `uploaded_file.content.stored`와 `uploaded_file.move_to.stored`에서 `"on": "receiver"`를 가진 호출
   `request_body.remove`가 꺼낸 파일의 본문을 지우고, `content`와 `move_to`는 `removed`로 실패한다. `tests/common`은
   `then` 호출의 fault를 그 member에 장전하고 `"on": "receiver"`에서 본문을 부르며, `tests/forms.rs`는 case가 적는
-  실패의 errno를 비교한다. binding c9f78a0의 검사는 CK-22 지적을 내지 않는다. `Cargo.lock`의 고정은 그 commit이 나온 뒤
+  실패의 errno를 비교한다. 더 뒤의 binding의 검사는 CK-22 지적을 내지 않는다. `Cargo.lock`의 고정은 그 commit이 나온 뒤
   따르며, `make check`는 통과 50, 실패 0을 낸다.
 
-- `Cargo.lock`은 binding 3b4bc6b를 고정하고, `binding scaffold`가 바인딩 패키지를 다시 쓴다. 바인딩 crate의 allow는
+- `Cargo.lock`은 binding의 더 뒤 commit을 고정하고, `binding scaffold`가 바인딩 패키지를 다시 쓴다. 바인딩 crate의 allow는
   자기 규칙 id를 이유로 주고, Go crate의 manifest에는 새 줄이 있다. 그 binding의 검사는 같은 CK-22 지적 열 건만 내고,
   `make check`는 통과 50, 실패 0을 낸다.
 
@@ -136,7 +141,7 @@
   release의 Go를, `make node-package`는 crate와 다른 release의 wasm-bindgen CLI를 실패시킨다. `var/`,
   `packages/ts/wasm/generated`, `packages/go/internal/ffi/generated`는 무시된다. `AGENTS.md`와 `AGENTS.ko.md`를
   새로 두어 이 규칙을 적는다. 전에는 `make test-bindings`가 PHP, Python, Node crate의 Rust 시험만 실행했고, 어떤
-  target도 Go와 WASM 바인딩을 빌드하거나 시험하지 않았다. binding 8faad21에서 다섯 target 모두가 `make bindings`에서
+  target도 Go와 WASM 바인딩을 빌드하거나 시험하지 않았다. 그 변경의 binding에서 다섯 target 모두가 `make bindings`에서
   실패한다: `binding generate`가 아래 항목의 CK-22 finding 23개로 계약을 거부한다. 각각은 호출 둘 이상으로 만든
   receiver만 닿는 kind이거나 `move_to`의 `partial_target`이다. 그래서 바인딩이 생성되지 않고 생성 시험도 실행되지
   않는다. `make check`는 통과한다(코어 시험 35개). 언어의 case runner는 아직 `contracts/`의 case를 실행하지 않고,
@@ -202,5 +207,5 @@
   시험만 쓰므로 그 시험 안으로 옮겼다. 전에는 macOS에서 clippy가 이 도우미를 dead code로
   실패시켰다.
 
-- `Cargo.lock`은 같은 라이브러리 묶음의 모든 레포가 고정하는 binding 9de9d03을 고정하고(CK-20), 그 위의
+- `Cargo.lock`은 같은 라이브러리 묶음의 모든 레포가 고정하는 binding commit을 고정하고(CK-20), 그 위의
   `polyspec-http-media-type` 커밋을 고정한다. binding의 scaffold는 같은 바인딩 package를 쓴다.
