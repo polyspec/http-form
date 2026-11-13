@@ -47,6 +47,11 @@ fn a_body_starts_by_a_static_member_that_returns_it() {
         of_body.iter().all(|member| member["kind"] != json!("constructor")),
         "request_body has a constructor (F-9)"
     );
+    let Some(units) = contract["units"].as_array() else { panic!("the contract has no list units") };
+    let Some(body) = units.iter().find(|unit| unit["id"] == json!("request_body")) else {
+        panic!("the contract has no unit request_body")
+    };
+    assert_eq!(body["constructible"], json!(false), "request_body states that it has no constructor (F-9)");
     let Some(start) = of_body.iter().find(|member| member["id"] == json!("request_body.start")) else {
         panic!("the contract has no member request_body.start (F-9)")
     };
