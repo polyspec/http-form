@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: 72976060329f3bffda7221e9b020f2303f3c93333d81f1ed0e04b8e935346dbb -->
+<!-- source-sha256: e362b94bfb1a15f6b0141a65ed0b83b9a4226e66d49c092af36d703d0079d0da -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -15,5 +15,5 @@
 | T1.9 | `legacy/conformance`의 runner를 생성된 PHP, Python, Node 바인딩으로 실행하고, 그다음 `legacy/`를 지운다 | `legacy/`, `Makefile` | `make test-bindings` | [!] 원인: 생성 바인딩이 없다(T1.8); 재시도: T1.8이 끝난다 |
 | T1.10 | 이 저장소에 대한 binding의 end-to-end 검사를 php, python, node, wasm에서 통과한다 | binding의 추적되지 않는 `var/report/e2e/http-form.json` | binding의 `make e2e` | [!] 원인: 9b55365에 대한 binding c9f78a0의 end-to-end 검사는 계약 검사와 case 규약(G-5)을 통과하고 T1.8의 생성에서 멈춘다; 재시도: T1.8이 끝난다 |
 | T1.11 | Go 바인딩을 binding이 생성하는 시험과 `packages/go/tests`의 contract case로 시험한다 | `packages/go` | `make test-go` | [!] 원인: T1.5 밖에도 binding c9f78a0이 모든 target에서 계약의 생성을 거부한다(G-4). error unit `partial_target_error`의 property `removal_kind`와 `removal_errno`, `request_body`의 only와 native, `uploaded_file.content`와 `uploaded_file.move_to`의 wait blocking_io를 아직 생성하지 않는다; 재시도: T1.5가 끝나고 binding이 packages/rust/interface.json의 Go를 생성한다 |
-| T1.12 | recipe의 모든 도구를 고정해 `var/tools`에 설치하고, GitHub에서 검사를 실행하고 tag를 release한다: `mise.toml`과 그 lock, workflow `ci`와 `release`, release 구성, 그 make target. version은 0.0.1이다 | `mise.toml`, `mise.lock`, `config/toolchain.json`, `.php-version`, `composer.json`, `composer.lock`, `scripts/binding.mts`, `.github/`, `config/release.json`, `Makefile`, `tests/scripts/ci.test.mts` | `make test-scripts`, `make release-coverage` | [ ] |
+| T1.12 | recipe의 모든 도구를 고정해 `var/tools`에 설치하고, GitHub에서 검사를 실행하고 tag를 release한다: `mise.toml`과 그 lock, workflow `ci`와 `release`, release 구성, 그 make target. version은 0.0.1이다 | `mise.toml`, `mise.lock`, `config/toolchain.json`, `.php-version`, `composer.json`, `composer.lock`, `scripts/binding.mts`, `.github/`, `config/release.json`, `Makefile`, `tests/scripts/ci.test.mts` | `make test-scripts`, `make release-coverage` | [o] |
 | T1.13 | `main`에서 `ci.yml`의 모든 job을 통과하고 첫 version을 release한다. job에는 T1.5~T1.11의 바인딩이 필요하다 | `main`의 CI 실행, release의 tag | `make ci-passed` | [ ] |
