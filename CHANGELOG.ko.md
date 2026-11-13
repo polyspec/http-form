@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+- binding c9f78a0의 end-to-end 검사가 `contracts/forms.json`의 group `content_type`의 키 `mediaType`을
+  거부했다. 인터페이스 계약이 가리키는 group의 case 키는 snake_case이기 때문이다(G-5). 그 키는 이제
+  `media_type`이고, group `body`의 `after_removal`도 같은 규약을 따른다. test `tests/case_keys.rs`는 두 계약 파일의
+  모든 case의 모든 키를 검사하며, `make check`는 51 passed, 0 failed를 준다.
+
 - 계약 검사가 지적한 kind 열 개(CK-22)가 binding c9f78a0의 `then` 호출의 두 꼴(GN-13f)로 case를 가진다.
   `contracts/forms.json`의 `request_body.finish.made`와 `request_body.parts.made`에서 `then`의 호출 `feed`는 자기만을 위해
   `http_form.create_file`을 `ENOENT`, `EACCES`, `ENOSPC`, `EIO`로 장전하고, `finish`와 `parts`는 `not_found`,

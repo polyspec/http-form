@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The end-to-end check of binding c9f78a0 refused the key `mediaType` of the group `content_type` of
+  `contracts/forms.json`, because a case key of a group that the interface contract names is in snake_case (G-5). The
+  key is `media_type` now, and `after_removal` of the group `body` follows the same convention. The test
+  `tests/case_keys.rs` checks every key of every case of both contract files, and `make check` gives 51 passed and 0
+  failed.
+
 - The ten kinds that the contract check reported (CK-22) have their cases, in the two forms of a call of `then` of
   binding c9f78a0 (GN-13f). In `request_body.finish.made` and `request_body.parts.made` of `contracts/forms.json`, the
   call `feed` of `then` arms `http_form.create_file` for itself alone with `ENOENT`, `EACCES`, `ENOSPC` and `EIO`, and

@@ -14,7 +14,8 @@ media type이며, 그 문법은 의존성 `polyspec-http-media-type`의 규칙 M
 urlencoded 텍스트, multipart 본문, chunk로 읽는 본문, 바이트로 만든 파일의 case를 담고, `forms.json`은
 나머지 규칙의 case를 담는다. case는 binding의 case 규약(G-5)을 따른다: case의 키는 인터페이스 계약에서 그 group이
 가리키는 member의 매개변수 이름이고, 바이트는 `{"hex": ...}`이며, content type은 문자가 곧 바이트인 텍스트이고,
-한도는 record `limits`이다. `RequestBody`의 method는 receiver를 생성자의 키에서
+한도는 record `limits`이다. case의 키는 core의 test만 읽는 group에서도 모두 snake_case이며,
+`tests/case_keys.rs`가 이를 검사한다. `RequestBody`의 method는 receiver를 생성자의 키에서
 받으므로, `request_body.feed`는 chunk 하나의 실패를 담고, `request_body.finish`와 `request_body.parts`는
 방금 만든 본문의 실패를 담는다. 앞선 호출이 만든 receiver의 case는 그것을 instance 값으로 키 `receiver` 아래에
 주며(binding GN-13f), 이름이 `.made`와 `.stored`로 끝나는 group에 있다(결함 주입 지점). 호출이 둘 이상인 scenario(`forms.json`의 `body`,

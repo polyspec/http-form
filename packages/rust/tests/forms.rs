@@ -87,7 +87,7 @@ fn content_type_cases() {
         let value = content_type(case);
         let value = value.as_deref();
         let results = [
-            ("mediaType", media_type(value).map(Value::from)),
+            ("media_type", media_type(value).map(Value::from)),
             ("urlencoded", is_urlencoded(value).map(Value::from)),
             ("boundary", multipart_boundary(value).map(|boundary| Value::from(boundary.map(|b| text(&b))))),
         ];
@@ -198,7 +198,7 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
             Ok(form) => {
                 result["fields"] = fields_json(&form.fields);
                 result["files"] = files_json(&form.files, true);
-                if case.get("afterRemoval").is_some() {
+                if case.get("after_removal").is_some() {
                     if let Err(error) = read.remove(io()) {
                         panic!("{label}: {error}");
                     }
@@ -217,7 +217,7 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
                     });
                     let first = kinds.next();
                     assert!(kinds.all(|other| Some(&other) == first.as_ref()), "{label}: the files fail alike");
-                    result["afterRemoval"] = match first {
+                    result["after_removal"] = match first {
                         Some(first) => first,
                         None => Value::Null,
                     };
@@ -266,7 +266,7 @@ fn bodies() {
                     break;
                 }
             }
-            for key in ["raises", "fields", "files", "afterRemoval"] {
+            for key in ["raises", "fields", "files", "after_removal"] {
                 failures.compare(case, key, &whole[key]);
             }
             match stage {
