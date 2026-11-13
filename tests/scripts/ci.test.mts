@@ -97,8 +97,12 @@ test('a workflow runs pinned actions and one make target per command', () => {
 });
 
 test('the release configuration names the repository and a version 0.0.x', () => {
-  const release = JSON.parse(read('config/release.json')) as { repositoryUrl?: string; manifests?: Record<string, string> };
+  const release = JSON.parse(read('config/release.json')) as { repositoryUrl?: string; manifests?: Record<string, string>; goModules?: Record<string, string> };
   assert.equal(release.repositoryUrl, 'https://github.com/polyspec/http-form');
   assert.equal(release.manifests?.['packages/rust/Cargo.toml'], 'git-tag');
+  // The release tags the Go module below the root with packages/go/vX.Y.Z (binding GN-15g).
+  const module = /^module (\S+)$/m.exec(read('packages/go/go.mod'))?.[1];
+  assert.ok(module !== undefined, 'packages/go/go.mod names no module');
+  assert.deepEqual(release.goModules, { 'packages/go': module }, 'goModules names the Go module of the binding');
   assert.match(/^\[workspace\.package\][^[]*?^version = "([^"]+)"$/ms.exec(read('Cargo.toml'))?.[1] ?? '', /^0\.0\.\d+$/, 'the version is 0.0.x');
 });
