@@ -32,9 +32,11 @@ CDYLIB := $(if $(filter Darwin,$(shell uname -s)),dylib,so)
 
 # The core crate is named, because the binding crates of the workspace need make bindings first (plan 9c, binding L-2).
 CORE := polyspec-http-form
+# The five targets of the contract (binding BD-27).
+TARGETS := php python node go wasm
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
-.PHONY: test clippy fmt wasm-core check differential bindings bindings-check lint-bindings test-bindings test-crates \
+.PHONY: test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
 	test-python node-package test-node test-wasm test-php test-go
 
 # scripts/other-fs.sh gives the tests HTTP_FORM_OTHER_FS, a directory on another file system (H-9).
@@ -69,16 +71,20 @@ differential:
 # bindings writes the generated folders of the binding packages, which Git ignores; bindings-check runs the contract
 # check, which also compares the tracked binding packages with what binding scaffold writes (binding L-2, CK-19) and the
 # polyspec-binding-core that Cargo.lock pins with the version of binding (CK-20).
-bindings:
+# Each target of the contract is generated apart (binding GN-1b), so that a target that the generator refuses fails
+# its own make targets alone, with status 1, and the others build and test.
+bindings: $(addprefix bindings-,$(TARGETS))
+
+$(addprefix bindings-,$(TARGETS)): bindings-%:
 	@test -n "$(BINDING)" || { echo "bindings: set BINDING to the cli of binding"; exit 1; }
-	$(NODE) $(BINDING) generate --root $(CURDIR)
+	$(NODE) $(BINDING) generate --root $(CURDIR) --target $*
 
 bindings-check:
 	@test -n "$(BINDING)" || { echo "bindings-check: set BINDING to the cli of binding"; exit 1; }
 	$(NODE) $(BINDING) check $(CURDIR)/packages/rust/interface.json
 
 # The lint of the binding crates, after make bindings writes their generated folders.
-lint-bindings: bindings
+lint-bindings: bindings-node bindings-python bindings-php
 	$(CARGO) clippy --locked $(foreach crate,$(BINDING_CRATES),-p $(crate)) --all-targets -- -D warnings
 
 # Each of the five targets of the contract (binding BD-27) runs the tests that binding generates on the standard runner
@@ -87,11 +93,11 @@ lint-bindings: bindings
 test-bindings: lint-bindings test-crates test-python test-node test-wasm test-php test-go
 
 # The Rust tests of the binding crates.
-test-crates: bindings
+test-crates: bindings-node bindings-python bindings-php
 	$(CARGO) test --locked $(foreach crate,$(BINDING_CRATES),-p $(crate))
 
 # The wheel with the test features, installed into a virtual environment, where the generated tests (G-5) run.
-test-python: bindings
+test-python: bindings-python
 	$(PYTHON) -m venv --clear $(VAR)/venv
 	rm -rf $(VAR)/wheels
 	cd packages/python && $(MATURIN) build --locked --features panic-test,fault-test \
@@ -107,7 +113,7 @@ test-python: bindings
 PLATFORM := $(shell $(NODE) -p 'process.platform + "-" + process.arch + (process.platform === "linux" ? "-gnu" : "")')
 NODE_ADDON := http-form.$(PLATFORM).node
 WASM_BINDGEN_RELEASE := $(shell sed -n 's/^wasm-bindgen = "=\(.*\)"$$/\1/p' packages/ts/wasm/Cargo.toml)
-node-package: bindings
+node-package: bindings-node bindings-wasm
 	test "$$($(WASM_BINDGEN) --version)" = "wasm-bindgen $(WASM_BINDGEN_RELEASE)"
 	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-wasm --locked --target wasm32-unknown-unknown --features panic-test
 	$(WASM_BINDGEN) --target web --out-dir packages/ts/wasm/generated --out-name http_form_wasm \
@@ -134,7 +140,7 @@ test-wasm: node-package
 
 # The extension with the test features, built against PHP_CONFIG and loaded into PHP; the stub is linted, then the
 # generated tests run on PHPUnit.
-test-php: bindings
+test-php: bindings-php
 	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-php-ext --locked --features panic-test,fault-test
 	$(PHP) -l packages/php-ext/generated/polyspec_http_form.stub.php
 	$(PHP) -d extension=$(CARGO_TARGET_DIR)/debug/libpolyspec_http_form.$(CDYLIB) $(PHPUNIT) packages/php-ext/generated/tests
@@ -144,7 +150,7 @@ test-php: bindings
 # of fetching that release.
 GO_RELEASE := $(shell sed -n 's/^go \(.*\)$$/\1/p' packages/go/go.mod)
 GO_ENV := GOTOOLCHAIN=local CGO_LDFLAGS=-L$(CARGO_TARGET_DIR)/debug GOFLAGS=-tags=polyspec_panic_test,polyspec_codec_test
-test-go: bindings
+test-go: bindings-go
 	test "$$($(GO_ENV) $(GO) env GOVERSION)" = "go$(GO_RELEASE)"
 	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-go --locked --features panic-test,codec-test
 	test -z "$$(cd packages/go && $(GOFMT) -l .)"

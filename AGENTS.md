@@ -16,7 +16,9 @@ rules of this repository.
 - The bindings are generated from the interface contract `packages/rust/interface.json` and are not written by hand.
   The hand-written bindings of an earlier API are in `legacy/`, which no target builds; they stay until the generated
   bindings pass their tests.
-- `make bindings` generates; every make target that builds or tests a binding runs it first. `make test-bindings` runs
+- `make bindings` generates, each target of the contract apart (`make bindings-<target>`, binding GN-1b), so that a
+  target that the generator refuses fails its own make targets alone; every make target that builds or tests a binding
+  runs the generation of its targets first. `make test-bindings` runs
   `make lint-bindings` (clippy on the binding crates), `make test-crates` (the Rust tests of the binding crates), then
   `make test-python`, `make test-node`, `make test-wasm`, `make test-php` and `make test-go`, one for each of the five
   targets, each of which runs the tests that binding generates on the standard runner of its language: unittest,

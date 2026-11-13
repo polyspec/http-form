@@ -279,11 +279,11 @@ is no path, are the binding's (plan B-2, B-3).
 
 ## Fault injection points
 
-The core calls `binding_core::fault::point` of the dependency `polyspec-binding-core` at each point of the table below
+The core calls the macro `binding_core::fault::point!` of the dependency `polyspec-binding-core` at each point of the table below
 (`packages/rust/src/fault.rs`, whose constants name the points), and the contract declares the same points in `faults`
-(binding G-5). A point does nothing without the feature `fault-test` of this crate, which turns on that of
-`polyspec-binding-core`: a binding crate turns it on through its own feature `fault-test`, the tests of this crate
-through the dev-dependency, and no release build has it. A case that arms points is a case of one call (G-5): the arming
+(binding G-5). The macro judges a point by the feature `fault-test` of this crate, which writes it (binding GN-5), and
+which turns on that of `polyspec-binding-core`: a point does nothing without it. A binding crate turns it on through its
+own feature `fault-test`, the tests of this crate through a dev-dependency on this crate with the feature, and no release build has it. A case that arms points is a case of one call (G-5): the arming
 holds for the call of its member alone.
 
 A failure of the file system (the variants `Io`, `SourceLeft` and `PartialTarget`) comes from the environment, and no

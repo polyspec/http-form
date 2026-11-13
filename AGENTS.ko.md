@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 2f8a4fcf7119c04ed825863f0b51dd9f35782685f4228edbfc864e9638234d80 -->
+<!-- source-sha256: 8e29aa4ceb61ee84b6454eb1ab037e893528b4ec8e304d36a59e0923bf32c5f5 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -14,7 +14,9 @@
   코어와 바인딩 crate에 똑같이 적용되고, 규칙이 필요로 하는 사용은 `#[allow(..., reason = "<규칙 id>")]`를 가진다.
 - 바인딩은 인터페이스 계약 `packages/rust/interface.json`에서 생성되며 손으로 쓰지 않는다. 이전 API의 손으로 쓴
   바인딩은 `legacy/`에 있고 어떤 target도 그것을 빌드하지 않는다. 생성된 바인딩이 시험을 통과할 때까지 남는다.
-- `make bindings`가 생성한다. 바인딩을 빌드하거나 시험하는 모든 make target은 그것을 먼저 실행한다.
+- `make bindings`가 계약의 target마다 따로 생성한다(`make bindings-<target>`, binding GN-1b). 그래서 생성기가 거부하는
+  target은 자기 make target만 실패시킨다. 바인딩을 빌드하거나 시험하는 모든 make target은 자기 target의 생성을 먼저
+  실행한다.
   `make test-bindings`는 `make lint-bindings`(바인딩 crate의 clippy), `make test-crates`(바인딩 crate의 Rust 시험),
   그다음 다섯 target마다 하나씩 `make test-python`, `make test-node`, `make test-wasm`, `make test-php`,
   `make test-go`를 실행한다. 각각은 binding이 생성한 시험을 그 언어의 표준 runner로 실행한다: unittest,

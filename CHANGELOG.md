@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- The core takes binding whose fault injection point is the macro `binding_core::fault::point!`, which judges a point
+  by the feature `fault-test` of the crate that writes it (binding GN-5): `fault.rs` calls `point!`, and the tests of
+  the core turn on `fault-test` of `polyspec-http-form` through a dev-dependency on the crate itself, so that its
+  points fire; before, the dev-dependency turned on only that of binding, and with the macro the six tests of
+  `tests/faults.rs` failed because no armed fault fired. `make bindings` generates each target apart
+  (`make bindings-<target>`, binding GN-1b), so that a target that the generator refuses fails its own make targets
+  alone, and each make target of a binding needs only the generation of its targets. `make check` gives 50 tests
+  passed and 0 failed.
+
 - The test of a move to another file system runs on macOS too (H-9). Before, it carried `cfg(target_os = "linux")`,
   so it never ran on macOS, a platform of the library, and on Linux it took `/dev/shm` when `HTTP_FORM_OTHER_FS`
   was not given. Now it runs on every platform and fails when `HTTP_FORM_OTHER_FS` names no directory, and the new

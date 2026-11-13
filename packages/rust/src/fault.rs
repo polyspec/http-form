@@ -1,6 +1,6 @@
 //! The fault injection points of the core (spec "Fault injection points", binding G-5, X-1). Each constant names one
 //! call of the system, or the invariant of `internal`, as `http_form.<id>`; the contract names the same points in
-//! `faults`. `binding_core::fault::point` does nothing without the feature `fault-test`, which only tests turn on.
+//! `faults`. `binding_core::fault::point!` does nothing without the feature `fault-test`, which only tests turn on.
 
 #[cfg(feature = "fs")]
 use std::io;
@@ -64,7 +64,7 @@ pub(crate) enum Fault {
 /// names no point of a call of the system that takes it.
 #[cfg(feature = "fs")]
 pub(crate) fn system(name: &'static str) -> Option<Fault> {
-    match point(name)? {
+    match point!(name)? {
         Injected::Io { errno: Some(errno) } => Some(Fault::Fail(io::Error::from_raw_os_error(errno))),
         Injected::Io { errno: None } => Some(Fault::Fail(io::Error::other(format!("the fault of {name}")))),
         Injected::Short { bytes } => Some(Fault::Short(bytes)),
@@ -83,7 +83,7 @@ pub(crate) fn fail(name: &'static str) -> io::Result<()> {
 
 /// True when the invariant of the point `name` is armed as broken.
 pub(crate) fn broken(name: &'static str) -> bool {
-    matches!(point(name), Some(Injected::Broken))
+    matches!(point!(name), Some(Injected::Broken))
 }
 
 /// The first `bytes` of `data`, for a `short` fault of a write.

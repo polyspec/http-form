@@ -1,7 +1,15 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: decbbd185db28a1c86298a66c6b3756320db26a24771b789206ec780a15cf152 -->
+<!-- source-sha256: cfd852c9e5714d34a0ffd3de36cd78d4f1300d42e71fe94027d6d075f69d768f -->
 
 ## Unreleased
+
+- 코어가 결함 주입 지점이 macro `binding_core::fault::point!`인 binding을 받는다. 이 macro는 지점을 쓰는 crate의 feature
+  `fault-test`로 지점을 판정한다(binding GN-5): `fault.rs`가 `point!`를 부르고, 코어의 시험은 crate 자신에 대한
+  dev-dependency로 `polyspec-http-form`의 `fault-test`를 켜서 지점이 발동하게 한다. 전에는 dev-dependency가 binding의
+  것만 켰으므로, macro로 바뀐 뒤 `tests/faults.rs`의 시험 여섯이 장전한 결함이 발동하지 않아 실패했다. `make
+  bindings`는 target마다 따로 생성하므로(`make bindings-<target>`, binding GN-1b), 생성기가 거부하는 target은 자기 make
+  target만 실패시키고, 바인딩의 make target은 자기 target의 생성만 필요로 한다. `make check`는 시험 50개 통과, 0개
+  실패를 낸다.
 
 - 다른 파일 시스템으로의 이동 시험이 macOS에서도 실행된다(H-9). 전에는 `cfg(target_os = "linux")`를 가져서
   라이브러리의 플랫폼인 macOS에서 한 번도 실행되지 않았고, Linux에서는 `HTTP_FORM_OTHER_FS`가 주어지지 않으면

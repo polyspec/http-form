@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 8fa8f7fb67b5002239522e702cf10b579b8d66afbfd22e9b6364a1b68a2c6330 -->
+<!-- source-sha256: 7061d0af65257b203de7db5ac880975d74c987872205e4c06b97c964e979978e -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -279,10 +279,11 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
 
 ## 실패 주입점
 
-코어는 아래 표의 주입점마다 의존성 `polyspec-binding-core`의 `binding_core::fault::point`를
+코어는 아래 표의 주입점마다 의존성 `polyspec-binding-core`의 macro `binding_core::fault::point!`를
 부르고(`packages/rust/src/fault.rs`, 그 상수가 주입점의 이름이다), 계약은 같은 주입점을 `faults`에 선언한다(binding
-G-5). 주입점은 이 crate의 feature `fault-test` 없이는 아무것도 하지 않으며, 그 feature는 `polyspec-binding-core`의 같은
-feature를 켠다: 바인딩 crate는 자기 feature `fault-test`로, 이 crate의 시험은 dev-dependency로 그것을 켜고, release
+G-5). macro는 주입점을 쓰는 이 crate의 feature `fault-test`로 주입점을 판정하며(binding GN-5), 그 feature는
+`polyspec-binding-core`의 같은 feature를 켠다. 그 feature 없이는 주입점이 아무것도 하지 않는다. 바인딩 crate는 자기
+feature `fault-test`로, 이 crate의 시험은 그 feature를 켠 이 crate에 대한 dev-dependency로 그것을 켜고, release
 빌드에는 없다. 주입점을 arming하는 case는 호출 하나의 case이다(G-5): arming은 그 member의 호출에만 유효하다.
 
 파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤 인자도 그 실패에 닿지

@@ -33,4 +33,7 @@ tempfile = { version = "3", optional = true }
 # Only generated code makes a wait token; the tests make it through the feature `construct` (spec F-17). The tests arm
 # the fault injection points of the contract cases through the feature `fault-test` (G-5).
 polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", branch = "v1/rust-core", features = ["construct", "fault-test"] }
+# The points are judged by the feature fault-test of this crate, which writes them (binding GN-5), so the tests turn it
+# on.
+polyspec-http-form = { path = ".", features = ["fault-test"] }
 serde_json = "1"
