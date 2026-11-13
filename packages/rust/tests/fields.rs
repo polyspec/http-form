@@ -179,7 +179,7 @@ fn streamed() {
         let kind = kind.as_deref();
         let body = bytes(&case["body"]);
         let chunk = usize::try_from(number(case, "chunk")).unwrap_or_else(|_| panic!("{label}: chunk"));
-        let mut read = RequestBody::new(io(), kind, None, case["stream"] == json!(true), limits(case))
+        let mut read = RequestBody::start(io(), kind, None, case["stream"] == json!(true), limits(case))
             .unwrap_or_else(|error| panic!("{label}: {error}"));
         let place = scratch(label);
         // `stopped` is true when a chunk failed, after which the host reads no more (H-5).
@@ -374,7 +374,7 @@ fn one_call() {
     for case in group(&cases, "request_body.remove") {
         let label = id(case);
         let mut read =
-            RequestBody::new(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
+            RequestBody::start(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
                 .unwrap_or_else(|error| panic!("{label}: {error}"));
         let directory = read.directory();
         let arming = Arming::of(case, "request_body.remove");

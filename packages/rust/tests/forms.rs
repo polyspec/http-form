@@ -145,7 +145,7 @@ fn files_over_a_limit() {
 }
 
 /// The result of a body read in the given chunks: where it failed and with what, or its parts. The faults of a case
-/// of `member` are armed for its call: for `request_body.new`, and for `request_body.feed` for the chunks of a
+/// of `member` are armed for its call: for `request_body.start`, and for `request_body.feed` for the chunks of a
 /// division together, so that the result does not depend on the division (F-24.6).
 fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
     let label = id(case);
@@ -158,9 +158,9 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
         given => Some(latin1(given)),
     };
     let kind = content_type(case);
-    let made = arming("request_body.new");
+    let made = arming("request_body.start");
     let made_body = made.run(|| {
-        RequestBody::new(io(), kind.as_deref(), content_length.as_deref(), case["stream"] == json!(true), limits(case))
+        RequestBody::start(io(), kind.as_deref(), content_length.as_deref(), case["stream"] == json!(true), limits(case))
     });
     made.done();
     let mut read = match made_body {
@@ -242,14 +242,14 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
     result
 }
 
-/// The scenarios of a body read in chunks, `body`, and the cases of one call of RequestBody: `request_body.new` fails
+/// The scenarios of a body read in chunks, `body`, and the cases of one call of RequestBody: `request_body.start` fails
 /// before the body, `request_body.feed` at a chunk (its chunk is the body, read in every division), and
 /// `request_body.finish` and `request_body.parts` right after the body is made (G-5).
 #[test]
 fn bodies() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
-    for (name, stage) in [("body", None), ("request_body.new", Some("new")), ("request_body.feed", Some("feed"))] {
+    for (name, stage) in [("body", None), ("request_body.start", Some("new")), ("request_body.feed", Some("feed"))] {
         for case in group(&cases, name) {
             let label = id(case);
             let body = match (case.get("body"), case.get("chunk")) {
@@ -292,7 +292,7 @@ fn made(case: &Value) -> RequestBody {
         Value::Null => None,
         given => Some(latin1(given)),
     };
-    match RequestBody::new(
+    match RequestBody::start(
         io(),
         kind.as_deref(),
         content_length.as_deref(),

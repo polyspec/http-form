@@ -271,25 +271,25 @@ impl Failures {
     }
 }
 
-/// A receiver of a case that earlier calls make (binding GN-13f): `{"new": "request_body.new", "args": {...}, "then":
+/// A receiver of a case that earlier calls make (binding GN-13f): `{"new": "request_body.start", "args": {...}, "then":
 /// [...]}`, a body made by its constructor from `args` and given the calls of `then` in order. A call of `then` with
 /// `raises` must fail with that kind before the next call, and a call without it must succeed; a call with `faults`
 /// runs with them armed for its member, and every one must fire.
 pub fn made_body(value: &Value) -> polyspec_http_form::RequestBody {
-    assert_eq!(value["new"], json!("request_body.new"), "a body is made by request_body.new: {value}");
+    assert_eq!(value["new"], json!("request_body.start"), "a body is made by request_body.start: {value}");
     let args = &value["args"];
     let content_length = match &args["content_length"] {
         Value::Null => None,
         given => Some(latin1(given)),
     };
-    let made = polyspec_http_form::RequestBody::new(
+    let made = polyspec_http_form::RequestBody::start(
         io(),
         content_type(args).as_deref(),
         content_length.as_deref(),
         args["stream"] == json!(true),
         limits(args),
     );
-    let mut read = made.unwrap_or_else(|error| panic!("request_body.new of {value}: {error}"));
+    let mut read = made.unwrap_or_else(|error| panic!("request_body.start of {value}: {error}"));
     for call in then(value) {
         body_call(&mut read, call);
     }
