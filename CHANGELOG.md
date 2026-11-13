@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The release tags the Go module `packages/go` with `packages/go/vX.Y.Z` at the release commit: `goModules` of
+  `config/release.json` names the module. Before, `goModules` was empty and the rules said that a tag tags no Go
+  module; Go takes a module below the root of a repository only by a tag of that form, so no other repository could
+  require the module at a version (binding GN-15g). `make release-coverage` reports every package file classified.
+  `AGENTS.md` states what is open before the first release: `main` on `origin`, and the packages of the bindings, which
+  wait for kit 0.0.111 and a release of binding.
+
 - Every tool of a recipe is pinned in a tracked file and installed into `var/tools`, and the repository has its checks
   on GitHub and its release. Before, the Makefile took php, php-config, phpunit, maturin, go, gofmt, wasm-bindgen, node
   and npm from the machine and the cli of binding from the variable `BINDING`, so a result depended on the machine,

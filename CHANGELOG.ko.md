@@ -1,7 +1,13 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: a9e151f2ac9cd95cb6db80b6346eb2075842205819dd6cda5a548045990378ea -->
+<!-- source-sha256: f1143589189754e55058b484f05ceda01031e33bd91c0524003cf2b23424816c -->
 
 ## Unreleased
+
+- release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로 tag한다. `config/release.json`의
+  `goModules`가 그 module을 가리킨다. 전에는 `goModules`가 비어 있었고 규칙은 tag가 Go module을 tag하지 않는다고 했다.
+  Go는 저장소 루트 아래의 module을 그 형태의 tag로만 가져오므로, 다른 저장소가 그 module을 version으로 요구할 수
+  없었다(binding GN-15g). `make release-coverage`는 모든 package 파일이 분류되었다고 보고한다. `AGENTS.md`는 첫 release
+  전에 열려 있는 일을 적는다. `origin`의 `main`, 그리고 kit 0.0.111과 binding의 release를 기다리는 바인딩의 package다.
 
 - recipe의 모든 도구가 추적 파일에 고정되고 `var/tools`에 설치되며, 저장소에 GitHub의 검사와 release가 생겼다. 전에는
   Makefile이 php, php-config, phpunit, maturin, go, gofmt, wasm-bindgen, node, npm을 기계에서 가져오고 binding의 cli를 변수

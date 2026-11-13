@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 58c222da30f024f1446d440c3ffb6aec9a1e1af22cfd60c1c3523c6e623b66c2 -->
+<!-- source-sha256: 4ba47abb36e838ecc702ff01c281ac3fb6e6d8b748a92f5bda18786a9abd0a46 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -92,3 +92,9 @@
   `## Unreleased`를 둔다. 그 push의 CI 실행이 성공하면 `.github/workflows/release.yml`이 스스로 시작하고, `gh workflow run
   release.yml -f run=<id>`가 그것을 다시 시작한다. `make release-tag`가 그 commit에 annotated tag `vX.Y.Z`를 만들어
   push하고, `make release-publish`와 `make release-undraft`가 GitHub Release를 만든다. tag를 손으로 만들지 않는다.
+- 첫 release 전에 열려 있는 일이며, 이것 없이는 release가 끝난 것이 아니다. `origin`에 `main`이 없으므로 release는
+  `v1/rust-core`와 이전 API의 history를 merge한 것을 `main`으로 push하고 `main`을 기본 브랜치로 만든다. 바인딩의 package(abi3 wheel, PHP 확장, npm package와
+  그 플랫폼 package)는 kit 0.0.111과 binding의 release가 있어야 `config/release.json`의 행이 된다. kit 0.0.109가 그 kind를
+  거부하기 때문이다. release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로도 tag한다(`config/release.json`의
+  `goModules`). Go는 저장소 루트 아래의 module을 그 형태의 tag로 가져오기 때문이다(binding GN-15g). 첫 release는
+  바인딩도 기다린다(T1.13).

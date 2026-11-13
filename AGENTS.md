@@ -98,3 +98,9 @@ rules of this repository.
   `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make
   release-tag` creates and pushes the annotated tag `vX.Y.Z` at that commit, and `make release-publish` and `make
   release-undraft` create the GitHub Release. No tag is created by hand.
+- Open before the first release, which is not complete without them: `origin` has no `main`, so the release pushes
+  as `main` the merge of `v1/rust-core` with the history of the earlier API and makes `main` the default branch; and the packages of the bindings (the abi3 wheel, the
+  PHP extension, the npm package with its platform packages) are rows of `config/release.json` only when kit 0.0.111
+  and a release of binding exist, because kit 0.0.109 refuses their kinds. The release also tags the Go module `packages/go` with `packages/go/vX.Y.Z` at the release commit (`goModules` of
+  `config/release.json`), because Go takes a module below the root of a repository by the tag of that form (binding
+  GN-15g). The first release also waits for the bindings (T1.13).
