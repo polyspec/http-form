@@ -39,9 +39,8 @@ BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-htt
 .PHONY: test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
 	test-python node-package test-node test-wasm test-php test-go
 
-# scripts/other-fs.sh gives the tests HTTP_FORM_OTHER_FS, a directory on another file system (H-9).
 test:
-	scripts/other-fs.sh $(CARGO) test --locked --release -p $(CORE)
+	$(CARGO) test --locked --release -p $(CORE)
 
 clippy:
 	$(CARGO) clippy --locked -p $(CORE) --all-targets -- -D warnings

@@ -127,9 +127,83 @@ fn a_file_that_exists_in_the_directory_is_io() {
     assert_eq!(read.remove(io()), Ok(()));
 }
 
+/// A file system of its own for the test of a move on macOS: a disk image of APFS that the test makes and attaches in a
+/// directory of its own, and that is detached and removed when the test ends or fails. hdiutil returns when the image
+/// is attached or detached, so the test waits for no time.
+#[cfg(target_os = "macos")]
+struct Image {
+    directory: PathBuf,
+    attached: bool,
+}
+
+#[cfg(target_os = "macos")]
+impl Image {
+    fn attach() -> Image {
+        let directory = std::env::temp_dir().join(format!("http-form-other-fs-{}", std::process::id()));
+        if let Err(error) = fs::create_dir(&directory) {
+            panic!("{}: {error}", directory.display());
+        }
+        let mut image = Image { directory, attached: false };
+        let mount = image.mount();
+        if let Err(error) = fs::create_dir(&mount) {
+            panic!("{}: {error}", mount.display());
+        }
+        let file = image.directory.join("other.dmg");
+        let create =
+            ["create", "-quiet", "-size", "16m", "-fs", "APFS", "-volname", "http-form-other", "-layout", "NONE"];
+        if let Err(error) = hdiutil(&create, &[file.as_os_str()]) {
+            panic!("{error}");
+        }
+        let attach = ["attach", "-quiet", "-nobrowse", "-noverify", "-mountpoint"];
+        if let Err(error) = hdiutil(&attach, &[mount.as_os_str(), file.as_os_str()]) {
+            panic!("{error}");
+        }
+        image.attached = true;
+        image
+    }
+
+    fn mount(&self) -> PathBuf {
+        self.directory.join("mount")
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl Drop for Image {
+    fn drop(&mut self) {
+        let mut failures = Vec::new();
+        if self.attached {
+            if let Err(error) = hdiutil(&["detach", "-quiet"], &[self.mount().as_os_str()]) {
+                failures.push(error);
+            }
+        }
+        if let Err(error) = fs::remove_dir_all(&self.directory) {
+            failures.push(format!("{}: {error}", self.directory.display()));
+        }
+        // A panic while the test unwinds would abort the run, so the failure of a test that already failed is printed.
+        if !failures.is_empty() {
+            if std::thread::panicking() {
+                eprintln!("{}", failures.join("; "));
+            } else {
+                panic!("{}", failures.join("; "));
+            }
+        }
+    }
+}
+
+/// Runs hdiutil with `arguments` and `paths`, and gives its failure.
+#[cfg(target_os = "macos")]
+fn hdiutil(arguments: &[&str], paths: &[&std::ffi::OsStr]) -> Result<(), String> {
+    match std::process::Command::new("/usr/bin/hdiutil").args(arguments).args(paths).status() {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(format!("hdiutil {arguments:?} {paths:?}: {status}")),
+        Err(error) => Err(format!("hdiutil {arguments:?} {paths:?}: {error}")),
+    }
+}
+
 /// H-9: a move to another file system copies, writes to the disk and removes the source. The other file system is the
-/// directory `HTTP_FORM_OTHER_FS`, which `make test` gives on every platform of the library; the test fails when it is
-/// not given or is on the file system of the temporary directory.
+/// directory `HTTP_FORM_OTHER_FS` when it is given, else `/dev/shm`, a tmpfs, on Linux and a disk image that the test
+/// attaches on macOS, the platforms of the library; the test fails when it is on the file system of the temporary
+/// directory.
 #[test]
 fn a_move_to_another_file_system_copies() {
     use polyspec_http_form::{Files, UploadedFile};
@@ -140,8 +214,17 @@ fn a_move_to_another_file_system_copies() {
         files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
     }
 
-    let Some(other) = std::env::var_os("HTTP_FORM_OTHER_FS").map(PathBuf::from) else {
-        panic!("HTTP_FORM_OTHER_FS names no directory on another file system; make test gives one");
+    #[cfg(target_os = "macos")]
+    let image = std::env::var_os("HTTP_FORM_OTHER_FS").is_none().then(Image::attach);
+    let other = match std::env::var_os("HTTP_FORM_OTHER_FS") {
+        Some(path) => PathBuf::from(path),
+        #[cfg(target_os = "macos")]
+        None => match &image {
+            Some(image) => image.mount(),
+            None => panic!("no image is attached"),
+        },
+        #[cfg(not(target_os = "macos"))]
+        None => PathBuf::from("/dev/shm"),
     };
     let device = |path: &std::path::Path| match fs::metadata(path) {
         Ok(metadata) => metadata.dev(),

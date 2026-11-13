@@ -27,11 +27,10 @@
   passed and 0 failed.
 
 - The test of a move to another file system runs on macOS too (H-9). Before, it carried `cfg(target_os = "linux")`,
-  so it never ran on macOS, a platform of the library, and on Linux it took `/dev/shm` when `HTTP_FORM_OTHER_FS`
-  was not given. Now it runs on every platform and fails when `HTTP_FORM_OTHER_FS` names no directory, and the new
-  `scripts/other-fs.sh`, which `make test` runs, gives that directory: `/dev/shm` on Linux, and on macOS a disk image
-  of APFS that it makes and attaches in a directory of the run and detaches and removes when the run ends, fails or
-  is stopped by SIGINT or SIGTERM. `make test` gives 38 tests passed and 0 failed.
+  so it never ran on macOS, a platform of the library. Now it runs on every platform: the other file system is
+  `HTTP_FORM_OTHER_FS` when it is given, else `/dev/shm` on Linux and, on macOS, a disk image of APFS that the test
+  makes and attaches with hdiutil in a directory of its own and detaches and removes when it ends or fails, so a
+  plain `cargo test` runs it. `make test` gives 38 tests passed and 0 failed.
 
 - The binding packages and `Cargo.lock` take the binding of the current `v1/rust-core` (binding L-2, CK-19, CK-20):
   `binding scaffold` writes the tracked binding packages again, `Cargo.lock` pins that commit of

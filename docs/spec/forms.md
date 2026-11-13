@@ -420,9 +420,8 @@ These are the decisions of a server that uses the library, which no rule of this
   two chunks at most its bound (F-24.1, F-24.6). A case that arms fault injection points runs with them, and every
   armed fault must fire; `tests/faults.rs` arms the points of a stored file. Random bodies with random limits give the
   result of the body read byte by byte in every division (`HTTP_FORM_ROUNDS`, 3000 by default). A move to another
-  file system needs a directory on one at `HTTP_FORM_OTHER_FS`, and the test fails when it is not given;
-  `scripts/other-fs.sh` gives it to `make test`: `/dev/shm` on Linux, and on macOS a disk image of APFS that it attaches
-  for the run and detaches when the run ends, fails or is stopped (H-9). The failures of each step of a move are
+  file system needs a directory on one: `HTTP_FORM_OTHER_FS` when it is given, else `/dev/shm` on Linux and, on macOS,
+  a disk image of APFS that the test attaches for itself and detaches when it ends or fails (H-9). The failures of each step of a move are
   tested with operations that fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.
 - `make wasm-core`: the unit tests of the core without `fs` on this machine, and the core for
