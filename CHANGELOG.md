@@ -1,4 +1,9 @@
 
+- The spec states which `errno` a failed move has (F-11): `partial_target` has that of the failed copy, size check or
+  write to the disk, and `removalErrno` that of the failed removal; `source_left` has that of the removal of the source.
+  It also lists the fault injection points of the file system calls of the core, which are not implemented: they wait
+  for the fault injection of `polyspec-binding-core` and for `faults` of the contract schema.
+
 - A new file of the directory of a request whose path exists fails the chunk with the failure of the file system, `io`
   with the `errno` `EEXIST` (F-10). Before, it failed with `internal`. The core never makes one file name twice, but
   another process of the same user can create a file in the directory, so the condition is one of the environment.

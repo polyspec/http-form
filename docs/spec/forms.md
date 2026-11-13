@@ -223,14 +223,14 @@ is no path, are the binding's (plan B-2, B-3).
   `http-form-` and random characters, which `tempfile` draws again when the name exists, and with the mode `0700`; the
   content of a file part is written to a file of it as it arrives. Its files have the mode `0600` and are closed on
   `exec`. Each file is created as a new file whose name is the number of the file part in the body. The core itself
-  never makes one name twice, but the directory is on a file system that another process of the same user can write,
-  so a path that exists is a condition of the environment and no broken invariant of the core: the chunk fails with
-  the failure of the file system, `io` with the `errno` `EEXIST`, and the file that exists is not opened, written or
-  removed by the failed call. `RequestBody::remove()` removes the directory with the files that were not moved; the directory belongs to the
-  request alone, so a directory that is gone fails with `not_found`, and after a removal a second call does nothing.
-  After the removal every stored file of the body, through every `UploadedFile` that `parts()` gave, fails with
-  `removed`, and so does a chunk. A body dropped without `remove()` removes its directory; a failure of that removal
-  reaches no caller, and the binding warns that `remove()` was not called (plan B-10).
+  never makes one name twice, but the directory is on a file system that another process of the same user can write, so
+  a path that exists is a condition of the environment and no broken invariant of the core: the chunk fails with the
+  failure of the file system, `io` with the `errno` `EEXIST`, and the file that exists is not opened, written or removed
+  by the failed call. `RequestBody::remove()` removes the directory with the files that were not moved; the directory
+  belongs to the request alone, so a directory that is gone fails with `not_found`, and after a removal a second call
+  does nothing. After the removal every stored file of the body, through every `UploadedFile` that `parts()` gave, fails
+  with `removed`, and so does a chunk. A body dropped without `remove()` removes its directory; a failure of that
+  removal reaches no caller, and the binding warns that `remove()` was not called (plan B-10).
 - **F-11** `UploadedFile::move_to(path)` moves a file without replacing a file at `path`, by a rename or, to another
   file system, by a copy and a removal; after a move, `move_to` fails with `moved` and `content` fails likewise, and
   `size` is the number of bytes of the file. A stored file is renamed by `renameat2` with `RENAME_NOREPLACE` on Linux
@@ -239,11 +239,14 @@ is no path, are the binding's (plan B-2, B-3).
   move the file (plan P-3): the copy opens a new file at `path` (`EEXIST` fails with `exists`), copies, writes it to the
   disk (`sync_all`) and removes the source. When the copy, its size or the write to the disk fails, the copy removes the
   file that it created and gives the failure; when that removal fails too the error is `partial_target` with both
-  failures. When only the removal of the source fails, the file counts as moved and the error is `source_left`. Every
-  other errno, `EINVAL` of a file system without the flag and `ENOSYS` included, is the error of the move. A file whose
-  bytes are a value is written to a new file and to the disk, and a failed write removes that file likewise. Every clone
-  of an `UploadedFile`, and every file that `parts()` gives for one part, is the same file: a move through one is a move
-  of all (H-16).
+  failures. The `errno` of `partial_target` is that of the failed copy, size check or write to the disk, which is the
+  cause of the error, and none when the size check failed (F-15); the kind and the `errno` of the failed removal are the
+  properties `removalKind` and `removalErrno` of its error class. The `errno` of `source_left` is that of the failed
+  removal of the source. When only the removal of the source fails, the file counts as moved and the error is
+  `source_left`. Every other errno, `EINVAL` of a file system without the flag and `ENOSYS` included, is the error of
+  the move. A file whose bytes are a value is written to a new file and to the disk, and a failed write removes that
+  file likewise. Every clone of an `UploadedFile`, and every file that `parts()` gives for one part, is the same file: a
+  move through one is a move of all (H-16).
 - **F-15** `std` does not report a failure of `close(2)`, so the core checks sizes instead (H-22): the size of a written
   file before it is closed, and the number of bytes that `content()` reads, are the number of bytes that were written;
   another number fails with `io` without `errno`. Every number of bytes is converted with a range check.
@@ -256,6 +259,48 @@ is no path, are the binding's (plan B-2, B-3).
   takes no argument; it is the safety net of a missing cleanup call, which the binding reports (plan B-10).
 - **F-14** Moving without replacing needs `renameat2` or `renameatx_np`, so the crate builds for Linux and macOS only
   (plan T-2).
+
+## Fault injection points
+
+Not implemented: the pinned `polyspec-binding-core` has no fault injection (`fault::point`), and the contract schema
+has no `faults`. This section states the points that the core gets with them, so that the cases of the kinds that no
+input reaches are written against one table. Until then the tests of the core reach these failures with operations that
+fail on purpose (`Ops` of `store.rs`) and with a changed directory (`tests/behavior.rs`).
+
+A failure of the file system (the variants `Io`, `SourceLeft` and `PartialTarget`) comes from the environment, and no
+argument of a member reaches it. A point is one call of the system in the core. An injection of the kind `io` makes
+that call fail with the given `errno`; the failure takes its kind from that `errno` by the table of Errors, like a
+failure of the system, so an `io` injection fills the five kinds of the variant `Io` (`not_found`,
+`permission_denied`, `cross_device`, `storage_full`, `io`) unless its row states another result. An injection of the
+kind `short` makes a read, a write or a copy handle only the given number of bytes and return, which the size check
+then finds as `io` without `errno` (F-15). An armed point holds for the call of the member that the case tests, on the
+thread that runs it; the core starts no thread, so every point takes the arming of its call.
+
+| Id | Place (function) | Inject | Fills | Rule of the condition | Takes the arming |
+|---|---|---|---|---|---|
+| `http_form.create_directory` | `create_directory` of `RequestBody::new` | `io` | the kinds of `Io` | F-10 | yes |
+| `http_form.create_file` | the new file of a file part, `Parts::take` of `feed` | `io` | the kinds of `Io` | F-10 | yes |
+| `http_form.write_file` | the write of the content of a file part, `Parts::take` of `feed` | `io`, `short` | the kinds of `Io` | F-10, F-15 | yes |
+| `http_form.file_size` | the size of a written file before it is closed, `Parts::take` of `feed` | `io` | the kinds of `Io` | F-15 | yes |
+| `http_form.remove_directory` | `remove_dir_all` of `RequestBody::remove` | `io` | the kinds of `Io` | F-10 | yes |
+| `http_form.read` | the open and the read of a stored file, `read_stored` of `UploadedFile::content` | `io`, `short` | the kinds of `Io` | F-11, F-15 | yes |
+| `http_form.rename` | `Ops::rename` of `move_to` | `io` | the kinds of `Io` but `cross_device`: `EXDEV` takes the copy and fills nothing itself; `EEXIST` gives `exists` | F-11 | yes |
+| `http_form.open` | `Ops::open` of the source of a copy | `io` | the kinds of `Io` | F-11 | yes |
+| `http_form.create` | `Ops::create` of the target of a copy or of a value | `io` | the kinds of `Io`; `EEXIST` gives `exists` | F-11 | yes |
+| `http_form.copy` | `Ops::copy` | `io`, `short` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11, F-15 | yes |
+| `http_form.write` | `Ops::write` of a value | `io` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11 | yes |
+| `http_form.sync` | `Ops::sync` of the target | `io` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11 | yes |
+| `http_form.remove` | `Ops::remove`: of the target after a failed copy, write or sync, and else of the source of a copy | `io` | `partial_target` for the target, `source_left` for the source | F-11 | yes |
+
+`partial_target` needs three injections in one case, because the copy is reached only after `EXDEV` of the rename and
+the kind only after the failed removal of the target: `http_form.rename` with `EXDEV`, `http_form.copy` (or
+`http_form.sync`) with the failure of the copy, and `http_form.remove` with the failure of the removal. Its `errno` is
+that of the copy and its `removalErrno` that of the removal (F-11). `EEXIST` of `http_form.create_file` gives `io`
+(F-10), and `EEXIST` of `http_form.rename` and `http_form.create` gives `exists`, which an input reaches as well: a
+target path that exists.
+
+`finish` and `parts` do no call of the system that can fail: they give the first failure of the body again (F-9), so
+their failures of the file system are those that an earlier `feed` met.
 
 ## Ignored inputs (plan P-4)
 
