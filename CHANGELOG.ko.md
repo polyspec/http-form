@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: cbe1d24a1a4a5bcc2d34f9adacc7b603625e7db49851302b21d98adbe7d910ff -->
+<!-- source-sha256: decbbd185db28a1c86298a66c6b3756320db26a24771b789206ec780a15cf152 -->
 
 ## Unreleased
+
+- 다른 파일 시스템으로의 이동 시험이 macOS에서도 실행된다(H-9). 전에는 `cfg(target_os = "linux")`를 가져서
+  라이브러리의 플랫폼인 macOS에서 한 번도 실행되지 않았고, Linux에서는 `HTTP_FORM_OTHER_FS`가 주어지지 않으면
+  `/dev/shm`을 썼다. 이제 모든 플랫폼에서 실행되고 `HTTP_FORM_OTHER_FS`가 디렉터리를 이름하지 않으면 실패하며,
+  `make test`가 실행하는 새 `scripts/other-fs.sh`가 그 디렉터리를 준다: Linux에서는 `/dev/shm`, macOS에서는 실행의
+  디렉터리에 만들어 붙이고 실행이 끝나거나 실패하거나 SIGINT나 SIGTERM으로 멈출 때 떼고 지우는 APFS 디스크
+  이미지다. `make test`는 시험 38개 통과, 0개 실패를 낸다.
 
 - 바인딩 패키지와 `Cargo.lock`이 지금 `v1/rust-core`의 binding을 받는다(binding L-2, CK-19, CK-20): `binding
   scaffold`가 추적되는 바인딩 패키지를 다시 쓰고, `Cargo.lock`이 `polyspec-binding-core`의 그 commit을 고정하며,

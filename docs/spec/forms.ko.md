@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: f4be96c45fd96f2b9963b388adb08f44391b00211c5ecbfefcb97d970f38f970 -->
+<!-- source-sha256: 8fa8f7fb67b5002239522e702cf10b579b8d66afbfd22e9b6364a1b68a2c6330 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -410,7 +410,9 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
   chunk 사이에 최대 그 상한만큼 보관한다(F-24.1, F-24.6). 실패 주입점을 arming하는 case는 그것과 함께 돌며,
   arming한 실패는 모두 일어나야 한다. `tests/faults.rs`는 저장된 파일의 주입점을 arming한다. 무작위 한도를 준 무작위 본문은 모든 분할에서 바이트
   하나씩 읽은 본문의 결과를 준다(`HTTP_FORM_ROUNDS`, 기본값 3000). 다른 파일 시스템으로의 이동에는
-  `HTTP_FORM_OTHER_FS`(기본값 `/dev/shm`)에 다른 파일 시스템이 필요하다. 이동의 각 단계의 실패는 일부러 실패하는
+  `HTTP_FORM_OTHER_FS`에 다른 파일 시스템의 디렉터리가 필요하며, 주어지지 않으면 시험이 실패한다.
+  `scripts/other-fs.sh`가 `make test`에 그것을 준다: Linux에서는 `/dev/shm`, macOS에서는 실행 동안 붙이고 실행이
+  끝나거나 실패하거나 멈출 때 떼는 APFS 디스크 이미지다(H-9). 이동의 각 단계의 실패는 일부러 실패하는
   연산으로 시험한다.
 - `make clippy`: plan R-1의 lint와 `as_conversions`.
 - `make wasm-core`: `fs` 없는 코어의 unit 시험을 이 기계에서 실행하고, `fs` 없이 `wasm32-unknown-unknown`으로
