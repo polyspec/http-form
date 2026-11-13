@@ -1,5 +1,15 @@
 <!-- doc-id: changelog -->
 
+- `Cargo.lock` pins the binding whose generator holds the value aliases, the fault injection and the error units in one
+  line of development (CK-20), and the binding packages are those that its scaffold writes: each binding crate takes
+  `polyspec-binding-core` with the features `construct` and `lock`, and the lock gains `tokio` as a dependency of
+  `polyspec-binding-core`. `make bindings-check` still fails, now with 29 findings of CK-22 where it had 40, and
+  `make bindings` writes nothing because of them: 28 name a member and a kind that no case raises, 10 of them a kind
+  of the file system that only a fault injection point reaches, and one requires a case that arms the point
+  `http_form.internal` as `broken`. The pinned `polyspec-binding-core` has fault injection and the contract schema has
+  `faults`, so the spec no longer says that the points wait for them: the core calls no point and the contract
+  declares none.
+
 - Every tracked document has its Korean twin: `README.ko.md`, `contracts/README.ko.md`, `docs/spec/forms.ko.md` and
   `legacy/README.ko.md` are new. The two files of a pair hold the same `doc-id` marker, and the Korean file holds
   `source-sha256`, the sha256 of its English file. No target checks the pairs, because this repository has no document

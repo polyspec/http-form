@@ -263,10 +263,11 @@ is no path, are the binding's (plan B-2, B-3).
 
 ## Fault injection points
 
-Not implemented: the pinned `polyspec-binding-core` has no fault injection (`fault::point`), and the contract schema
-has no `faults`. This section states the points that the core gets with them, so that the cases of the kinds that no
-input reaches are written against one table. Until then the tests of the core reach these failures with operations that
-fail on purpose (`Ops` of `store.rs`) and with a changed directory (`tests/behavior.rs`).
+Not implemented: the pinned `polyspec-binding-core` has fault injection (`fault::point`) and the contract schema has
+`faults`, but the core calls no point and the contract declares none. This section states the points that the core
+gets, so that the cases of the kinds that no input reaches are written against one table. Until then the tests of the
+core reach these failures with operations that fail on purpose (`Ops` of `store.rs`) and with a changed directory
+(`tests/behavior.rs`), and the contract check reports each of these kinds as one that no case raises (CK-22).
 
 A failure of the file system (the variants `Io`, `SourceLeft` and `PartialTarget`) comes from the environment, and no
 argument of a member reaches it. A point is one call of the system in the core. An injection of the kind `io` makes

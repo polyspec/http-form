@@ -1,5 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6b2ab546a42b469e0c067ac44878aac480fec987ab772fe4f0c0e93c3fbafa0f -->
+<!-- source-sha256: c9cd236972e58a92c9f7bb41fe72c2b1bb315bdef788dfef36ecdf269b88a434 -->
+
+- `Cargo.lock`은 값 alias, 실패 주입, 오류 unit의 생성기를 한 개발 줄기에 가진 binding을 고정하고(CK-20), 바인딩
+  package는 그 scaffold가 쓰는 것이다. 각 바인딩 crate는 `polyspec-binding-core`를 feature `construct`와 `lock`과 함께
+  받고, lock에는 `polyspec-binding-core`의 의존으로 `tokio`가 더해진다. `make bindings-check`는 여전히 실패하며,
+  40건이던 CK-22 지적이 29건이 되었고, 그 때문에 `make bindings`는 아무것도 쓰지 않는다. 28건은 어떤 case도 내지
+  않는 member와 kind를 가리키고, 그 가운데 10건은 실패 주입점만 닿는 파일 시스템의 kind이며, 1건은 주입점
+  `http_form.internal`을 `broken`으로 장전하는 case를 요구한다. 고정한 `polyspec-binding-core`에는 실패 주입이 있고
+  계약 schema에는 `faults`가 있으므로, spec은 주입점이 그것들을 기다린다고 더는 말하지 않는다. 코어는 어떤 주입점도
+  부르지 않고 계약은 어떤 주입점도 선언하지 않는다.
 
 - 추적되는 모든 문서가 한국어 쌍을 가진다. `README.ko.md`, `contracts/README.ko.md`, `docs/spec/forms.ko.md`,
   `legacy/README.ko.md`를 새로 두었다. 한 쌍의 두 파일은 같은 `doc-id` marker를 가지고, 한국어 파일은 영어 파일의

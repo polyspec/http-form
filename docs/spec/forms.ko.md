@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 0a5e76e64da7e47223498ab57b29ee2e050f9aba196e7a407e0933fad1ab94e4 -->
+<!-- source-sha256: 4a17c97866beb00d207a6c5a03bc35f0733728ba7e14e0a9352fa4fce59efe01 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -264,10 +264,11 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
 
 ## 실패 주입점
 
-구현되지 않았다: 고정한 `polyspec-binding-core`에는 실패 주입(`fault::point`)이 없고, 계약 schema에는
-`faults`가 없다. 이 절은 코어가 그것들과 함께 얻는 주입점을 적어, 어떤 입력도
-닿지 않는 kind의 case를 표 하나에 맞추어 쓰게 한다. 그때까지 코어의 시험은 일부러 실패하는
-연산(`store.rs`의 `Ops`)과 바꾼 디렉터리(`tests/behavior.rs`)로 이 실패에 닿는다.
+구현되지 않았다: 고정한 `polyspec-binding-core`에는 실패 주입(`fault::point`)이 있고 계약 schema에는
+`faults`가 있으나, 코어는 어떤 주입점도 부르지 않고 계약은 어떤 주입점도 선언하지 않는다. 이 절은 코어가 얻는
+주입점을 적어, 어떤 입력도 닿지 않는 kind의 case를 표 하나에 맞추어 쓰게 한다. 그때까지 코어의 시험은 일부러
+실패하는 연산(`store.rs`의 `Ops`)과 바꾼 디렉터리(`tests/behavior.rs`)로 이 실패에 닿고, 계약 검사는 이 kind
+하나하나를 어떤 case도 내지 않는 kind로 지적한다(CK-22).
 
 파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤
 인자도 그 실패에 닿지 않는다. 주입점은 코어 안의 시스템 호출 하나이다. kind `io`의 주입은
