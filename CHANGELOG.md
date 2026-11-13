@@ -4,7 +4,7 @@
   line of development (CK-20), and the binding packages are those that its scaffold writes: each binding crate takes
   `polyspec-binding-core` with the features `construct` and `lock`, and the lock gains `tokio` as a dependency of
   `polyspec-binding-core`. `make bindings-check` still fails, now with 29 findings of CK-22 where it had 40, and
-  `make bindings` writes nothing because of them: 28 name a member and a kind that no case raises, 10 of them a kind
+  `make bindings` writes nothing because of them: 28 name a member and a kind that no case raises, 9 of them a kind
   of the file system that only a fault injection point reaches, and one requires a case that arms the point
   `http_form.internal` as `broken`. The pinned `polyspec-binding-core` has fault injection and the contract schema has
   `faults`, so the spec no longer says that the points wait for them: the core calls no point and the contract
