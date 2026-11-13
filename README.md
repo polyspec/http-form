@@ -1,3 +1,4 @@
+<!-- doc-id: readme -->
 # http-form
 
 Form values and `multipart/form-data` bodies, read by one Rust implementation that PHP, Python and

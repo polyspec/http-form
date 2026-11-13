@@ -1,3 +1,4 @@
+<!-- doc-id: spec-forms -->
 # http-form: rules and API
 
 This library reads form values and `multipart/form-data` bodies: the `application/x-www-form-urlencoded` text of a

@@ -1,3 +1,9 @@
+<!-- doc-id: changelog -->
+
+- Every tracked document has its Korean twin: `README.ko.md`, `contracts/README.ko.md`, `docs/spec/forms.ko.md` and
+  `legacy/README.ko.md` are new. The two files of a pair hold the same `doc-id` marker, and the Korean file holds
+  `source-sha256`, the sha256 of its English file. No target checks the pairs, because this repository has no document
+  check.
 
 - The spec states which `errno` a failed move has (F-11): `partial_target` has that of the failed copy, size check or
   write to the disk, and `removalErrno` that of the failed removal; `source_left` has that of the removal of the source.

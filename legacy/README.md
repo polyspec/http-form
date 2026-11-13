@@ -1,3 +1,4 @@
+<!-- doc-id: readme-legacy -->
 # legacy
 
 The hand-written PHP, Python and Node bindings of an earlier API (`php/`, `python/`, `node/`) and the runners that
