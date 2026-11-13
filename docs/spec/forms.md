@@ -266,20 +266,22 @@ is no path, are the binding's (plan B-2, B-3).
 
 ## Fault injection points
 
-Not implemented: the pinned `polyspec-binding-core` has fault injection (`fault::point`) and the contract schema has
-`faults`, but the core calls no point and the contract declares none. This section states the points that the core
-gets, so that the cases of the kinds that no input reaches are written against one table. Until then the tests of the
-core reach these failures with operations that fail on purpose (`Ops` of `store.rs`) and with a changed directory
-(`tests/behavior.rs`), and the contract check reports each of these kinds as one that no case raises (CK-22).
+The core calls `binding_core::fault::point` of the dependency `polyspec-binding-core` at each point of the table below
+(`packages/rust/src/fault.rs`, whose constants name the points; binding G-5). The contract declares no point yet, so the
+contract check reports each kind that only a point reaches as one that no case raises (CK-22). A point does nothing
+without the feature `fault-test` of this crate, which turns on that of `polyspec-binding-core`: a binding crate turns it
+on through its own feature `fault-test`, the tests of this crate through the dev-dependency, and no release build has
+it.
 
 A failure of the file system (the variants `Io`, `SourceLeft` and `PartialTarget`) comes from the environment, and no
-argument of a member reaches it. A point is one call of the system in the core. An injection of the kind `io` makes
-that call fail with the given `errno`; the failure takes its kind from that `errno` by the table of Errors, like a
-failure of the system, so an `io` injection fills the five kinds of the variant `Io` (`not_found`,
-`permission_denied`, `cross_device`, `storage_full`, `io`) unless its row states another result. An injection of the
-kind `short` makes a read, a write or a copy handle only the given number of bytes and return, which the size check
-then finds as `io` without `errno` (F-15). An armed point holds for the call of the member that the case tests, on the
-thread that runs it; the core starts no thread, so every point takes the arming of its call.
+argument of a member reaches it. A point is one call of the system in the core. An injection of the kind `io` makes that
+call fail with the given `errno`; the failure takes its kind from that `errno` by the table of Errors, like a failure of
+the system, so an `io` injection fills the five kinds of the variant `Io` (`not_found`, `permission_denied`,
+`cross_device`, `storage_full`, `io`) unless its row states another result. An injection of the kind `short` makes a
+read, a write or a copy handle only the given number of bytes and return, which the size check then finds as `io`
+without `errno` (F-15). An injection of the kind `broken` at `http_form.internal` treats the lock of a file as poisoned
+(H-8). An armed point holds for the call of the member that the case tests, on the thread that runs it; the core starts
+no thread, so every point takes the arming of its call.
 
 | Id | Place (function) | Inject | Fills | Rule of the condition | Takes the arming |
 |---|---|---|---|---|---|
@@ -296,6 +298,7 @@ thread that runs it; the core starts no thread, so every point takes the arming 
 | `http_form.write` | `Ops::write` of a value | `io` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11 | yes |
 | `http_form.sync` | `Ops::sync` of the target | `io` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11 | yes |
 | `http_form.remove` | `Ops::remove`: of the target after a failed copy, write or sync, and else of the source of a copy | `io` | `partial_target` for the target, `source_left` for the source | F-11 | yes |
+| `http_form.internal` | the lock of an `UploadedFile`, of `content` and `move_to`: armed as `broken`, the lock is poisoned | `broken` | `internal` | X-1, H-8 | yes |
 
 `partial_target` needs three injections in one case, because the copy is reached only after `EXDEV` of the rename and
 the kind only after the failed removal of the target: `http_form.rename` with `EXDEV`, `http_form.copy` (or
@@ -353,6 +356,7 @@ These are the decisions of a server that uses the library, which no rule of this
 | `file_over(files, limit)` | F-27 |
 | `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | F-22.2, F-11, F-17 |
 | `Error`: `kind`, `status`, `errno`, `removal`, `removal_kind`, `removal_errno` | the table of Errors, F-11 |
+| `fault`: the constants of the fault injection points | Fault injection points |
 
 ## Interface contract
 
@@ -376,8 +380,9 @@ These are the decisions of a server that uses the library, which no rule of this
 
 - `make test`: the cases of `contracts/fields.json` and `contracts/forms.json` in the core; every multipart case and
   every body case is also read byte by byte and in two chunks divided at every position, and the reader holds between
-  two chunks at most its bound (F-24.1, F-24.6). Random bodies with random limits give the result of the body read byte
-  by byte in every division (`HTTP_FORM_ROUNDS`, 3000 by default). A move to another file system needs one at
+  two chunks at most its bound (F-24.1, F-24.6). `tests/faults.rs` arms the fault injection points of a stored file,
+  and every armed fault must fire. Random bodies with random limits give the result of the body read byte by byte in
+  every division (`HTTP_FORM_ROUNDS`, 3000 by default). A move to another file system needs one at
   `HTTP_FORM_OTHER_FS` (`/dev/shm` by default). The failures of each step of a move are tested with operations that
   fail on purpose.
 - `make clippy`: the lints of plan R-1 and `as_conversions`.

@@ -10,6 +10,7 @@
 mod body;
 mod content;
 mod error;
+pub mod fault;
 mod fields;
 mod header;
 mod multipart;

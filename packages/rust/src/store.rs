@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 
 use binding_core::Io;
 
+use crate::fault::{self, Fault};
 use crate::multipart::count;
 use crate::{Error, IoFailure};
 
@@ -21,6 +22,7 @@ pub(crate) fn create_directory() -> Result<PathBuf, Error> {
     builder.prefix("http-form-");
     #[cfg(unix)]
     builder.permissions(std::os::unix::fs::PermissionsExt::from_mode(0o700));
+    fault::fail(fault::CREATE_DIRECTORY)?;
     Ok(builder.tempdir()?.keep())
 }
 
@@ -53,30 +55,40 @@ impl Ops for System {
     /// `renameat2(RENAME_NOREPLACE)` on Linux and `renameatx_np(RENAME_EXCL)` on macOS (spec F-11).
     fn rename(&self, from: &Path, to: &Path) -> io::Result<()> {
         use rustix::fs::{renameat_with, RenameFlags, CWD};
+        fault::fail(fault::RENAME)?;
         renameat_with(CWD, from, CWD, to, RenameFlags::NOREPLACE).map_err(io::Error::from)
     }
 
     fn open(&self, path: &Path) -> io::Result<File> {
+        fault::fail(fault::OPEN)?;
         File::open(path)
     }
 
     fn create(&self, path: &Path) -> io::Result<File> {
+        fault::fail(fault::CREATE)?;
         create_file(path)
     }
 
     fn copy(&self, from: &mut File, to: &mut File) -> io::Result<u64> {
-        io::copy(from, to)
+        match fault::system(fault::COPY) {
+            Some(Fault::Fail(error)) => Err(error),
+            Some(Fault::Short(bytes)) => io::copy(&mut from.take(bytes), to),
+            None => io::copy(from, to),
+        }
     }
 
     fn write(&self, to: &mut File, bytes: &[u8]) -> io::Result<()> {
+        fault::fail(fault::WRITE)?;
         to.write_all(bytes)
     }
 
     fn sync(&self, file: &File) -> io::Result<()> {
+        fault::fail(fault::SYNC)?;
         file.sync_all()
     }
 
     fn remove(&self, path: &Path) -> io::Result<()> {
+        fault::fail(fault::REMOVE)?;
         fs::remove_file(path)
     }
 }
@@ -127,8 +139,14 @@ impl UploadedFile {
         UploadedFile { shared: Arc::new(Shared { name, filename, content_type, size, content: Mutex::new(content) }) }
     }
 
+    /// The content of the file. A lock that a panic left poisoned is `internal` (H-8); the point `internal` imitates
+    /// it (X-1).
     fn lock(&self) -> Result<MutexGuard<'_, Content>, Error> {
-        self.shared.content.lock().map_err(|_| Error::Internal("a file was used after a panic in a call on it"))
+        const POISONED: &str = "a file was used after a panic in a call on it";
+        if fault::broken(fault::INTERNAL) {
+            return Err(Error::Internal(POISONED));
+        }
+        self.shared.content.lock().map_err(|_| Error::Internal(POISONED))
     }
 
     /// The `name` parameter of the part.
@@ -210,7 +228,11 @@ fn mismatch(found: u64, size: u64) -> IoFailure {
 fn read_stored(path: &Path, size: u64) -> Result<Vec<u8>, Error> {
     let capacity = usize::try_from(size).map_err(|_| Error::Internal("a size does not fit the memory"))?;
     let mut bytes = Vec::with_capacity(capacity);
-    File::open(path)?.read_to_end(&mut bytes)?;
+    match fault::system(fault::READ) {
+        Some(Fault::Fail(error)) => return Err(error.into()),
+        Some(Fault::Short(short)) => File::open(path)?.take(short).read_to_end(&mut bytes)?,
+        None => File::open(path)?.read_to_end(&mut bytes)?,
+    };
     let found = count(bytes.len())?;
     if found != size {
         return Err(Error::Io(mismatch(found, size)));

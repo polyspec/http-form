@@ -1,5 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 37ef532d5d291d49bc3182286bc1fc1bb98b1cf6ac3fc581f9cbea52794e6487 -->
+<!-- source-sha256: cacc80a04e63860bdeeab2373a8713c22221f0e6463c996118f5f5d10aeaa6a0 -->
+
+- 코어가 spec의 실패 주입점을 부른다(X-1, binding G-5): `packages/rust/src/fault.rs`가 주입점 열넷
+  `http_form.<id>`를 적고, 디렉터리, part의 파일과 그 쓰기와 크기, 디렉터리의 삭제, 저장된 파일의 읽기, 이동의 각
+  단계가 `binding_core::fault::point`를 부른다. 그 함수는 crate의 새 feature `fault-test` 없이는 아무것도 하지 않는다.
+  `broken`으로 arming한 주입점 `http_form.internal`은 파일의 lock을 poison된 것으로 만든다(H-8). crate의 시험은
+  dev-dependency로 그 feature를 켜며, 그래서 `Cargo.lock`에서 `polyspec-binding-core`의 의존성에 `libc`와
+  `serde_json`이 더해진다. `tests/faults.rs`는 저장된 파일의 주입점(read, rename, open, create, copy, sync,
+  remove)을 arming하고, arming한 실패가 모두 일어나기를 요구한다. 전에는 spec이 주입점을 적었고 코어는 어떤 주입점도
+  부르지 않았다.
 
 - 계약이 binding의 다섯 target을 적는다(BD-27): `packages/rust/interface.json`의 `targets`는 php, python, node,
   go, wasm이고, `packages.go`는 Go 모듈 `github.com/polyspec/http-form/packages/go`를 적으며, npm 패키지의 entry

@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: 13a2609ebfd2cab01d45538f38f4e391371c3503bde6711742e26aa47f3373ee -->
+<!-- source-sha256: e9ab3101bc00b11a4a4e95038355f2069b04d0dfbd541221b100e906abdac703 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -267,20 +267,20 @@ unsigned integer가 아닌 한도의 kind `invalid_number`(범주 value)와 경�
 
 ## 실패 주입점
 
-구현되지 않았다: 고정한 `polyspec-binding-core`에는 실패 주입(`fault::point`)이 있고 계약 schema에는
-`faults`가 있으나, 코어는 어떤 주입점도 부르지 않고 계약은 어떤 주입점도 선언하지 않는다. 이 절은 코어가 얻는
-주입점을 적어, 어떤 입력도 닿지 않는 kind의 case를 표 하나에 맞추어 쓰게 한다. 그때까지 코어의 시험은 일부러
-실패하는 연산(`store.rs`의 `Ops`)과 바꾼 디렉터리(`tests/behavior.rs`)로 이 실패에 닿고, 계약 검사는 이 kind
-하나하나를 어떤 case도 내지 않는 kind로 지적한다(CK-22).
+코어는 아래 표의 주입점마다 의존성 `polyspec-binding-core`의 `binding_core::fault::point`를
+부른다(`packages/rust/src/fault.rs`, 그 상수가 주입점의 이름이다; binding G-5). 계약은 아직 어떤 주입점도 선언하지
+않으므로, 계약 검사는 주입점만 닿는 kind 하나하나를 어떤 case도 내지 않는 kind로 지적한다(CK-22). 주입점은 이 crate의
+feature `fault-test` 없이는 아무것도 하지 않으며, 그 feature는 `polyspec-binding-core`의 같은 feature를 켠다: 바인딩
+crate는 자기 feature `fault-test`로, 이 crate의 시험은 dev-dependency로 그것을 켜고, release 빌드에는 없다.
 
-파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤
-인자도 그 실패에 닿지 않는다. 주입점은 코어 안의 시스템 호출 하나이다. kind `io`의 주입은
-그 호출을 주어진 `errno`로 실패시킨다. 그 실패는 시스템의 실패처럼 오류 표에 따라 그 `errno`에서 kind를
-얻으므로, `io` 주입은 그 행이 다른 결과를 적지 않는 한 variant `Io`의 다섯 kind(`not_found`,
-`permission_denied`, `cross_device`, `storage_full`, `io`)를 채운다. kind `short`의
-주입은 읽기, 쓰기, 복사가 주어진 수의 바이트만 처리하고 돌아오게 하며, 크기 검사가
-그것을 `errno` 없는 `io`로 찾는다(F-15). arming한 주입점은 case가 시험하는 member의 호출 동안, 그 호출을 실행하는
-thread에서 유효하다. 코어는 thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 받는다.
+파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤 인자도 그 실패에 닿지
+않는다. 주입점은 코어 안의 시스템 호출 하나이다. kind `io`의 주입은 그 호출을 주어진 `errno`로 실패시킨다. 그 실패는
+시스템의 실패처럼 오류 표에 따라 그 `errno`에서 kind를 얻으므로, `io` 주입은 그 행이 다른 결과를 적지 않는 한 variant
+`Io`의 다섯 kind(`not_found`, `permission_denied`, `cross_device`, `storage_full`, `io`)를 채운다. kind `short`의 주입은
+읽기, 쓰기, 복사가 주어진 수의 바이트만 처리하고 돌아오게 하며, 크기 검사가 그것을 `errno` 없는 `io`로 찾는다(F-15).
+`http_form.internal`에서 kind `broken`의 주입은 파일의 lock을 poison된 것으로 다룬다(H-8). arming한 주입점은 case가
+시험하는 member의 호출 동안, 그 호출을 실행하는 thread에서 유효하다. 코어는 thread를 시작하지 않으므로 모든 주입점은 그
+호출의 arming을 받는다.
 
 | Id | 자리(함수) | 주입 | 채우는 kind | 조건의 규칙 | arming을 받는가 |
 |---|---|---|---|---|---|
@@ -297,13 +297,13 @@ thread에서 유효하다. 코어는 thread를 시작하지 않으므로 모든 
 | `http_form.write` | 값의 `Ops::write` | `io` | `Io`의 kind; `http_form.remove`와 함께 `partial_target` | F-11 | 예 |
 | `http_form.sync` | 대상의 `Ops::sync` | `io` | `Io`의 kind; `http_form.remove`와 함께 `partial_target` | F-11 | 예 |
 | `http_form.remove` | `Ops::remove`: 실패한 복사, 쓰기, sync 뒤에는 대상의 삭제이고, 그 밖에는 복사의 원본의 삭제 | `io` | 대상에는 `partial_target`, 원본에는 `source_left` | F-11 | 예 |
+| `http_form.internal` | `content`와 `move_to`의 `UploadedFile` lock: `broken`으로 arming하면 lock이 poison된다 | `broken` | `internal` | X-1, H-8 | 예 |
 
-`partial_target`은 한 case에 주입 셋이 필요하다. 복사에는 rename의 `EXDEV` 뒤에만 닿고,
-그 kind에는 대상의 삭제가 실패한 뒤에만 닿기 때문이다: `EXDEV`를 준 `http_form.rename`, 복사의 실패를 준 `http_form.copy`(또는
-`http_form.sync`), 삭제의 실패를 준 `http_form.remove`이다. 그 `errno`는
-복사의 것이고 `removalErrno`는 삭제의 것이다(F-11). `http_form.create_file`의 `EEXIST`는 `io`를 주고
-(F-10), `http_form.rename`과 `http_form.create`의 `EEXIST`는 `exists`를 주며, `exists`에는 입력도 닿는다:
-이미 있는 대상 경로이다.
+`partial_target`은 한 case에 주입 셋이 필요하다. 복사에는 rename의 `EXDEV` 뒤에만 닿고, 그 kind에는 대상의 삭제가 실패한
+뒤에만 닿기 때문이다: `EXDEV`를 준 `http_form.rename`, 복사의 실패를 준 `http_form.copy`(또는 `http_form.sync`), 삭제의
+실패를 준 `http_form.remove`이다. 그 `errno`는 복사의 것이고 `removalErrno`는 삭제의 것이다(F-11).
+`http_form.create_file`의 `EEXIST`는 `io`를 주고(F-10), `http_form.rename`과 `http_form.create`의 `EEXIST`는 `exists`를
+주며, `exists`에는 입력도 닿는다: 이미 있는 대상 경로이다.
 
 `finish`와 `parts`는 실패할 수 있는 시스템 호출을 하지 않는다: 본문의 첫 실패를 다시 주므로(F-9),
 그 둘의 파일 시스템 실패는 앞선 `feed`가 만난 실패이다.
@@ -354,6 +354,7 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
 | `file_over(files, limit)` | F-27 |
 | `UploadedFile`: `from_value`, `name`, `filename`, `content_type`, `size`, `content`, `move_to` | F-22.2, F-11, F-17 |
 | `Error`: `kind`, `status`, `errno`, `removal`, `removal_kind`, `removal_errno` | 오류 표, F-11 |
+| `fault`: 실패 주입점의 상수 | 실패 주입점 |
 
 ## 인터페이스 계약
 
@@ -377,7 +378,8 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
 
 - `make test`: 코어에서 도는 `contracts/fields.json`과 `contracts/forms.json`의 case. 모든 multipart case와
   모든 body case는 바이트 하나씩으로도, 모든 위치에서 나눈 두 chunk로도 읽으며, reader는 두
-  chunk 사이에 최대 그 상한만큼 보관한다(F-24.1, F-24.6). 무작위 한도를 준 무작위 본문은 모든 분할에서 바이트
+  chunk 사이에 최대 그 상한만큼 보관한다(F-24.1, F-24.6). `tests/faults.rs`는 저장된 파일의 실패 주입점을
+  arming하며, arming한 실패는 모두 일어나야 한다. 무작위 한도를 준 무작위 본문은 모든 분할에서 바이트
   하나씩 읽은 본문의 결과를 준다(`HTTP_FORM_ROUNDS`, 기본값 3000). 다른 파일 시스템으로의 이동에는
   `HTTP_FORM_OTHER_FS`(기본값 `/dev/shm`)에 다른 파일 시스템이 필요하다. 이동의 각 단계의 실패는 일부러 실패하는
   연산으로 시험한다.

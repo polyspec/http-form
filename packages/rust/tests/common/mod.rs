@@ -6,6 +6,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use binding_core::fault::{self, Armed};
 use binding_core::Io;
 use polyspec_http_form::{Error, Fields, Files};
 use serde_json::{json, Value};
@@ -134,6 +135,74 @@ pub fn raises(error: &Error) -> Value {
         "category": category(error.kind()),
         "message": Value::Null,
     })
+}
+
+/// The errnos that the cases name, by their symbol (G-5: the `errno` of `raises` is a symbol).
+const ERRNOS: [(&str, rustix::io::Errno); 7] = [
+    ("EACCES", rustix::io::Errno::ACCESS),
+    ("EEXIST", rustix::io::Errno::EXIST),
+    ("EINVAL", rustix::io::Errno::INVAL),
+    ("EIO", rustix::io::Errno::IO),
+    ("ENOENT", rustix::io::Errno::NOENT),
+    ("ENOSPC", rustix::io::Errno::NOSPC),
+    ("EXDEV", rustix::io::Errno::XDEV),
+];
+
+/// The symbol of an errno, `null` for none.
+pub fn errno_symbol(errno: Option<i32>) -> Value {
+    match errno {
+        None => Value::Null,
+        Some(errno) => match ERRNOS.iter().find(|(_, known)| known.raw_os_error() == errno) {
+            Some((symbol, _)) => json!(symbol),
+            None => panic!("the errno {errno} has no symbol of the cases"),
+        },
+    }
+}
+
+/// An error as the `raises` of the case: [`raises`], and the symbol of its `errno` when the case names one (G-5).
+pub fn raised(case: &Value, error: &Error) -> Value {
+    let mut value = raises(error);
+    if case["raises"].get("errno").is_some() {
+        value["errno"] = errno_symbol(error.errno());
+    }
+    value
+}
+
+/// The faults that a case arms for one call of a member (G-5): the call runs with them installed, and every armed
+/// fault must fire. A case without `faults` arms nothing.
+pub struct Arming {
+    id: Option<u64>,
+    armed: Armed,
+    label: String,
+}
+
+impl Arming {
+    /// Arms the `faults` of the case for `member`, as the generated tests do.
+    pub fn of(case: &Value, member: &str) -> Arming {
+        let label = id(case).to_owned();
+        match case.get("faults") {
+            None => Arming { id: None, armed: Armed::empty(), label },
+            Some(faults) => match fault::arm(member, &faults.to_string()) {
+                Ok(armed) => Arming { id: Some(armed), armed: fault::take(member), label },
+                Err(error) => panic!("{label}: {error}"),
+            },
+        }
+    }
+
+    /// Runs the call with the faults installed.
+    pub fn run<T>(&self, work: impl FnOnce() -> T) -> T {
+        self.armed.run(work)
+    }
+
+    /// Fails when a fault that the case armed did not fire.
+    pub fn done(self) {
+        if let Some(armed) = self.id {
+            match fault::left(armed) {
+                Ok(left) => assert_eq!(left, Vec::<String>::new(), "{}: every armed fault fires", self.label),
+                Err(error) => panic!("{}: {error}", self.label),
+            }
+        }
+    }
 }
 
 /// Fields as pairs of a name and its values.

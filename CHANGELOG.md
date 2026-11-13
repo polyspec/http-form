@@ -1,5 +1,14 @@
 <!-- doc-id: changelog -->
 
+- The core calls the fault injection points of its spec (X-1, binding G-5): `packages/rust/src/fault.rs` names the
+  fourteen points `http_form.<id>`, and the directory, the file of a part, its write and its size, the removal of the
+  directory, the read of a stored file and each step of a move call `binding_core::fault::point`, which does nothing
+  without the new feature `fault-test` of the crate; the point `http_form.internal`, armed as `broken`, makes the lock
+  of a file a poisoned one (H-8). The tests of the crate turn the feature on through the dev-dependency, which adds
+  `libc` and `serde_json` to the dependencies of `polyspec-binding-core` in `Cargo.lock`, and `tests/faults.rs` arms the
+  points of a stored file (read, rename, open, create, copy, sync, remove) and requires each armed fault to fire. Before,
+  the spec named the points and the core called none.
+
 - The contract names the five targets of binding (BD-27): `targets` of `packages/rust/interface.json` is php, python,
   node, go and wasm, `packages.go` names the Go module `github.com/polyspec/http-form/packages/go`, the entry `.` of
   the npm package takes the conditions `{node: napi, browser: wasm}`, each error class names its WASM class, the Node

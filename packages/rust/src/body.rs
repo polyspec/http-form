@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 use binding_core::Io;
 
+use crate::fault::{self, Fault};
 use crate::fields::Named;
 use crate::multipart::count;
 use crate::store::{create_directory, create_file};
@@ -45,6 +46,7 @@ impl Parts {
                 let path = self.directory.join(self.stored.to_string());
                 // F-10: a path that exists is a failure of the file system (`io`, `EEXIST`). The core numbers the
                 // files, but another process of the same user can create one in the directory.
+                fault::fail(fault::CREATE_FILE)?;
                 let file = create_file(&path)?;
                 self.target = Some(Target { name, filename, content_type, path, file, size: 0 });
             }
@@ -52,7 +54,12 @@ impl Parts {
                 let Some(target) = self.target.as_mut() else {
                     return Err(Error::Internal("data of a file came without its start"));
                 };
-                target.file.write_all(bytes)?;
+                // F-15: a short write is found by the size check at the end of the file.
+                match fault::system(fault::WRITE_FILE) {
+                    Some(Fault::Fail(error)) => return Err(error.into()),
+                    Some(Fault::Short(short)) => target.file.write_all(fault::prefix(bytes, short))?,
+                    None => target.file.write_all(bytes)?,
+                }
                 target.size = target.size.checked_add(count(bytes.len())?).ok_or(Error::Internal("size"))?;
             }
             Piece::FileEnd => {
@@ -61,6 +68,7 @@ impl Parts {
                 };
                 // H-22: `std` does not report a failure of close(2), so the size of the file is checked before it is
                 // closed.
+                fault::fail(fault::FILE_SIZE)?;
                 let written = target.file.metadata()?.len();
                 if written != target.size {
                     return Err(Error::Io(IoFailure::found(format!(
@@ -324,6 +332,7 @@ impl RequestBody {
         if self.removed {
             return Ok(());
         }
+        fault::fail(fault::REMOVE_DIRECTORY)?;
         fs::remove_dir_all(&parts.directory)?;
         self.removed = true;
         for (_, files) in parts.files.entries() {
