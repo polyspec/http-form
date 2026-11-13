@@ -5,9 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use binding_core::Io;
-use polyspec_http_form::{
-    BodyLimits, Collector, Error, Files, Limits, MultipartReader, Piece, ReadError, RequestBody, UploadedFile,
-};
+use polyspec_http_form::{BodyLimits, Collector, Error, Limits, MultipartReader, Piece, ReadError, RequestBody};
 
 /// The wait token of one call that does blocking I/O (spec F-17), as generated code makes it.
 fn io() -> Io {
@@ -17,11 +15,6 @@ fn io() -> Io {
 const TYPE: &[u8] = b"multipart/form-data; boundary=X";
 const BIG: u64 = 1 << 20;
 const LIMITS: BodyLimits = BodyLimits { limit: BIG, value_limit: BIG, part_limit: BIG, file_limit: BIG };
-
-/// The last file of a name (F-22.6).
-fn last<'a>(files: &'a Files, name: &str) -> Option<&'a UploadedFile> {
-    files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
-}
 
 fn body(content_type: &[u8], stream: bool) -> RequestBody {
     match RequestBody::new(io(), Some(content_type), None, stream, LIMITS) {
@@ -115,7 +108,14 @@ fn the_directory_of_a_request() {
 #[cfg(target_os = "linux")]
 #[test]
 fn a_move_to_another_file_system_copies() {
+    use polyspec_http_form::{Files, UploadedFile};
     use std::os::unix::fs::MetadataExt;
+
+    /// The last file of a name (F-22.6).
+    fn last<'a>(files: &'a Files, name: &str) -> Option<&'a UploadedFile> {
+        files.iter().find(|(known, _)| known == name).and_then(|(_, items)| items.last())
+    }
+
     let other = PathBuf::from(match std::env::var_os("HTTP_FORM_OTHER_FS") {
         Some(path) => path,
         None => "/dev/shm".into(),
