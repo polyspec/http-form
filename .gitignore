@@ -7,3 +7,7 @@ __pycache__/
 /packages/ts/generated/
 /packages/python/generated/
 /packages/php-ext/generated/
+/packages/ts/wasm/generated/
+/packages/go/internal/ffi/generated/
+# The virtual environment, the wheels and the installed npm packages of the binding tests.
+/var/

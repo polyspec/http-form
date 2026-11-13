@@ -1,5 +1,24 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3ce825a80dbfc6d733863e1b90f9f4f86065e2ac654aa9adbae526bc7d6a3d8f -->
+<!-- source-sha256: a87d954c71b5348febb3239d9b6b81b2b0143452afe42c6f75f8b0811264e4fd -->
+
+## Unreleased
+
+- `make test-bindings`가 계약의 다섯 target을 이름한다(BD-27): `make lint-bindings`와 `make test-crates`(전에도
+  실행하던 바인딩 crate의 clippy와 Rust 시험) 뒤에 `make test-python`, `make test-node`, `make test-wasm`,
+  `make test-php`, `make test-go`가 binding이 생성한 시험을 unittest, node --test, PHPUnit, go test로 실행한다.
+  `make node-package`는 wasm-bindgen으로 WASM module을, 그리고 Node addon을 빌드해 둘을 npm package로 묶고
+  `var/node`에 설치하며, `make test-node`와 `make test-wasm`이 거기서 실행된다. 변수 `PYTHON`, `MATURIN`, `NPM`,
+  `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`, `WASM_BINDGEN`이 도구를 가리킨다. `make test-go`는 go 지시문과 다른
+  release의 Go를, `make node-package`는 crate와 다른 release의 wasm-bindgen CLI를 실패시킨다. `var/`,
+  `packages/ts/wasm/generated`, `packages/go/internal/ffi/generated`는 무시된다. `AGENTS.md`와 `AGENTS.ko.md`를
+  새로 두어 이 규칙을 적는다. 전에는 `make test-bindings`가 PHP, Python, Node crate의 Rust 시험만 실행했고, 어떤
+  target도 Go와 WASM 바인딩을 빌드하거나 시험하지 않았다. binding 8faad21에서 다섯 target 모두가 `make bindings`에서
+  실패한다: `binding generate`가 아래 항목의 CK-22 finding 23개로 계약을 거부한다. 각각은 호출 둘 이상으로 만든
+  receiver만 닿는 kind이거나 `move_to`의 `partial_target`이다. 그래서 바인딩이 생성되지 않고 생성 시험도 실행되지
+  않는다. `make check`는 통과한다(코어 시험 35개). 언어의 case runner는 아직 `contracts/`의 case를 실행하지 않고,
+  `zz_generated_*.go` 파일도 추적하지 않는다. 그것이 실행될, 또는 그것이 나올 생성 바인딩이 없기 때문이다.
+  `polyspec-http-form`은 `wasm32-unknown-unknown`으로 컴파일되지 않는다: 의존성 `rustix`가 `errno` 0.3.14를 받고,
+  그것이 "The target OS is "unknown" or "none", so it's unsupported by the errno crate."로 실패한다.
 
 - 계약이 실패 주입점 열넷을 `faults`에 선언하고, 호출 하나가 닿는 kind에 case를 준다(CK-22): 주입으로
   `request_body.new`, `feed`, `remove`와 `uploaded_file.move_to`의 `io`, 이미 있는 디렉터리인 경로 `.`로 `move_to`의

@@ -1,5 +1,25 @@
 <!-- doc-id: changelog -->
 
+## Unreleased
+
+- `make test-bindings` names the five targets of the contract (BD-27): after `make lint-bindings` and `make
+  test-crates` (the clippy and the Rust tests of the binding crates, which it ran before), `make test-python`,
+  `make test-node`, `make test-wasm`, `make test-php` and `make test-go` run the tests that binding generates on
+  unittest, node --test, PHPUnit and go test. `make node-package` builds the WASM module with wasm-bindgen and the Node
+  addon, packs both into the npm package and installs it into `var/node`, where `make test-node` and `make test-wasm`
+  run. The variables `PYTHON`, `MATURIN`, `NPM`, `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT` and `WASM_BINDGEN` name
+  the tools; `make test-go` fails a Go of another release than the go directive and `make node-package` a wasm-bindgen
+  CLI of another release than the crate. `var/`, `packages/ts/wasm/generated` and `packages/go/internal/ffi/generated`
+  are ignored. `AGENTS.md` and `AGENTS.ko.md` are new and state these rules. Before, `make test-bindings` ran only
+  the Rust tests of the PHP, Python and Node crates, and no target built or tested the Go and WASM bindings.
+  With binding at 8faad21 every one of the five targets fails at `make bindings`: `binding generate` refuses the
+  contract with the 23 CK-22 findings of the entry below, each a kind that only a receiver made by more than one call
+  reaches, or `partial_target` of `move_to`, so no binding is generated and no generated test runs. `make check`
+  passes (35 tests of the core). No case runner of a language runs the cases of `contracts/` yet, and the files
+  `zz_generated_*.go` are not tracked, because no binding is generated that they could run against or come from.
+  `polyspec-http-form` does not compile for `wasm32-unknown-unknown`: its dependency `rustix` takes `errno` 0.3.14,
+  which fails with "The target OS is "unknown" or "none", so it's unsupported by the errno crate."
+
 - The contract declares the fourteen fault injection points in `faults` and gives cases to the kinds that one call
   reaches (CK-22): `io` of `request_body.new`, `feed` and `remove` and of `uploaded_file.move_to` by an injection,
   `exists` of `move_to` by the path `.`, a directory that exists, and the one case of X-1, `internal` of
