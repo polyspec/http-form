@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- The kind `cross_device` is removed, and `IoKind::CrossDevice` with it: `EXDEV` is now `io` with its `errno` (F-2).
+  Only a rename gives `EXDEV`, and the move then copies (F-11), so the kind reached no caller. The contract row of
+  `Error::Io` names its kinds `not_found`, `permission_denied`, `storage_full` and `io`, the `fills` of every point
+  with an `io` injection name the four, and twelve cases give `not_found`, `permission_denied` and `storage_full` to
+  `request_body.new`, `request_body.feed`, `request_body.remove` and `uploaded_file.move_to` by `ENOENT`, `EACCES` and
+  `ENOSPC`. A test of the core compares the row with the kinds that the core gives. `make bindings-check` gives 32
+  CK-22 findings where it gave 23: the nine new ones are those three kinds of `request_body.finish`,
+  `request_body.parts` and `uploaded_file.content`, which only a receiver made by more than one call reaches, as
+  `io` of the same members before. Before, the row named no kinds, so the contract stated only `io` of the four
+  kinds that the core gives.
+
 - `polyspec-http-form` builds for `wasm32-unknown-unknown` (spec F-28). The file I/O of a request, `RequestBody`, the
   stored files and the moves of `UploadedFile` with the dependencies `rustix` and `tempfile`, is in the new Cargo
   feature `fs`, which the default features turn on; `BodyLimits` moved from the module of the body to the root of the

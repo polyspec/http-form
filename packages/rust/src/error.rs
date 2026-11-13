@@ -4,15 +4,14 @@
 use std::fmt;
 use std::io;
 
-/// The kind of a failure of the file system, decided by the `io::ErrorKind` of the system error (F-2).
+/// The kind of a failure of the file system, decided by the `io::ErrorKind` of the system error (F-2). `EXDEV` is
+/// `io`: only a rename gives it, and the move then copies (F-11), so no kind of its own reaches a caller.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IoKind {
     /// `not_found`: a path that does not exist.
     NotFound,
     /// `permission_denied`: the system refused the access.
     PermissionDenied,
-    /// `cross_device`: a rename between two file systems.
-    CrossDevice,
     /// `storage_full`: no space or no quota left.
     StorageFull,
     /// `io`: any other failure.
@@ -25,7 +24,6 @@ impl IoKind {
         match self {
             IoKind::NotFound => "not_found",
             IoKind::PermissionDenied => "permission_denied",
-            IoKind::CrossDevice => "cross_device",
             IoKind::StorageFull => "storage_full",
             IoKind::Io => "io",
         }
@@ -69,7 +67,6 @@ impl From<io::Error> for IoFailure {
         let kind = match error.kind() {
             io::ErrorKind::NotFound => IoKind::NotFound,
             io::ErrorKind::PermissionDenied => IoKind::PermissionDenied,
-            io::ErrorKind::CrossesDevices => IoKind::CrossDevice,
             io::ErrorKind::StorageFull | io::ErrorKind::QuotaExceeded => IoKind::StorageFull,
             _ => IoKind::Io,
         };

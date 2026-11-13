@@ -1,7 +1,17 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3babc06c0878d243de9d823451ddab899103179a322b52f76c3d15f6e5671289 -->
+<!-- source-sha256: af4fd5df821c0d9a9de77be2932a492297a5d797aae141344e09e2f50300a474 -->
 
 ## Unreleased
+
+- kind `cross_device`와 `IoKind::CrossDevice`를 없앤다: `EXDEV`는 이제 `errno`를 가진 `io`이다(F-2). `EXDEV`는
+  rename만 주고 이동은 그때 복사하므로(F-11) 그 kind는 어떤 호출자에게도 닿지 않았다. 계약의 `Error::Io` 행이 kind
+  `not_found`, `permission_denied`, `storage_full`, `io`를 적고, `io` 주입을 받는 모든 주입점의 `fills`가 그 넷을
+  적으며, case 열둘이 `ENOENT`, `EACCES`, `ENOSPC`로 `request_body.new`, `request_body.feed`,
+  `request_body.remove`, `uploaded_file.move_to`에 `not_found`, `permission_denied`, `storage_full`을 준다. 코어의
+  시험 하나가 그 행을 코어가 주는 kind와 견준다. `make bindings-check`는 23개였던 CK-22 finding을 32개 준다. 새
+  아홉은 `request_body.finish`, `request_body.parts`, `uploaded_file.content`의 그 세 kind이며, 전에 같은 member의
+  `io`처럼 호출 둘 이상으로 만든 receiver만 닿는다. 전에는 그 행이 kind를 적지 않아, 계약은 코어가 주는 네 kind
+  가운데 `io`만 말했다.
 
 - `polyspec-http-form`이 `wasm32-unknown-unknown`으로 빌드된다(spec F-28). 요청의 파일 I/O, 곧 `RequestBody`, 저장된
   파일과 `UploadedFile`의 이동이 의존성 `rustix`, `tempfile`과 함께 새 Cargo feature `fs`에 있고, 기본 feature가

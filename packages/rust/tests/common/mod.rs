@@ -120,8 +120,7 @@ pub fn category(kind: &str) -> &'static str {
         | "removed"
         | "invalid_number" => "value",
         "not_finished" | "not_streamed" | "finished" => "type",
-        "not_found" | "permission_denied" | "cross_device" | "storage_full" | "io" | "source_left"
-        | "partial_target" => "io",
+        "not_found" | "permission_denied" | "storage_full" | "io" | "source_left" | "partial_target" => "io",
         "internal" => "internal",
         other => panic!("a kind without a category: {other}"),
     }

@@ -171,7 +171,13 @@
       },
       {
         "variant": "polyspec_http_form::Error::Io",
-        "category": "io"
+        "category": "io",
+        "kinds": [
+          "not_found",
+          "permission_denied",
+          "storage_full",
+          "io"
+        ]
       },
       {
         "variant": "polyspec_http_form::Error::SourceLeft",
@@ -198,6 +204,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-10",
@@ -210,6 +219,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-10",
@@ -223,6 +235,9 @@
         "short"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-15",
@@ -235,6 +250,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-15",
@@ -247,6 +265,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-10",
@@ -260,6 +281,9 @@
         "short"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-15",
@@ -272,6 +296,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io",
         "exists"
       ],
@@ -285,6 +312,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-11",
@@ -297,6 +327,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io",
         "exists"
       ],
@@ -311,6 +344,9 @@
         "short"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-11",
@@ -323,6 +359,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-11",
@@ -335,6 +374,9 @@
         "io"
       ],
       "fills": [
+        "not_found",
+        "permission_denied",
+        "storage_full",
         "io"
       ],
       "reason": "F-11",

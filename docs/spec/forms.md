@@ -60,7 +60,7 @@ a server answers. The category is the error class of the binding (plan F-3).
 | `moved` | none | value | a move or a read of a moved file (F-11), message `the file was moved (F-11)` |
 | `exists` | none | value | a move to a path that exists (F-11), message `the path exists (F-11)` |
 | `removed` | none | value | a move or a read of a stored file after the removal of its directory, a chunk after it (F-10) |
-| `not_found`, `permission_denied`, `cross_device`, `storage_full`, `io` | none | io | a failure of the file system, by its `io::ErrorKind`, with its `errno` (plan F-2); `io` without `errno` for a size check (F-15); `io` with the `errno` `EEXIST` for a new file of the directory of a request whose path exists (F-10) |
+| `not_found`, `permission_denied`, `storage_full`, `io` | none | io | a failure of the file system, by its `io::ErrorKind`, with its `errno` (plan F-2), the `kinds` of the row of `Io` in the contract; `EXDEV` is `io`, because only a rename gives it and the move then copies (F-11); `io` without `errno` for a size check (F-15); `io` with the `errno` `EEXIST` for a new file of the directory of a request whose path exists (F-10) |
 | `source_left` | none | io | a copied file whose source was not removed (F-11) |
 | `partial_target` | none | io | a failed copy or write whose incomplete target was not removed (F-11) |
 | `internal` | none | internal | an invariant of the core does not hold (H-8) |
@@ -283,10 +283,10 @@ holds for the call of its member alone.
 A failure of the file system (the variants `Io`, `SourceLeft` and `PartialTarget`) comes from the environment, and no
 argument of a member reaches it. A point is one call of the system in the core. An injection of the kind `io` makes that
 call fail with the given `errno`; the failure takes its kind from that `errno` by the table of Errors, like a failure of
-the system, so an `io` injection fills the five kinds of the variant `Io` (`not_found`, `permission_denied`,
-`cross_device`, `storage_full`, `io`) unless its row states another result. The `fills` of the contract name `io` alone
-of the five, because the row of the variant `Io` in `errors.kinds` names no `kinds`, and a point fills only the kinds of
-that table (binding CK-3). An injection of the kind `short` makes a read, a write or a copy handle only the given number
+the system, so an `io` injection fills the four kinds of the variant `Io` (`not_found`, `permission_denied`,
+`storage_full`, `io`) unless its row states another result. The row of the variant `Io` in `errors.kinds` names the four
+in `kinds`, and the `fills` of a point with an `io` injection name the four, because a point fills only the kinds of that
+table (binding CK-3). An injection of the kind `short` makes a read, a write or a copy handle only the given number
 of bytes and return, which the size check then finds as `io` without `errno` (F-15). An injection of the kind `broken`
 at `http_form.internal` treats the lock of a file as poisoned (H-8). An armed point holds for the call of the member
 that the case tests, on the thread that runs it; the core starts no thread, so every point takes the arming of its call.
@@ -299,7 +299,7 @@ that the case tests, on the thread that runs it; the core starts no thread, so e
 | `http_form.file_size` | the size of a written file before it is closed, `Parts::take` of `feed` | `io` | the kinds of `Io` | F-15 | yes |
 | `http_form.remove_directory` | `remove_dir_all` of `RequestBody::remove` | `io` | the kinds of `Io` | F-10 | yes |
 | `http_form.read` | the open and the read of a stored file, `read_stored` of `UploadedFile::content` | `io`, `short` | the kinds of `Io` | F-11, F-15 | yes |
-| `http_form.rename` | `Ops::rename` of `move_to` | `io` | the kinds of `Io` but `cross_device`: `EXDEV` takes the copy and fills nothing itself; `EEXIST` gives `exists` | F-11 | yes |
+| `http_form.rename` | `Ops::rename` of `move_to` | `io` | the kinds of `Io`, but `EXDEV` takes the copy and fills nothing itself; `EEXIST` gives `exists` | F-11 | yes |
 | `http_form.open` | `Ops::open` of the source of a copy | `io` | the kinds of `Io` | F-11 | yes |
 | `http_form.create` | `Ops::create` of the target of a copy or of a value | `io` | the kinds of `Io`; `EEXIST` gives `exists` | F-11 | yes |
 | `http_form.copy` | `Ops::copy` | `io`, `short` | the kinds of `Io`; `partial_target` with `http_form.remove` | F-11, F-15 | yes |

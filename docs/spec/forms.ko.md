@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: fe8e25995a9e87015aff94f02c5822a795156f107bbac4d89a2a3a0240397e8e -->
+<!-- source-sha256: ede82678b37c33cdb7fc2863105cfafa1d4ffb1b4f0122ad0139458d2c647540 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -61,7 +61,7 @@ urlencoded 텍스트, multipart 본문, chunk로 읽는 본문, 바이트로 만
 | `moved` | 없음 | value | 이동한 파일의 이동이나 읽기(F-11), 메시지 `the file was moved (F-11)` |
 | `exists` | 없음 | value | 이미 있는 경로로의 이동(F-11), 메시지 `the path exists (F-11)` |
 | `removed` | 없음 | value | 디렉터리를 삭제한 뒤에 하는 저장된 파일의 이동이나 읽기, 그 뒤의 chunk(F-10) |
-| `not_found`, `permission_denied`, `cross_device`, `storage_full`, `io` | 없음 | io | 파일 시스템의 실패. kind는 그 `io::ErrorKind`에 따르고 `errno`를 가진다(plan F-2); 크기 검사는 `errno` 없는 `io`이다(F-15); 요청 디렉터리의 새 파일의 경로가 이미 있으면 `errno` `EEXIST`를 가진 `io`이다(F-10) |
+| `not_found`, `permission_denied`, `storage_full`, `io` | 없음 | io | 파일 시스템의 실패. kind는 그 `io::ErrorKind`에 따르고 `errno`를 가지며(plan F-2), 계약의 `Io` 행의 `kinds`이다; `EXDEV`는 `io`이다. rename만 그것을 주고 이동은 그때 복사하기 때문이다(F-11); 크기 검사는 `errno` 없는 `io`이다(F-15); 요청 디렉터리의 새 파일의 경로가 이미 있으면 `errno` `EEXIST`를 가진 `io`이다(F-10) |
 | `source_left` | 없음 | io | 복사했으나 원본이 삭제되지 않은 파일(F-11) |
 | `partial_target` | 없음 | io | 실패한 복사나 쓰기이며, 완성되지 않은 대상이 삭제되지 않았다(F-11) |
 | `internal` | 없음 | internal | 코어의 불변식이 성립하지 않는다(H-8) |
@@ -282,8 +282,8 @@ feature를 켠다: 바인딩 crate는 자기 feature `fault-test`로, 이 crate�
 파일 시스템의 실패(variant `Io`, `SourceLeft`, `PartialTarget`)는 환경에서 오며, member의 어떤 인자도 그 실패에 닿지
 않는다. 주입점은 코어 안의 시스템 호출 하나이다. kind `io`의 주입은 그 호출을 주어진 `errno`로 실패시킨다. 그 실패는
 시스템의 실패처럼 오류 표에 따라 그 `errno`에서 kind를 얻으므로, `io` 주입은 그 행이 다른 결과를 적지 않는 한 variant
-`Io`의 다섯 kind(`not_found`, `permission_denied`, `cross_device`, `storage_full`, `io`)를 채운다. 계약의 `fills`는 다섯
-가운데 `io`만 적는다. `errors.kinds`의 variant `Io` 행이 `kinds`를 적지 않고, 주입점은 그 표의 kind만 채우기
+`Io`의 네 kind(`not_found`, `permission_denied`, `storage_full`, `io`)를 채운다. `errors.kinds`의 variant `Io` 행이
+`kinds`에 그 넷을 적고, `io` 주입을 받는 주입점의 `fills`도 그 넷을 적는다. 주입점은 그 표의 kind만 채우기
 때문이다(binding CK-3). kind `short`의 주입은 읽기, 쓰기, 복사가 주어진 수의 바이트만 처리하고 돌아오게 하며, 크기
 검사가 그것을 `errno` 없는 `io`로 찾는다(F-15). `http_form.internal`에서 kind `broken`의 주입은 파일의 lock을 poison된
 것으로 다룬다(H-8). arming한 주입점은 case가 시험하는 member의 호출 동안, 그 호출을 실행하는 thread에서 유효하다. 코어는
@@ -297,7 +297,7 @@ thread를 시작하지 않으므로 모든 주입점은 그 호출의 arming을 
 | `http_form.file_size` | 쓴 파일을 닫기 전의 크기, `feed`의 `Parts::take` | `io` | `Io`의 kind | F-15 | 예 |
 | `http_form.remove_directory` | `RequestBody::remove`의 `remove_dir_all` | `io` | `Io`의 kind | F-10 | 예 |
 | `http_form.read` | 저장된 파일의 열기와 읽기, `UploadedFile::content`의 `read_stored` | `io`, `short` | `Io`의 kind | F-11, F-15 | 예 |
-| `http_form.rename` | `move_to`의 `Ops::rename` | `io` | `cross_device`를 뺀 `Io`의 kind: `EXDEV`는 복사로 가며 그 자체로는 아무것도 채우지 않는다; `EEXIST`는 `exists`를 준다 | F-11 | 예 |
+| `http_form.rename` | `move_to`의 `Ops::rename` | `io` | `Io`의 kind. 다만 `EXDEV`는 복사로 가며 그 자체로는 아무것도 채우지 않는다; `EEXIST`는 `exists`를 준다 | F-11 | 예 |
 | `http_form.open` | 복사의 원본의 `Ops::open` | `io` | `Io`의 kind | F-11 | 예 |
 | `http_form.create` | 복사의 대상이나 값의 대상의 `Ops::create` | `io` | `Io`의 kind; `EEXIST`는 `exists`를 준다 | F-11 | 예 |
 | `http_form.copy` | `Ops::copy` | `io`, `short` | `Io`의 kind; `http_form.remove`와 함께 `partial_target` | F-11, F-15 | 예 |
