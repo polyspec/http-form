@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 36322c89d1b6d6452ba5283d0ff81120338b288557509f0273e4131a5712499e -->
+<!-- source-sha256: 9472ade1d34b0c5a13d3bbd8d26226bd9672709bc27c66ec80e631e3b33fa6e0 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -95,7 +95,8 @@
 - 첫 release 전에 열려 있는 일이며, 이것 없이는 release가 끝난 것이 아니다. `origin`에 `main`이 없으므로 release는
   `v1/rust-core`와 이전 API의 history를 merge한 것을 `main`으로 push하고 `main`을 기본 브랜치로 만든다. 바인딩의 package(abi3 wheel, PHP 확장, npm package와
   그 플랫폼 package)는 kit 0.0.111과 binding의 release가 있어야 `config/release.json`의 행이 된다. kit 0.0.109가 그 kind를
-  거부하기 때문이다. release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로도 tag한다(`config/release.json`의
+  거부하기 때문이다. binding이 이 package의 release recipe를 생성하므로(binding B2.262) 이 저장소는 자기 recipe를 쓰지
+  않는다(T1.19). release는 release commit에 Go module `packages/go`를 `packages/go/vX.Y.Z`로도 tag한다(`config/release.json`의
   `goModules`). Go는 저장소 루트 아래의 module을 그 형태의 tag로 가져오기 때문이다(binding GN-15g). 첫 release는
   바인딩도 기다린다(T1.13).
 
