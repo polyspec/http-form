@@ -17,7 +17,7 @@ const BIG: u64 = 1 << 20;
 const LIMITS: BodyLimits = BodyLimits { limit: BIG, value_limit: BIG, part_limit: BIG, file_limit: BIG };
 
 fn body(content_type: &[u8], stream: bool) -> RequestBody {
-    match RequestBody::start(io(), Some(content_type), None, stream, LIMITS) {
+    match RequestBody::start(io(), Some(content_type), None, stream, &LIMITS) {
         Ok(body) => body,
         Err(error) => panic!("{error}"),
     }
@@ -355,7 +355,7 @@ fn random_body(random: &mut Random) -> Vec<u8> {
 /// The result of a body read in the chunks: the stage and the kind of its first failure, or its values and files.
 fn outcome(chunks: &[&[u8]], limits: (u64, u64, u64, u64)) -> String {
     let limits = BodyLimits { limit: limits.0, value_limit: limits.1, part_limit: limits.2, file_limit: limits.3 };
-    let mut read = match RequestBody::start(io(), Some(TYPE), None, true, limits) {
+    let mut read = match RequestBody::start(io(), Some(TYPE), None, true, &limits) {
         Ok(read) => read,
         Err(error) => return format!("new {}", error.kind()),
     };

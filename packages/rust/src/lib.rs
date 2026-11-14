@@ -114,7 +114,7 @@ pub fn read_body(content_type: Option<&[u8]>, body: &[u8]) -> Result<Form, Error
 /// value limit bound its bytes, as they bound a body that `RequestBody` holds (at one byte the body limit comes first),
 /// and the part limit, the file limit and the value limit bound the parts, the files and the text values that a
 /// `multipart/form-data` body gives. Its files are values.
-pub fn read_held_body(content_type: Option<&[u8]>, body: &[u8], limits: BodyLimits) -> Result<Form, Error> {
+pub fn read_held_body(content_type: Option<&[u8]>, body: &[u8], limits: &BodyLimits) -> Result<Form, Error> {
     let length = multipart::count(body.len())?;
     let over_body = length > limits.limit;
     let over_value = length > limits.value_limit;

@@ -52,7 +52,17 @@ pub struct UploadedFile {
 
 impl UploadedFile {
     /// A file whose bytes are a value, as an application makes one (F-22.2); its size is the number of its bytes.
-    pub fn from_value(name: String, filename: String, content_type: String, content: Vec<u8>) -> Result<Self, Error> {
+    pub fn from_value(name: &str, filename: &str, content_type: &str, content: &[u8]) -> Result<Self, Error> {
+        UploadedFile::from_owned(name.to_owned(), filename.to_owned(), content_type.to_owned(), content.to_vec())
+    }
+
+    /// A file of the bytes that the reader of a body collected, which it owns already, so they are not copied.
+    pub(crate) fn from_owned(
+        name: String,
+        filename: String,
+        content_type: String,
+        content: Vec<u8>,
+    ) -> Result<Self, Error> {
         let size = count(content.len())?;
         Ok(UploadedFile::make(name, filename, content_type, size, Content::Value(content)))
     }
@@ -132,7 +142,7 @@ mod tests {
 
     #[test]
     fn a_file_without_fs_gives_its_bytes() {
-        let file = UploadedFile::from_value("f".into(), "f.txt".into(), "text/plain".into(), b"abc".to_vec()).unwrap();
+        let file = UploadedFile::from_value("f", "f.txt", "text/plain", b"abc").unwrap();
         assert_eq!(file.held_content(), Ok(b"abc".to_vec()));
         assert_eq!(file.held_content(), file.content(Io::for_generated_call()));
         assert_eq!(

@@ -287,7 +287,7 @@ pub fn made_body(value: &Value) -> polyspec_http_form::RequestBody {
         content_type(args).as_deref(),
         content_length.as_deref(),
         args["stream"] == json!(true),
-        limits(args),
+        &limits(args),
     );
     let mut read = made.unwrap_or_else(|error| panic!("request_body.start of {value}: {error}"));
     for call in then(value) {

@@ -129,7 +129,7 @@ impl Collector {
         let Some(open) = self.open.take() else {
             return Err(Error::Internal("the end of a file came without its start"));
         };
-        let file = UploadedFile::from_value(open.name.clone(), open.filename, open.content_type, open.content)?;
+        let file = UploadedFile::from_owned(open.name.clone(), open.filename, open.content_type, open.content)?;
         self.files.push(open.name, file);
         Ok(())
     }

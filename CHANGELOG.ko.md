@@ -1,7 +1,16 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: a63a0c83968f620e1ad190fc5b51b8af64462c7ca5ed10f92efb6cf99a13d507 -->
+<!-- source-sha256: 722bf3988f33aa7c3227525736792fefa4a688caab818e51b19d2c95bdcc3a33 -->
 
 ## Unreleased
+
+- 코어 함수는 생성 코드가 넘기는 대로 인자를 빌려 받는다(binding GN-6, spec F-18.1). `read_held_body`와
+  `RequestBody::start`는 `&BodyLimits`를, `UploadedFile::from_value`는 `&str`과 `&[u8]`을 받는다. binding 0.0.2가 생성한
+  바인딩 crate는 `BodyLimits`, `String`, `Vec<u8>`를 받는 함수에 `&limits`, `&name`, `&content`를 넘겼으므로, CI의 job
+  `bindings`에서 모든 바인딩 crate가 E0308로 컴파일에 실패했다. body의 reader는 자기가 모은 bytes를 복사하지 않고
+  가진다(`UploadedFile::from_owned`). 새 시험 `packages/rust/tests/arguments.rs`가 생성 코드의 호출을 한다. Red: 그 시험은
+  세 함수에서 E0308로 컴파일되지 않았다. Green: `cargo test --locked --release -p polyspec-http-form`이 시험 44개를
+  통과하고, 코어의 `cargo clippy`와 `cargo fmt --check`가 통과한다. Python crate는 binding 0.0.2가 쓰지 않는 변환
+  함수도 부른다(E0425). binding 0.0.4가 그것을 쓰므로 바인딩 target은 그 release를 기다린다(T1.23).
 
 - release는 플랫폼별 바인딩 package를 GitHub Release의 asset으로 갖는다. binding 0.0.3이 contract의 release recipe를
   쓴다(binding GN-19h). `make release-recipes`가 `binding release-recipes --root .`을 실행해 무시되는 파일

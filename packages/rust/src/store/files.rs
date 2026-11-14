@@ -432,7 +432,7 @@ mod tests {
     #[test]
     fn a_failed_write_of_a_value_removes_its_target() {
         let place = Place::new("value");
-        let file = UploadedFile::from_value("f".into(), "f".into(), String::new(), b"abc".to_vec()).unwrap();
+        let file = UploadedFile::from_value("f", "f", "", b"abc").unwrap();
         let error = file.move_with(&faulty(&[Step::Write]), &place.target()).unwrap_err();
         assert_eq!(error.kind(), "storage_full");
         assert!(!place.exists("target"));

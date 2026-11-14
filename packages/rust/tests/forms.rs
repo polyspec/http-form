@@ -110,7 +110,7 @@ fn held() {
     let mut failures = Failures::default();
     for case in group(&cases, "held") {
         let kind = content_type(case);
-        let result = form_result(read_held_body(kind.as_deref(), &bytes(&case["body"]), limits(case)));
+        let result = form_result(read_held_body(kind.as_deref(), &bytes(&case["body"]), &limits(case)));
         for key in ["fields", "files", "raises"] {
             failures.compare(case, key, &result[key]);
         }
@@ -165,7 +165,7 @@ fn run_body(case: &Value, chunks: &[&[u8]], member: Option<&str>) -> Value {
             kind.as_deref(),
             content_length.as_deref(),
             case["stream"] == json!(true),
-            limits(case),
+            &limits(case),
         )
     });
     made.done();
@@ -303,7 +303,7 @@ fn made(case: &Value) -> RequestBody {
         kind.as_deref(),
         content_length.as_deref(),
         case["stream"] == json!(true),
-        limits(case),
+        &limits(case),
     ) {
         Ok(read) => read,
         Err(error) => panic!("{}: {error}", id(case)),

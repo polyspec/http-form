@@ -18,7 +18,7 @@ const BODY: &[u8] =
 /// A body read in chunks whose one file is stored in its directory, and that file.
 fn stored() -> (RequestBody, UploadedFile) {
     let limits = BodyLimits { limit: 1000, value_limit: 1000, part_limit: 10, file_limit: 1000 };
-    let mut read = match RequestBody::start(io(), Some(b"multipart/form-data; boundary=XyZ"), None, true, limits) {
+    let mut read = match RequestBody::start(io(), Some(b"multipart/form-data; boundary=XyZ"), None, true, &limits) {
         Ok(read) => read,
         Err(error) => panic!("{error}"),
     };

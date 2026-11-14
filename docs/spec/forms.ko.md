@@ -1,5 +1,5 @@
 <!-- doc-id: spec-forms -->
-<!-- source-sha256: fdcfbce0f714b1a1daf7ceec95f325b5111ef7195c0dc646bdc66ce19d27e09b -->
+<!-- source-sha256: 7decc7fe4c39d7ea7a73529d0ed138160b9d8b28067c8e687c7875dd122f2773 -->
 # http-form: 규칙과 API
 
 이 라이브러리는 form 값과 `multipart/form-data` 본문을 읽는다: query나 본문의 `application/x-www-form-urlencoded`
@@ -411,7 +411,9 @@ media type의 reader는 http-media-type의 표에 있는 입력을 무시한다(
   실패를 가지므로(F-12) 계약은 그 라이브러리의 kind를 부르지 않고 그 property를 전달하지 않는다. `RequestBody`는
   `binding_core::Cleanup`을 구현하고(그 cleanup 호출은 `remove`이다) `Error`는 `binding_core::Kinds`를 구현한다.
   1. 코어 함수는 계약 type의 Rust type을 받고 돌려준다(binding design I-2 (1), T-1, T-2):
-     결과는 owned 값(`String`, `Vec<u8>`, `PathBuf`, `Vec`)이고, `Fields`와 `Files`는 list
+     인자는 생성 코드가 넘기는 대로 빌려 받는다(binding GN-6). `text`는 `&str`, `bytes`는 `&[u8]`, record는 참조다.
+     그래서 `read_held_body`와 `RequestBody::start`는 `&BodyLimits`를, `UploadedFile::from_value`는 `&str`과 `&[u8]`을
+     받는다. 계약에는 값으로 넘기는 인자의 형태가 없기 때문이다. 결과는 owned 값(`String`, `Vec<u8>`, `PathBuf`, `Vec`)이고, `Fields`와 `Files`는 list
      `list<tuple<text, list<…>>>`이며, `Form`과 `BodyLimits`는 record이므로(design T-4) `file_over`는
      파일들의 함수이고 `Form`의 member가 아니다. 계약의 모든 member는 코어의 함수이며, `PartialTargetError`의 property
      `removalKind`와 `removalErrno`도 그렇다. 이 둘은 다른 kind에서 `internal`로 실패한다.

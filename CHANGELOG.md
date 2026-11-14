@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- The core functions take their arguments borrowed, as the generated code passes them (binding GN-6, spec F-18.1):
+  `read_held_body` and `RequestBody::start` take `&BodyLimits`, and `UploadedFile::from_value` takes `&str` and
+  `&[u8]`. The binding crates that binding 0.0.2 generated passed `&limits`, `&name` and `&content` to functions that
+  took `BodyLimits`, `String` and `Vec<u8>`, so every binding crate failed to compile with E0308 in the job `bindings`
+  of CI. The reader of a body keeps the bytes that it collected without a copy (`UploadedFile::from_owned`). The new test
+  `packages/rust/tests/arguments.rs` makes the calls of the generated code. Red: it did not compile, with E0308 for the
+  three functions. Green: `cargo test --locked --release -p polyspec-http-form` passes 44 tests, and `cargo clippy` and
+  `cargo fmt --check` of the core pass. The Python crate also calls a converter that binding 0.0.2 does not write
+  (E0425), which binding 0.0.4 writes, so the binding targets wait for that release (T1.23).
+
 - The release holds the packages of the bindings per platform as assets of its GitHub Release. binding 0.0.3 writes
   the release recipes of the contract (binding GN-19h): `make release-recipes` runs `binding release-recipes --root .`,
   which writes the ignored file `packages/release.mk`, and the Makefile includes it after it defines `BINDING_RUN`,

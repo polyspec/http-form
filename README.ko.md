@@ -1,5 +1,5 @@
 <!-- doc-id: readme -->
-<!-- source-sha256: cb6252a153f072c3db96d8b0ccf3c17a27f914a3ab09e0bad3d7a3f428cf6ed3 -->
+<!-- source-sha256: dcc7e76c28534b2ea2f3849e2f228ee2e868b1a2f03570e11fdb39e56c670b8e -->
 # http-form
 
 form 값과 `multipart/form-data` 본문을 읽는 라이브러리이다. Rust 구현 하나가 읽고, 모든 계약이 적는 다섯
@@ -22,7 +22,7 @@ legacy/          이전 API의 손으로 쓴 바인딩과 그 runner. 빌드하�
 ```rust
 // `io()`는 blocking 호출 하나의 wait token `binding_core::Io`이며, 생성된 코드가 만든다(F-17).
 let limits = BodyLimits { limit, value_limit, part_limit, file_limit };
-let mut body = RequestBody::start(io(), content_type, content_length, true, limits)?;
+let mut body = RequestBody::start(io(), content_type, content_length, true, &limits)?;
 for chunk in chunks {
     body.feed(io(), chunk)?; // 본문의 첫 실패. kind와 상태를 가진다
 }

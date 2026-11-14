@@ -179,7 +179,7 @@ fn streamed() {
         let kind = kind.as_deref();
         let body = bytes(&case["body"]);
         let chunk = usize::try_from(number(case, "chunk")).unwrap_or_else(|_| panic!("{label}: chunk"));
-        let mut read = RequestBody::start(io(), kind, None, case["stream"] == json!(true), limits(case))
+        let mut read = RequestBody::start(io(), kind, None, case["stream"] == json!(true), &limits(case))
             .unwrap_or_else(|error| panic!("{label}: {error}"));
         let place = scratch(label);
         // `stopped` is true when a chunk failed, after which the host reads no more (H-5).
@@ -268,10 +268,10 @@ fn uploaded() {
         let label = id(case);
         // F-22.2, H-24: the content is bytes, as the characters of the text are.
         let file = UploadedFile::from_value(
-            string(case, "name").to_owned(),
-            string(case, "filename").to_owned(),
-            string(case, "content_type").to_owned(),
-            bytes(&case["content"]),
+            string(case, "name"),
+            string(case, "filename"),
+            string(case, "content_type"),
+            &bytes(&case["content"]),
         )
         .unwrap_or_else(|error| panic!("{label}: {error}"));
         let content = file.content(io()).unwrap_or_else(|error| panic!("{label}: {error}"));
@@ -290,10 +290,10 @@ fn uploaded() {
 /// A file that an application makes from the keys of `from_value` (G-5).
 fn value_file(case: &Value) -> UploadedFile {
     match UploadedFile::from_value(
-        string(case, "name").to_owned(),
-        string(case, "filename").to_owned(),
-        string(case, "content_type").to_owned(),
-        bytes(&case["content"]),
+        string(case, "name"),
+        string(case, "filename"),
+        string(case, "content_type"),
+        &bytes(&case["content"]),
     ) {
         Ok(file) => file,
         Err(error) => panic!("{}: {error}", id(case)),
@@ -400,7 +400,7 @@ fn removed_body(case: &Value) -> RequestBody {
         return made_body(&case["receiver"]);
     }
     let label = id(case);
-    RequestBody::start(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
+    RequestBody::start(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), &limits(case))
         .unwrap_or_else(|error| panic!("{label}: {error}"))
 }
 

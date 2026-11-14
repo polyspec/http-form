@@ -415,8 +415,11 @@ These are the decisions of a server that uses the library, which no rule of this
   kind of this library, with the status 400 that a request with such a `Content-Type` gets; its error holds the failure
   of http-media-type (F-12), so the contract names no kind of that library and forwards no property of it. `RequestBody`
   implements `binding_core::Cleanup` (its cleanup call is `remove`) and `Error` implements `binding_core::Kinds`.
-  1. The core functions take and return the Rust types of the contract types (binding design I-2 (1), T-1, T-2): a
-     result is an owned value (`String`, `Vec<u8>`, `PathBuf`, `Vec`), `Fields` and `Files` are the lists
+  1. The core functions take and return the Rust types of the contract types (binding design I-2 (1), T-1, T-2): an
+     argument is borrowed as the generated code passes it (binding GN-6), a `text` as `&str`, `bytes` as `&[u8]` and a
+     record as a reference, so `read_held_body` and `RequestBody::start` take `&BodyLimits` and
+     `UploadedFile::from_value` takes `&str` and `&[u8]`, because the contract has no form of an argument that is
+     passed by value; a result is an owned value (`String`, `Vec<u8>`, `PathBuf`, `Vec`), `Fields` and `Files` are the lists
      `list<tuple<text, list<…>>>`, and `Form` and `BodyLimits` are records (design T-4), so `file_over` is a function of
      the files and not a member of `Form`. Every member of the contract is a function of the core, the properties
      `removalKind` and `removalErrno` of `PartialTargetError` included, which fail with `internal` on another kind.

@@ -135,9 +135,9 @@ impl RequestBody {
         content_type: Option<&[u8]>,
         content_length: Option<&[u8]>,
         stream: bool,
-        limits: BodyLimits,
+        limits: &BodyLimits,
     ) -> Result<Self, Error> {
-        let BodyLimits { limit, value_limit, part_limit, file_limit } = limits;
+        let BodyLimits { limit, value_limit, part_limit, file_limit } = *limits;
         if let Some(value) = content_length {
             match parse_content_length(value)? {
                 Some(length) if length <= limit => {}
