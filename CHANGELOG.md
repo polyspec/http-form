@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The record `form` is in the module `body` of the contract, beside `request_body`, whose `parts` gives it. In the
+  module `forms` it made the Go packages of `body` and `forms` import each other, which Go refuses, so `binding
+  generate --target go` of a later binding refused the contract (GN-15a); with the record in `body`, `forms` imports
+  `body` alone, and a later binding generates PHP, Python, Node, WASM and Go. The record is
+  `body.Form` in Go; the other targets name it as before.
+
 - `contracts/fields.json` holds the case `a_second_removal_does_nothing` of `request_body.remove`, whose receiver removes
   the body in its `then`, so the case calls the removal a second time and requires that it does nothing (F-10). The
   removal is the cleanup of `request_body` with the receiver `&mut self`, so the object stays after it and a caller can

@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1b17775ba81124551368a4d2a867ab2b5cbdbf543a5e429280080ce411c86556 -->
+<!-- source-sha256: 92ca5167ca6915389331f223d5d7bfcbc6492b5e367c68855624098742e7d749 -->
 
 ## Unreleased
+
+- record `form`은 계약의 module `body`에, 그것을 주는 `parts`를 가진 `request_body` 옆에 있다. module `forms`에 있으면
+  `body`와 `forms`의 Go package가 서로 import하고 Go는 그것을 거부하므로, 더 뒤의 binding의 `binding generate --target go`가
+  계약을 거부했다(GN-15a). record가 `body`에 있으면 `forms`는 `body`만 import하고, 더 뒤의 binding이 PHP, Python, Node,
+  WASM, Go를 생성한다. record는 Go에서 `body.Form`이고, 다른 target은 그것을 전과 같이 부른다.
 
 - `contracts/fields.json`이 `request_body.remove`의 case `a_second_removal_does_nothing`를 가진다. 그 receiver가 `then`에서
   body를 지우므로 case는 제거를 두 번째로 부르고 그것이 아무것도 하지 않기를 요구한다(F-10). 제거는 receiver가

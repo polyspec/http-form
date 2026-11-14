@@ -843,7 +843,7 @@
       "name": [
         "form"
       ],
-      "module": "forms",
+      "module": "body",
       "kind": "record",
       "visibility": "public",
       "origin": "generated",
