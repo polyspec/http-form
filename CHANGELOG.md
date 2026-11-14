@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- binding is a released dependency. `polyspec-binding-core` of the core and of the binding crates names the tag
+  `v0.0.2` of the binding repository in place of the branch `v1/rust-core`, binding scaffold of 0.0.2 wrote the binding
+  packages again (the license and the build script of the Python crate, the napi targets of the Node package, the
+  download method of the PHP extension), and `Cargo.lock` pins the commit of the tag and http-media-type at the head of
+  its branch, whose binding crates name the same tag; the dependency on http-media-type stays on its branch until
+  http-media-type releases a tag. The tool is the npm package `@polyspec/binding` of the same release, which
+  `package.json` names by the URL of its release asset and `package-lock.json` pins by its integrity; the recipes run
+  its `dist/cli.js`, and the new target `make install-binding`, which `make install` and every job of CI run, runs
+  `cargo fetch --locked`, because binding reads the crates with `cargo metadata --locked --offline`.
+  `scripts/binding.mts`, which cloned binding into `var/binding`, is removed. The new test
+  `tests/scripts/binding.test.mts` failed its four tests on the branch dependency and passes with the release. binding
+  0.0.2 generates PHP, Python, Node, WASM and Go for the contract, and `binding check` and `binding check --release`
+  give no finding.
+
 - The record `form` is in the module `body` of the contract, beside `request_body`, whose `parts` gives it. In the
   module `forms` it made the Go packages of `body` and `forms` import each other, which Go refuses, so `binding
   generate --target go` of a later binding refused the contract (GN-15a); with the record in `body`, `forms` imports

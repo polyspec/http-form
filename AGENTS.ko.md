@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: ac39347669eb6a32c18c544f7fd322885553a9a6b96a6c26d560e4b3d00a1d1d -->
+<!-- source-sha256: d8ff3fec0454935f5c5cdc222913acb1ba8418f5509cfcdcd9e56e74e3f330e1 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -23,9 +23,15 @@
   node --test(Node, 그리고 `make node-package`가 묶어 설치하는 같은 package의 하위 경로 `./wasm`으로 WASM),
   PHPUnit, go test. 생성기가 받지 않는 target은 원인과 함께 실패하는 target으로 남는다. 어떤 target도 빼거나
   건너뛰지 않는다(binding BD-27).
-- binding은 `Cargo.lock`이 고정한 `polyspec-binding-core`의 commit의 생성기다. `scripts/binding.mts`는 Cargo가 그
-  commit으로 만든 checkout을 `var/binding/<commit>`에 clone하고 그 `package-lock.json`으로 의존을 설치한다. 그래서
-  생성기와 `binding_core`는 한 version이다. 변수 `PYTHON`(3.14 이상), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`,
+- `polyspec-binding-core`는 코어와 바인딩 crate가 binding 저장소의 tag `v0.0.2`, 곧 그 release에 두는 Git 의존성이고,
+  `Cargo.lock`이 그 tag의 commit을 고정한다. `polyspec-http-media-type`은 http-media-type이 tag를 내기 전까지(T1.13)
+  바인딩 crate가 같은 tag를 적는 commit에서 http-media-type의 브랜치 `v1/rust-core`에 남는다. binding 자체는 같은
+  release의 npm package `@polyspec/binding`이다. `package.json`이 그것을 release asset의 URL로 적고 `package-lock.json`이
+  그 integrity로 고정한다. 그래서 생성기와 `binding_core`는 한 version이다(G-6). binding check는 `Cargo.lock`의 tag를
+  자기 것으로 받는다(CK-20). recipe는 `node_modules/@polyspec/binding/dist/cli.js`를 실행한다. bootstrap과 `make
+  install-packages`가 그것을 설치하고, `make install-binding`이 binding이 `cargo metadata --locked --offline`으로 읽는
+  `Cargo.lock`의 crate를 받는다(`cargo fetch --locked`). `tests/scripts/binding.test.mts`가 tag, asset, 그 integrity, 이
+  recipe를 요구한다. 변수 `PYTHON`(3.14 이상), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`,
   `WASM_BINDGEN`은 `var/tools`와 `vendor/`의 도구를 가리키고(도구 절 참고), `make test-python`은 `MATURIN`의 maturin을
   시험의 가상 환경에 설치한다. `make test-go`는
   `packages/go/go.mod`의 go 지시문과 다른 release의 Go를 실패시키고 `GOTOOLCHAIN=local`로 실행해 toolchain을 받지
@@ -92,7 +98,7 @@
   manifest의 version이기도 하며, binding scaffold가 코어의 version으로 그 manifest를 쓴다.
 - release는 `main`에서 성공한 `ci.yml`의 push 실행이나 수동 실행의 commit이다. version-bump commit `chore(release):
   Release X.Y.Z`는 코어의 version(루트 `Cargo.toml`의 `[workspace.package]`의 `version`)을 정하고, binding
-  scaffold(`node scripts/binding.mts scaffold --contract packages/rust/interface.json`)로 binding manifest를 다시 쓰며,
+  scaffold(`node node_modules/@polyspec/binding/dist/cli.js scaffold --contract packages/rust/interface.json`)로 binding manifest를 다시 쓰며,
   `Cargo.lock`의 로컬 package version을 맞추고, 두 changelog의 `## Unreleased`를 `## X.Y.Z`로 바꾸고 그 위에 빈
   `## Unreleased`를 둔다. 그 push의 CI 실행이 성공하면 `.github/workflows/release.yml`이 스스로 시작하고, `gh workflow run
   release.yml -f run=<id>`가 그것을 다시 시작한다. `make release-tag`가 그 commit에 annotated tag `vX.Y.Z`를 만들어

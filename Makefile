@@ -32,8 +32,9 @@ CARGO := cargo
 CARGOFLAGS ?=
 # make runs a recipe line without shell syntax through the PATH of its own environment, not the PATH that this file
 # exports, so the recipes name the node and the npm of var/tools by their paths. binding is the generator of the commit
-# that Cargo.lock pins, which scripts/binding.mts runs.
-BINDING := $(NODE) scripts/binding.mts
+# that Cargo.lock pins: the tool @polyspec/binding of that release, which package.json names and npm installs (make
+# install-packages), so the generator and binding_core are one version (G-6).
+BINDING := $(NODE) $(CURDIR)/node_modules/@polyspec/binding/dist/cli.js
 # The language runtimes. PHP is the binary whose headers the extension is built against (PHP_CONFIG) and that loads it.
 # Both are paths, because ext-php-rs reads PHP as the path of a file: the wrappers of var/tools/bin that make
 # install-tools writes for the PHP of .php-version. PYTHON is the Python of mise.toml, whose shim PATH names first, and
@@ -61,7 +62,7 @@ CORE := polyspec-http-form
 TARGETS := php python node go wasm
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
-.PHONY: bootstrap docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
+.PHONY: bootstrap install-binding docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
 	test-python node-package test-node test-wasm test-php test-go test-scripts install install-tools install-packages toolchain-lock install-php-tools ci-targets \
 	ci-summary ci-passed release-tag release-checkout release-prepare release-tools release-tools-path release-assets \
 	release-publish release-undraft release-coverage
@@ -106,6 +107,7 @@ install:
 	$(MAKE) --no-print-directory install-tools TOOLS=npm
 	$(MAKE) --no-print-directory install-packages
 	$(MAKE) --no-print-directory install-tools
+	$(MAKE) --no-print-directory install-binding
 
 # TOOLS=npm runs the bootstrap of kit, which imports only Node.js built-ins, with the Node.js of the machine; any other TOOLS
 # names tools of kit, such as go or rust, and no TOOLS installs every declared tool.
@@ -118,6 +120,11 @@ endif
 
 install-packages:
 	$(ONLINE) $(NPM) ci
+
+# install-binding fetches the crates of Cargo.lock, which binding reads with cargo metadata --locked --offline; the
+# binding targets fail while they are missing.
+install-binding:
+	$(ONLINE) $(CARGO) fetch --locked
 
 # toolchain-lock writes mise.lock with the mise of var/tools for the platforms of the deployment targets.
 TOOLCHAIN_LOCK_PLATFORMS := linux-x64,linux-arm64,macos-arm64

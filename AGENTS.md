@@ -25,9 +25,16 @@ rules of this repository.
   node --test (Node, and WASM through the subpath `./wasm` of the same installed package, which `make node-package`
   packs and installs), PHPUnit and go test. A target that the generator does not take stays a failing target with its
   cause; no target is left out or skipped (binding BD-27).
-- binding is the generator of the commit of `polyspec-binding-core` that `Cargo.lock` pins: `scripts/binding.mts`
-  clones the checkout that Cargo made of that commit into `var/binding/<commit>` and installs its dependencies there by
-  its `package-lock.json`, so that the generator and `binding_core` are one version. The variables `PYTHON` (3.14 or
+- `polyspec-binding-core` is a Git dependency of the core and of the binding crates on the tag `v0.0.2` of the binding
+  repository, its release, and `Cargo.lock` pins the commit of that tag; `polyspec-http-media-type` stays on the branch
+  `v1/rust-core` of http-media-type, at a commit whose binding crates name the same tag, until http-media-type releases
+  a tag (T1.13). binding itself is the npm package `@polyspec/binding` of the same release, which `package.json` names
+  by the URL of its release asset and `package-lock.json` pins by its integrity, so that the generator and
+  `binding_core` are one version (G-6); binding check takes the tag of `Cargo.lock` as its own (CK-20). The recipes run
+  `node_modules/@polyspec/binding/dist/cli.js`; the bootstrap and `make install-packages` install it, and `make
+  install-binding` fetches the crates of `Cargo.lock` (`cargo fetch --locked`), which binding reads with `cargo
+  metadata --locked --offline`. `tests/scripts/binding.test.mts` requires the tag, the asset, its integrity and these
+  recipes. The variables `PYTHON` (3.14 or
   later), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT` and `WASM_BINDGEN` name the tools of `var/tools` and `vendor/`
   (see Tools), and `make test-python` installs the maturin of `MATURIN` into the virtual environment of the test. `make test-go` fails a Go of
   another release than the go directive of `packages/go/go.mod` and runs it with `GOTOOLCHAIN=local`, so that it
@@ -98,7 +105,7 @@ rules of this repository.
   of the binding manifests, which binding scaffold writes from the version of the core.
 - A release is the commit of a successful push or manual run of `ci.yml` on `main`. The version-bump commit
   `chore(release): Release X.Y.Z` sets the version of the core (`version` of `[workspace.package]` of the root
-  `Cargo.toml`), writes the binding manifests again with binding scaffold (`node scripts/binding.mts scaffold --contract
+  `Cargo.toml`), writes the binding manifests again with binding scaffold (`node node_modules/@polyspec/binding/dist/cli.js scaffold --contract
   packages/rust/interface.json`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
   of both changelogs to `## X.Y.Z`, with a new empty `## Unreleased` above it. When the CI run of that push succeeds,
   `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make

@@ -1,7 +1,18 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 92ca5167ca6915389331f223d5d7bfcbc6492b5e367c68855624098742e7d749 -->
+<!-- source-sha256: 4c5528a71f1365ab21134dab1a2f80c78c36c2c347bf42984805edcc332c8cff -->
 
 ## Unreleased
+
+- binding은 release된 의존이다. 코어와 바인딩 crate의 `polyspec-binding-core`가 브랜치 `v1/rust-core` 대신 binding
+  저장소의 tag `v0.0.2`를 적고, 0.0.2의 binding scaffold가 바인딩 package를 다시 썼으며(Python crate의 license와 build
+  script, Node package의 napi target, PHP 확장의 download method), `Cargo.lock`이 그 tag의 커밋과, 바인딩 crate가 같은
+  tag를 적는 브랜치 head의 http-media-type을 고정한다. http-media-type 의존은 http-media-type이 tag를 낼 때까지 그 브랜치에
+  남는다. 도구는 같은 release의 npm package `@polyspec/binding`이고, `package.json`이 그것을 release asset의 URL로 적고
+  `package-lock.json`이 그 integrity로 고정한다. recipe는 그 `dist/cli.js`를 실행하고, binding이 crate를 `cargo metadata
+  --locked --offline`으로 읽으므로 `make install`과 CI의 모든 job이 실행하는 새 target `make install-binding`이 `cargo
+  fetch --locked`를 실행한다. binding을 `var/binding`에 clone하던 `scripts/binding.mts`는 지웠다. 새 시험
+  `tests/scripts/binding.test.mts`는 브랜치 의존에서 네 시험 모두 실패했고 release로 통과한다. binding 0.0.2는 이 계약의
+  PHP, Python, Node, WASM, Go를 생성하고, `binding check`와 `binding check --release`는 finding을 내지 않는다.
 
 - record `form`은 계약의 module `body`에, 그것을 주는 `parts`를 가진 `request_body` 옆에 있다. module `forms`에 있으면
   `body`와 `forms`의 Go package가 서로 import하고 Go는 그것을 거부하므로, 더 뒤의 binding의 `binding generate --target go`가

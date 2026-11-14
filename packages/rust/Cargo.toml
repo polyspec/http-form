@@ -24,7 +24,7 @@ fault-test = ["polyspec-binding-core/fault-test"]
 [dependencies]
 memchr = "2"
 # The wait token `Io` of a function that does blocking I/O (binding design I-2 (4), spec F-17).
-polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", branch = "v1/rust-core" }
+polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", tag = "v0.0.2" }
 polyspec-http-media-type = { git = "https://github.com/polyspec/http-media-type.git", branch = "v1/rust-core" }
 rustix = { version = "1", default-features = false, features = ["fs", "std"], optional = true }
 tempfile = { version = "3", optional = true }
@@ -32,7 +32,7 @@ tempfile = { version = "3", optional = true }
 [dev-dependencies]
 # Only generated code makes a wait token; the tests make it through the feature `construct` (spec F-17). The tests arm
 # the fault injection points of the contract cases through the feature `fault-test` (G-5).
-polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", branch = "v1/rust-core", features = ["construct", "fault-test"] }
+polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", tag = "v0.0.2", features = ["construct", "fault-test"] }
 # The points are judged by the feature fault-test of this crate, which writes them (binding GN-5), so the tests turn it
 # on.
 polyspec-http-form = { path = ".", features = ["fault-test"] }
