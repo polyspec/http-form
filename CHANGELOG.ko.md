@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3c1403d73181084d9badbc2c77364c63d3047809167cf6bd5ceb28699bd2f77a -->
+<!-- source-sha256: 832ecd58e7a0a1416f0482819f56163099c49498940b4d31e4c68e723b98ea31 -->
 
 ## Unreleased
+
+- `[profile.release]`가 `lto = false`를 정한다. 전에는 `lto = true`를 정했고, 그러면 Go 정적 라이브러리를
+  http-media-type의 정적 라이브러리와 함께 링크하는 Go program이 `rust_eh_personality` 같은 중복 symbol로 실패하며(binding
+  GN-15i, CK-91), 이후 binding의 `binding check`가 CK-91을 보고한다. Cargo는 `lto`를 profile 전체에 정하므로 release의 PHP
+  확장, Node addon, wheel도 LTO 없이 빌드된다. 새 시험 `tests/scripts/profile.test.mts`가 `Cargo.toml`과
+  `.cargo/config.toml`의 profile을 읽는다. 변경 전에는 `make test-scripts`가 시험 하나에 실패했고, 변경 후에는 모든 시험이
+  통과했다.
 
 - 계약은 `request_body`에 생성자가 없다고 적지 않았다. binding은 `constructible: false`가 없는 class를 생성자가 있는
   것으로 읽으므로, `binding generate`는 static member `start`만 있는 `request_body`를 모든 target에서

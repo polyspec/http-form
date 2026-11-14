@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 9472ade1d34b0c5a13d3bbd8d26226bd9672709bc27c66ec80e631e3b33fa6e0 -->
+<!-- source-sha256: ac39347669eb6a32c18c544f7fd322885553a9a6b96a6c26d560e4b3d00a1d1d -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -61,6 +61,11 @@
   작업은 그 checklist의 행이며, 확인 명령이 commit된 tree에서 통과한 뒤에만 `[o]`로 표시한다. commit 전에 그것을
   실행한다. 한국어 쌍을 다시 번역한 뒤에는 `make documents-stamp PATHS=<쌍>`이 그 `source-sha256`을 쓴다. marker는 손으로
   쓰지 않는다.
+- `Cargo.toml`의 `[profile.release]`는 `lto = false`를 정한다(binding GN-15i, CK-91). Go 정적 라이브러리는 release
+  profile로 빌드되고, LTO는 표준 라이브러리와 `binding_core`를 그 하나의 object에 넣으므로, Go program이 그것을
+  http-media-type의 정적 라이브러리와 함께 링크하면 `rust_eh_personality` 같은 중복 symbol로 실패한다. Cargo는 `lto`를
+  package 하나가 아니라 profile 전체에 정하므로 profile 자체가 LTO를 끄고, release의 PHP 확장, Node addon, wheel도 LTO
+  없이 빌드된다. `tests/scripts/profile.test.mts`가 이 profile을 요구한다.
 
 ## 도구
 

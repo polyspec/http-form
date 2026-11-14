@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `[profile.release]` sets `lto = false`; before, it set `lto = true`, with which a Go program that links the Go static
+  library beside the static library of http-media-type fails with duplicate symbols such as `rust_eh_personality`
+  (binding GN-15i, CK-91), and `binding check` of a later binding reports CK-91. Cargo sets `lto` for a whole profile,
+  so the PHP extension, the Node addon and the wheel of a release are built without LTO too. The new test
+  `tests/scripts/profile.test.mts` reads the profile of `Cargo.toml` and `.cargo/config.toml`: before the change `make
+  test-scripts` failed one test, with it every test passed.
+
 - The contract did not state that `request_body` has no constructor. binding reads a class without
   `constructible: false` as one with a constructor, so `binding generate` refused `request_body`, which has the static
   member `start` alone, for every target (binding U-1). The unit `request_body` names `constructible: false`, F-9 names

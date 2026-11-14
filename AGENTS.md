@@ -64,6 +64,12 @@ rules of this repository.
   repository is `docs/plans/rust-core/plan.md`; a task is a row of that checklist, marked `[o]` only after its
   verification command passed on the committed tree. Run it before a commit. After a Korean twin is translated again,
   `make documents-stamp PATHS=<twin>` writes its `source-sha256`; no marker is written by hand.
+- `[profile.release]` of `Cargo.toml` sets `lto = false` (binding GN-15i, CK-91). The Go static library is built with
+  the release profile, and LTO would put the standard library and `binding_core` into its one object, so a Go program
+  that links it beside the static library of http-media-type would fail with duplicate symbols such as
+  `rust_eh_personality`. Cargo sets `lto` for a whole profile and not for one package, so the profile itself keeps LTO
+  off, and the PHP extension, the Node addon and the wheel of a release are built without it too.
+  `tests/scripts/profile.test.mts` requires the profile.
 
 ## Tools
 
