@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The Go files `zz_generated_*.go` that binding owns in the Go module are not tracked (`.gitignore`): a release adds
+  them to the commit of its Go tag (binding GN-15g, CK-19), and a tracked copy differs from what the pinned binding
+  writes after every change of the pin. Before, `AGENTS.md` tracked them once `make bindings` wrote them, and the first
+  generation of Go with binding 0.0.2 committed 24 of them.
+
 - binding is a released dependency. `polyspec-binding-core` of the core and of the binding crates names the tag
   `v0.0.2` of the binding repository in place of the branch `v1/rust-core`, binding scaffold of 0.0.2 wrote the binding
   packages again (the license and the build script of the Python crate, the napi targets of the Node package, the

@@ -44,7 +44,10 @@ rules of this repository.
 - The generated folders `generated/` of the binding packages, `packages/ts/wasm/generated` and
   `packages/go/internal/ffi/generated` are not tracked, nor is `var/`, which holds the virtual environment, the wheel
   and the installed npm packages of the tests. In the Go module binding owns the files `zz_generated_*.go` (binding
-  GN-3); they are tracked once `make bindings` writes them, because a Go module is fetched as source.
+  GN-3), which `make bindings` writes. They are not tracked, and neither is a static library of
+  `packages/go/internal/ffi/lib/<platform>`: a release adds both in the commit of its Go tag, because Go fetches a
+  module as the source of a tag (binding GN-15g, CK-19), and a tracked copy would differ from what the pinned binding
+  writes after every change of the pin.
 - On macOS a PHP extension and a Node addon take the symbols of their runtime when it loads them, so
   `.cargo/config.toml` tells the linker to leave them undefined, and the recipes name the library that Cargo builds by
   the extension of the platform (`dylib` on macOS, `so` on Linux).

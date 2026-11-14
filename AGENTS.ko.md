@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: d8ff3fec0454935f5c5cdc222913acb1ba8418f5509cfcdcd9e56e74e3f330e1 -->
+<!-- source-sha256: 58f40378ada574569ff79a52ef2bf6a87310c95ce9ea949ef7b299e5a489a4ec -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -40,8 +40,10 @@
   모든 cargo build에 인자를 더한다.
 - 바인딩 package의 생성 폴더 `generated/`, `packages/ts/wasm/generated`, `packages/go/internal/ffi/generated`는
   추적하지 않는다. 시험의 가상 환경, wheel, 설치한 npm package를 담는 `var/`도 추적하지 않는다. Go module에서
-  binding은 `zz_generated_*.go` 파일을 소유한다(binding GN-3). Go module은 소스로 받아지므로, `make bindings`가 그
-  파일을 쓰면 추적한다.
+  binding은 `zz_generated_*.go` 파일을 소유하고(binding GN-3), `make bindings`가 그 파일을 쓴다. 이 파일들과
+  `packages/go/internal/ffi/lib/<platform>`의 정적 라이브러리는 추적하지 않는다. Go는 module을 tag의 소스로 받으므로
+  release가 둘을 Go tag의 commit에 더하고(binding GN-15g, CK-19), 추적한 사본은 pin이 바뀔 때마다 고정된 binding이 쓰는
+  것과 달라지기 때문이다.
 - macOS에서 PHP 확장과 Node addon은 runtime이 불러올 때 그 runtime의 기호를 받는다. 그래서 `.cargo/config.toml`이
   linker에게 그 기호를 정의하지 않은 채 두게 하고, recipe는 Cargo가 빌드하는 library를 platform의 확장자(macOS는
   `dylib`, Linux는 `so`)로 부른다.

@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4c5528a71f1365ab21134dab1a2f80c78c36c2c347bf42984805edcc332c8cff -->
+<!-- source-sha256: 74d8870b03d0eccf68e13c045b64d139123abbe36b8f259bd5e6c17294f97cf4 -->
 
 ## Unreleased
+
+- binding이 Go module에서 소유하는 Go 파일 `zz_generated_*.go`는 추적하지 않는다(`.gitignore`). release가 그것을 Go
+  tag의 commit에 더하고(binding GN-15g, CK-19), 추적한 사본은 pin이 바뀔 때마다 고정된 binding이 쓰는 것과 달라진다.
+  전에는 `AGENTS.md`가 `make bindings`가 그것을 쓰면 추적한다고 했고, binding 0.0.2로 처음 생성한 Go에서 그 파일 24개가
+  commit되었다.
 
 - binding은 release된 의존이다. 코어와 바인딩 crate의 `polyspec-binding-core`가 브랜치 `v1/rust-core` 대신 binding
   저장소의 tag `v0.0.2`를 적고, 0.0.2의 binding scaffold가 바인딩 package를 다시 썼으며(Python crate의 license와 build

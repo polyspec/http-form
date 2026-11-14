@@ -9,6 +9,9 @@ __pycache__/
 /packages/php-ext/generated/
 /packages/ts/wasm/generated/
 /packages/go/internal/ffi/generated/
+# The Go files that binding owns in the Go module (binding GN-3); a release adds them to the commit of its Go tag
+# (binding GN-15g, CK-19).
+/packages/go/**/zz_generated_*.go
 # The virtual environment, the wheels and the installed npm packages of the binding tests.
 /var/
 /node_modules/
