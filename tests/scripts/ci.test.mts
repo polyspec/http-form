@@ -2,6 +2,7 @@
 // every tool of a recipe is pinned in a tracked file and installed into var/tools, no recipe takes a tool of the
 // machine, and a workflow runs pinned actions and one make target per command on ubuntu-26.04-arm without a time limit.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -105,4 +106,20 @@ test('the release configuration names the repository and a version 0.0.x', () =>
   assert.ok(module !== undefined, 'packages/go/go.mod names no module');
   assert.deepEqual(release.goModules, { 'packages/go': module }, 'goModules names the Go module of the binding');
   assert.match(/^\[workspace\.package\][^[]*?^version = "([^"]+)"$/ms.exec(read('Cargo.toml'))?.[1] ?? '', /^0\.0\.\d+$/, 'the version is 0.0.x');
+});
+
+test('make bootstrap installs the lock with the npm of devEngines, outside the checkout, through ONLINE (T1.21)', () => {
+  const npm = (JSON.parse(read('package.json')) as { devEngines?: { packageManager?: { version?: string } } }).devEngines?.packageManager?.version;
+  assert.match(npm ?? '', EXACT, 'devEngines names an exact npm');
+  const lines = execFileSync('make', ['--dry-run', '--no-print-directory', 'bootstrap', 'ONLINE=ONLINE-MARK'], {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, MAKEFLAGS: '', MAKELEVEL: '' },
+    stdio: ['ignore', 'pipe', 'ignore'],
+  }).split('\n').filter((line) => line !== '');
+  const recipe = lines.join('\n');
+  assert.match(recipe, /devEngines\.packageManager\.version/, `the recipe does not read devEngines:\n${recipe}`);
+  assert.match(recipe, /exec --yes --package="npm@\$version" -- npm --prefix "\$root" ci --ignore-scripts/, `the recipe does not install the lock:\n${recipe}`);
+  assert.match(recipe, /cd "\$\{TMPDIR:-\/tmp\}"/, `the recipe runs inside the checkout:\n${recipe}`);
+  assert.match(recipe, /ONLINE-MARK /, `the download does not run through $(ONLINE):\n${recipe}`);
 });

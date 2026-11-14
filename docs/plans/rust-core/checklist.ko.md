@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: 219a095be38405b16415cb6d7826a10ae3b19325fd3aff24400b65551dd77039 -->
+<!-- source-sha256: f435f97772e24da78ba269d7200c90f69bcac14518cc34b55b55e4f064f63485 -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -24,3 +24,4 @@
 | T1.18 | binding의 release에 의존한다. 코어와 바인딩 crate의 `polyspec-binding-core`가 `branch = "v1/rust-core"` 대신 binding 저장소의 `tag = "v0.0.2"`를 적고, binding scaffold가 바인딩 crate를 다시 쓰고, `Cargo.lock`이 그 tag의 commit과, 바인딩 crate가 같은 tag를 적는 브랜치 commit의 http-media-type을 고정한다. http-media-type 의존은 http-media-type이 tag를 낼 때까지 그 브랜치에 남는다. `make install-binding`이 binding이 offline으로 읽는 `Cargo.lock`의 crate를 받고, 도구는 `package.json`이 그 asset으로 적는 release의 `@polyspec/binding`이다. 이후 binding은 `then` 호출의 두 형태를 읽고 CK-22 finding을 내지 않으므로 T1.5와 T1.6이 이 행과 함께 재개된다. binding 0.0.2의 release를 기다린다 | `packages/rust/Cargo.toml`, `packages/*/Cargo.toml`, `Cargo.lock`, `AGENTS.md` | `make install-binding bindings-check` | [v] |
 | T1.19 | 바인딩 패키지를 플랫폼별로 release한다. abi3 wheel, PHP 확장, platform package를 가진 npm package, Go 정적 라이브러리가 `config/release.json`의 행이고, `package.json`이 고정하는 kit 0.0.111 이후가 그것을 묶는다. binding이 이 패키지의 release recipe를 생성하므로(binding B2.262) 이 저장소는 자기 recipe를 쓰지 않는다. 그 binding 행과 T1.18을 기다린다 | `config/release.json`, `package.json`, `package-lock.json`, `Makefile` | `make release-coverage` | [ ] |
 | T1.20 | 계약의 record `form`을 그것을 주는 `parts`를 가진 `request_body` 옆, module `body`에 둔다. module `forms`에 있으면 `body`와 `forms`의 Go package가 서로 import하고 Go는 그것을 거부하므로, 더 뒤의 binding이 계약의 Go를 거부했다(GN-15a). 그렇게 두면 `forms`는 `body`만 import하고, 더 뒤의 binding이 다섯 target을 생성한다 | `packages/rust/interface.json` | `make bindings-check bindings-go` | [o] |
+| T1.21 | 새 checkout을 저장소 절차만으로 설치한다. `make bootstrap`은 다른 release의 npm이 폴더를 거부하므로(EBADDEVENGINES) `package.json`의 `devEngines`가 적는 npm으로 checkout 밖에서 `--prefix`로 `package-lock.json`을 설치하고, 다른 모든 install target처럼 그 다운로드를 `$(ONLINE)`으로 실행한다. `tests/scripts/ci.test.mts`가 그 recipe를 dry run으로 읽는다 | `Makefile`, `tests/scripts/ci.test.mts`, `AGENTS.md` | `make test-scripts` | [~] |
