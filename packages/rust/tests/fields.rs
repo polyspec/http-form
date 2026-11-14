@@ -11,8 +11,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use common::{
-    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, number, raised, raises, stored_file,
-    string, text, Arming, Failures,
+    bytes, content_type, contract, fields_json, files_json, group, id, io, limits, made_body, number, raised, raises,
+    stored_file, string, text, Arming, Failures,
 };
 use polyspec_http_form::{
     fields_from_body, files_from_body, multipart_boundary, parse_urlencoded, Collector, Error, Form, Limits,
@@ -373,9 +373,7 @@ fn one_call() {
     }
     for case in group(&cases, "request_body.remove") {
         let label = id(case);
-        let mut read =
-            RequestBody::start(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
-                .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let mut read = removed_body(case);
         let directory = read.directory();
         let arming = Arming::of(case, "request_body.remove");
         let removed = arming.run(|| read.remove(io()));
@@ -393,6 +391,17 @@ fn one_call() {
         }
     }
     failures.check("one call");
+}
+
+/// The body of a case of `request_body.remove`: the body that the receiver of the case made, whose `then` may have
+/// removed it already (F-10, binding CK-76), or a new body of the arguments of the case.
+fn removed_body(case: &Value) -> RequestBody {
+    if case.get("receiver").is_some() {
+        return made_body(&case["receiver"]);
+    }
+    let label = id(case);
+    RequestBody::start(io(), content_type(case).as_deref(), None, case["stream"] == json!(true), limits(case))
+        .unwrap_or_else(|error| panic!("{label}: {error}"))
 }
 
 fn hex(bytes: &[u8]) -> String {

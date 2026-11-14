@@ -1,7 +1,13 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 832ecd58e7a0a1416f0482819f56163099c49498940b4d31e4c68e723b98ea31 -->
+<!-- source-sha256: 1b17775ba81124551368a4d2a867ab2b5cbdbf543a5e429280080ce411c86556 -->
 
 ## Unreleased
+
+- `contracts/fields.json`이 `request_body.remove`의 case `a_second_removal_does_nothing`를 가진다. 그 receiver가 `then`에서
+  body를 지우므로 case는 제거를 두 번째로 부르고 그것이 아무것도 하지 않기를 요구한다(F-10). 제거는 receiver가
+  `&mut self`인 `request_body`의 cleanup이므로 그 뒤에도 객체가 남고 호출자가 그것을 다시 부를 수 있다. 이후 binding의
+  `binding check`는 그런 case가 없는 계약에 CK-76을 보고하고, 그 case가 있으면 finding을 내지 않는다. 코어의 시험은
+  `request_body.remove`의 case에 receiver가 있으면 그 receiver에서 body를 가져온다(`packages/rust/tests/fields.rs`).
 
 - `[profile.release]`가 `lto = false`를 정한다. 전에는 `lto = true`를 정했고, 그러면 Go 정적 라이브러리를
   http-media-type의 정적 라이브러리와 함께 링크하는 Go program이 `rust_eh_personality` 같은 중복 symbol로 실패하며(binding

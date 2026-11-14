@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `contracts/fields.json` holds the case `a_second_removal_does_nothing` of `request_body.remove`, whose receiver removes
+  the body in its `then`, so the case calls the removal a second time and requires that it does nothing (F-10). The
+  removal is the cleanup of `request_body` with the receiver `&mut self`, so the object stays after it and a caller can
+  call it again; `binding check` of a later binding reports CK-76 for a contract without such a case and gives no
+  finding with it. The tests of the core take the body of a case of `request_body.remove` from its receiver when it has
+  one (`packages/rust/tests/fields.rs`).
+
 - `[profile.release]` sets `lto = false`; before, it set `lto = true`, with which a Go program that links the Go static
   library beside the static library of http-media-type fails with duplicate symbols such as `rust_eh_personality`
   (binding GN-15i, CK-91), and `binding check` of a later binding reports CK-91. Cargo sets `lto` for a whole profile,
