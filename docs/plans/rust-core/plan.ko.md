@@ -1,5 +1,5 @@
 <!-- doc-id: plan-rust-core -->
-<!-- source-sha256: 414e3d664970289e30acee5f8374d90670acb38cca9209e41cc6b035c21da3ad -->
+<!-- source-sha256: 472120f24381629d07d2d9f69e6f9f7c67a10293971f2a4a9f4a622483b993ec -->
 # Rust 코어
 
 [English](plan.md)
@@ -24,5 +24,6 @@ checklist는 각 단계가 앞 단계를 필요로 하는 순서를 따른다.
    바인딩(T1.11)이 있다. binding은 그 검사가 계약을 거부하는 동안 어떤 target도 생성하지 않으므로 넷은 binding을
    기다린다.
 5. checkout의 도구, GitHub의 검사, release(T1.12), 그다음 첫 release 0.0.1(T1.13). 첫 release는
-   http-media-type의 release 0.0.1에 그 tag로 의존하고 바인딩(T1.8~T1.11)을 기다린다. 플랫폼별 바인딩 패키지는 그다음
-   version에 온다(T1.19).
+   http-media-type의 release 0.0.2에 그 tag로 의존하고 바인딩(T1.8~T1.11, T1.23)을 기다리며 플랫폼별 바인딩 패키지를
+   갖는다. binding 0.0.3이 그 release recipe를 생성하고 workflow `assets.yml`이 각 플랫폼의 runner에서 그것을
+   빌드한다(T1.19).

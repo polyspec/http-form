@@ -25,5 +25,6 @@ The checklist follows the order in which each step needs the one before it:
    (T1.9), the end-to-end check of binding on this repository (T1.10) and the Go binding (T1.11). They wait for
    binding, which generates no target while its check refuses the contract.
 5. The tools of the checkout, the checks on GitHub and the release (T1.12), then the first release 0.0.1 (T1.13), which
-   depends on the release 0.0.1 of http-media-type by its tag and waits for the bindings (T1.8 to T1.11); the packages
-   of the bindings per platform come in the version after it (T1.19).
+   depends on the release 0.0.2 of http-media-type by its tag, waits for the bindings (T1.8 to T1.11, T1.23) and holds
+   the packages of the bindings per platform, which binding 0.0.3 generates the release recipes of and the workflow
+   `assets.yml` builds on the runner of each platform (T1.19).

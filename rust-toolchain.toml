@@ -1,5 +1,9 @@
 [toolchain]
 channel = "1.99.0"
-components = ["clippy", "rustfmt"]
-# The target of the WASM binding (binding GN-18, GN-14), for which the core builds without the feature `fs` (F-28).
-targets = ["wasm32-unknown-unknown"]
+# clippy is the lint of the Makefile. llvm-tools holds the llvm-strip that make release-go-static runs from the toolchain of
+# the checkout, never from PATH (binding GN-19b).
+components = ["clippy", "rustfmt", "llvm-tools"]
+# The target of the WASM binding (binding GN-18, GN-14), for which the core builds without the feature `fs` (F-28), and
+# the musl targets of the Go libraries that make release-go-static builds on a Linux host (binding GN-19b, GN-19h). The
+# install of the toolchain installs them, so a job that builds these needs no step of its own.
+targets = ["wasm32-unknown-unknown", "x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl"]

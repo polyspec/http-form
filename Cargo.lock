@@ -1002,6 +1002,16 @@ source = "git+https://github.com/polyspec/binding.git?tag=v0.0.2#6b988ea741eb8ec
 dependencies = [
  "indexmap",
  "libc",
+ "tokio-util",
+]
+
+[[package]]
+name = "polyspec-binding-core"
+version = "0.0.3"
+source = "git+https://github.com/polyspec/binding.git?tag=v0.0.3#6dfbfa7c9516dbc406c5b824c2e8c7ee8fd23831"
+dependencies = [
+ "indexmap",
+ "libc",
  "serde_json",
  "tokio",
  "tokio-util",
@@ -1012,7 +1022,7 @@ name = "polyspec-http-form"
 version = "0.0.1"
 dependencies = [
  "memchr",
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
  "polyspec-http-media-type",
  "rustix",
@@ -1024,7 +1034,7 @@ dependencies = [
 name = "polyspec-http-form-go"
 version = "0.0.1"
 dependencies = [
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
 ]
 
@@ -1035,7 +1045,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
 ]
 
@@ -1044,7 +1054,7 @@ name = "polyspec-http-form-php-ext"
 version = "0.0.1"
 dependencies = [
  "ext-php-rs",
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
 ]
 
@@ -1052,7 +1062,7 @@ dependencies = [
 name = "polyspec-http-form-python"
 version = "0.0.1"
 dependencies = [
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
  "pyo3",
 ]
@@ -1062,7 +1072,7 @@ name = "polyspec-http-form-wasm"
 version = "0.0.1"
 dependencies = [
  "js-sys",
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.3",
  "polyspec-http-form",
  "wasm-bindgen",
 ]
@@ -1072,7 +1082,7 @@ name = "polyspec-http-media-type"
 version = "0.0.1"
 source = "git+https://github.com/polyspec/http-media-type.git?tag=v0.0.1#410b9f2b27f2f28e2594a77ca7bbe868c13aee40"
 dependencies = [
- "polyspec-binding-core",
+ "polyspec-binding-core 0.0.2",
 ]
 
 [[package]]

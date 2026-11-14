@@ -57,54 +57,25 @@ test('no recipe takes a tool of the machine', () => {
   }
 });
 
-test('a workflow runs pinned actions and one make target per command', () => {
-  const makefile = read('Makefile');
-  const targets = new Set([...makefile.matchAll(/^([a-z][a-z0-9-]*):/gm)].map((match) => match[1] ?? ''));
-  const files = ['.github/workflows/ci.yml', '.github/workflows/release.yml', '.github/actions/bootstrap/action.yml'];
-  let runs = 0;
-  let uses = 0;
-  let jobs = 0;
-  for (const file of files) {
-    const lines = read(file).split('\n').filter((line) => !line.trim().startsWith('#'));
-    assert.ok(!lines.some((line) => /timeout-minutes/.test(line)), `${file} sets a time limit`);
-    // The steps are below `jobs:` of a workflow and `runs:` of an action; a key `run` above them is an input of the workflow.
-    const steps = lines.slice(lines.findIndex((line) => /^(jobs|runs):/.test(line)));
-    for (const line of steps) {
-      const runsOn = /^\s*runs-on:\s*(.+)$/.exec(line)?.[1];
-      if (runsOn !== undefined) {
-        jobs += 1;
-        assert.equal(runsOn.trim(), 'ubuntu-26.04-arm', `${file}: a job runs on ${runsOn}`);
-      }
-      const action = /^\s*-?\s*uses:\s*(\S+)/.exec(line)?.[1];
-      if (action !== undefined) {
-        uses += 1;
-        assert.ok(action.startsWith('./') || /@[0-9a-f]{40}$/.test(action), `${file}: ${action} is not pinned by a commit`);
-      }
-      const command = /^\s*-?\s*run:\s*(.*)$/.exec(line)?.[1];
-      if (command !== undefined) {
-        runs += 1;
-        const target = /^make ([a-z][a-z0-9-]*)(?: |$)/.exec(command)?.[1];
-        assert.ok(target !== undefined, `${file}: the command "${command}" is not one make target`);
-        assert.ok(targets.has(target), `${file}: the Makefile has no target ${target}`);
-      }
-    }
-  }
-  assert.ok(jobs >= 3 && uses > 0 && runs > 0, `the workflows were read: ${jobs} jobs, ${uses} actions, ${runs} commands`);
+// The runners, the pins, the time limits and the run steps of every workflow are checked by
+// tests/scripts/workflows.test.mts; this test checks the events and the last job of ci.yml.
+test('ci.yml runs on the push of main and on a manual run and ends with ci-passed', () => {
   const ci = read('.github/workflows/ci.yml');
   assert.match(ci, /^\s*branches: \[main\]$/m, 'ci.yml runs on the push of main');
   assert.match(ci, /workflow_dispatch/, 'ci.yml runs on a manual run');
   assert.match(ci, /^\s*ci-passed:$/m, 'ci.yml ends with the job ci-passed');
-  assert.ok(readdirSync(join(root, '.github/workflows')).length === 2, 'the workflows are ci.yml and release.yml');
+  assert.deepEqual(readdirSync(join(root, '.github/workflows')).sort(), ['assets.yml', 'ci.yml', 'release.yml'], 'the workflows are assets.yml, ci.yml and release.yml');
 });
 
 test('the release configuration names the repository and a version 0.0.x', () => {
-  const release = JSON.parse(read('config/release.json')) as { repositoryUrl?: string; manifests?: Record<string, string>; goModules?: Record<string, string> };
+  const release = JSON.parse(read('config/release.json')) as { repositoryUrl?: string; manifests?: Record<string, string>; notReleased?: Record<string, string>; goModules?: Record<string, string> };
   assert.equal(release.repositoryUrl, 'https://github.com/polyspec/http-form');
   assert.equal(release.manifests?.['packages/rust/Cargo.toml'], 'git-tag');
-  // The release tags the Go module below the root with packages/go/vX.Y.Z (binding GN-15g).
-  const module = /^module (\S+)$/m.exec(read('packages/go/go.mod'))?.[1];
-  assert.ok(module !== undefined, 'packages/go/go.mod names no module');
-  assert.deepEqual(release.goModules, { 'packages/go': module }, 'goModules names the Go module of the binding');
+  // make release-go-module tags the Go module below the root with packages/go/vX.Y.Z at the commit that carries its
+  // generated files and libraries (binding GN-19f), so no tag of kit releases it.
+  assert.ok(/^module \S+$/m.test(read('packages/go/go.mod')), 'packages/go/go.mod names no module');
+  assert.deepEqual(release.goModules, {}, 'goModules names no module');
+  assert.match(release.notReleased?.['packages/go/go.mod'] ?? '', /release-go-module/, 'notReleased names how the Go module is released');
   assert.match(/^\[workspace\.package\][^[]*?^version = "([^"]+)"$/ms.exec(read('Cargo.toml'))?.[1] ?? '', /^0\.0\.\d+$/, 'the version is 0.0.x');
 });
 

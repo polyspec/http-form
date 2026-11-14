@@ -17,3 +17,7 @@ __pycache__/
 /node_modules/
 # PHPUnit of composer.lock, which make install-php-tools installs.
 /vendor/
+# The release recipes that make release-recipes writes (binding GN-19h) and the folder of the npm platform packages that
+# make release-npm-platform packs; both are generated.
+/packages/release.mk
+/packages/ts/npm/
