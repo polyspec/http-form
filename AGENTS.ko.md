@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 58f40378ada574569ff79a52ef2bf6a87310c95ce9ea949ef7b299e5a489a4ec -->
+<!-- source-sha256: 760cdb17d79c93e08ae72f07ca6eb6a0fbfb90c3f0bf8ffeb54d28d16594819d -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -82,7 +82,9 @@
   release로 정하고 `mise.lock`은 그 digest를 정한다. `config/toolchain.json`은 mise의 release와 digest를,
   `rust-toolchain.toml`은 Rust toolchain과 target `wasm32-unknown-unknown`을, `.php-version`은 `var/tools/bin`의 wrapper가
   실행하는 PHP를, `composer.json`과 `composer.lock`은 `make install-php-tools`가 `vendor/`에 설치하는 PHPUnit을 정한다.
-  새 checkout은 `make bootstrap`을 실행하고(`package.json`의 `devEngines`의 npm으로 `package-lock.json`을 설치한다), 이어서
+  새 checkout은 `make bootstrap`을 실행하고(`package.json`의 `devEngines`의 npm으로 `package-lock.json`을 설치한다. 다른
+  release의 npm은 폴더를 거부하므로(EBADDEVENGINES) checkout 밖에서 `--prefix`로 설치하고, 모든 install target처럼
+  `$(ONLINE)`으로 내려받는다), 이어서
   `make install`을 실행한다. 모든 recipe는 `var/tools/bin`과 mise의 shim을 `PATH` 맨 앞에 두고 돈다.
 - `make test-scripts`는 `tests/scripts/ci.test.mts`를 실행한다. 이 시험은 추적 파일이 정확한 release로 고정하지 않은
   도구, 기계의 도구를 가리키는 Makefile의 도구 변수, Makefile의 make target 하나가 아닌 workflow step, commit으로

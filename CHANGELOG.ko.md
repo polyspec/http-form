@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 74d8870b03d0eccf68e13c045b64d139123abbe36b8f259bd5e6c17294f97cf4 -->
+<!-- source-sha256: eaeae118e17def97b437c06a68acf74cae296a210f015e6f3209473267b03bd3 -->
 
 ## Unreleased
+
+- `make bootstrap`이 다른 모든 install target처럼 그 다운로드를 `$(ONLINE)`으로 실행한다. 다른 release의 npm은 폴더를
+  거부하므로(EBADDEVENGINES) 그것은 `package.json`의 `devEngines`가 적는 npm으로 checkout 밖에서 `--prefix`로
+  `package-lock.json`을 설치한다. `tests/scripts/ci.test.mts`의 새 시험이 `ONLINE`에 표시를 준 dry run으로 recipe를
+  읽는다. 시험은 `$(ONLINE)`이 없는 recipe에서 실패했고 그것이 있으면 통과한다.
 
 - binding이 Go module에서 소유하는 Go 파일 `zz_generated_*.go`는 추적하지 않는다(`.gitignore`). release가 그것을 Go
   tag의 commit에 더하고(binding GN-15g, CK-19), 추적한 사본은 pin이 바뀔 때마다 고정된 binding이 쓰는 것과 달라진다.

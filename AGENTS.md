@@ -89,7 +89,9 @@ rules of this repository.
   the release of mise and its digests, `rust-toolchain.toml` the Rust toolchain with the target
   `wasm32-unknown-unknown`, `.php-version` the PHP, which the wrappers of `var/tools/bin` run, and `composer.json` with
   `composer.lock` PHPUnit, which `make install-php-tools` installs into `vendor/`. A fresh checkout runs `make
-  bootstrap`, which installs `package-lock.json` with the npm of `devEngines` of `package.json`, then `make install`.
+  bootstrap`, which installs `package-lock.json` with the npm of `devEngines` of `package.json` outside the checkout
+  with `--prefix`, because an npm of another release refuses the folder (EBADDEVENGINES), and downloads through
+  `$(ONLINE)` like every install target, then `make install`.
   Every recipe runs with `var/tools/bin` and the shims of mise first on `PATH`.
 - `make test-scripts` runs `tests/scripts/ci.test.mts`, which fails a tool that no tracked file pins by its exact
   release, a tool variable of the Makefile that names a tool of the machine, and a workflow step that is not one make

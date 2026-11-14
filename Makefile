@@ -98,7 +98,7 @@ check: fmt clippy test wasm-core docs-check test-scripts
 BOOTSTRAP_NPM := $(abspath $(shell command -v npm))
 bootstrap:
 	root="$$PWD"; version="$$(node -p 'require("./package.json").devEngines.packageManager.version')"; \
-	cd "$${TMPDIR:-/tmp}" && npm_config_cache="$$root/var/bootstrap/npm-cache" "$(BOOTSTRAP_NPM)" exec --yes --package="npm@$$version" -- npm --prefix "$$root" ci --ignore-scripts
+	cd "$${TMPDIR:-/tmp}" && $(ONLINE) npm_config_cache="$$root/var/bootstrap/npm-cache" "$(BOOTSTRAP_NPM)" exec --yes --package="npm@$$version" -- npm --prefix "$$root" ci --ignore-scripts
 
 # install installs, in order, the mise, node and npm of mise.toml, the packages of package-lock.json and the other tools:
 # those of mise.toml at the digests of mise.lock, the Rust toolchain of rust-toolchain.toml with its targets and the PHP

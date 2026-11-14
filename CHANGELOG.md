@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `make bootstrap` runs its download through `$(ONLINE)`, as every other install target does; it installs
+  `package-lock.json` with the npm that `devEngines` of `package.json` names, outside the checkout with `--prefix`,
+  because an npm of another release refuses the folder (EBADDEVENGINES). A new test of `tests/scripts/ci.test.mts`
+  reads the recipe by a dry run with a mark for `ONLINE`: it failed on the recipe without `$(ONLINE)` and passes with
+  it.
+
 - The Go files `zz_generated_*.go` that binding owns in the Go module are not tracked (`.gitignore`): a release adds
   them to the commit of its Go tag (binding GN-15g, CK-19), and a tracked copy differs from what the pinned binding
   writes after every change of the pin. Before, `AGENTS.md` tracked them once `make bindings` wrote them, and the first
