@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: ad17e78c9e08597e13fc481d9f580bbb4a93f0b2c0940f03a4f4ec1837b194ad -->
+<!-- source-sha256: 3fb2f751b01209ed59c512f56b5226f1e59871736549eee37b580ea13a7c2d40 -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -26,3 +26,4 @@
 | T1.20 | 계약의 record `form`을 그것을 주는 `parts`를 가진 `request_body` 옆, module `body`에 둔다. module `forms`에 있으면 `body`와 `forms`의 Go package가 서로 import하고 Go는 그것을 거부하므로, 더 뒤의 binding이 계약의 Go를 거부했다(GN-15a). 그렇게 두면 `forms`는 `body`만 import하고, 더 뒤의 binding이 다섯 target을 생성한다 | `packages/rust/interface.json` | `make bindings-check bindings-go` | [o] |
 | T1.21 | 새 checkout을 저장소 절차만으로 설치한다. `make bootstrap`은 다른 release의 npm이 폴더를 거부하므로(EBADDEVENGINES) `package.json`의 `devEngines`가 적는 npm으로 checkout 밖에서 `--prefix`로 `package-lock.json`을 설치하고, 다른 모든 install target처럼 그 다운로드를 `$(ONLINE)`으로 실행한다. `tests/scripts/ci.test.mts`가 그 recipe를 dry run으로 읽는다 | `Makefile`, `tests/scripts/ci.test.mts`, `AGENTS.md` | `make test-scripts` | [o] |
 | T1.22 | release의 브랜치를 `main`으로 만든다. `origin`에 `main`이 없고 `v1/rust-core`가 기본 브랜치이므로, release는 GitHub에서 `v1/rust-core`의 이름을 `main`으로 바꾸고(`gh api -X POST repos/polyspec/http-form/branches/v1%2Frust-core/rename -f new_name=main`) 그러면 `main`이 기본 브랜치가 된다. 로컬 브랜치와 그 upstream도 `main`으로 바꾼다(`git branch -m v1/rust-core main`, `git branch -u origin/main main`). 그다음 T1.13의 version commit push가 `ci.yml`이 도는 `main`의 push다 | `origin`의 기본 브랜치, 로컬 브랜치 `main` | `gh api repos/polyspec/http-form --jq .default_branch`가 `main`을 준다 | [ ] |
+| T1.23 | `main`에서 생성된 바인딩 crate가 컴파일되게 한다. binding 0.0.2가 생성하는 바인딩은 `read_held_body`, `RequestBody::start`, `UploadedFile::from_value`의 인자를 참조(`&limits`, `&name`, `&content`)로 넘기는데, 코어는 `BodyLimits`, `String`, `Vec<u8>`를 값으로 받는다. 그래서 모든 바인딩 crate가 E0308로 실패한다(job `bindings`의 lint-bindings, test-crates, test-python, test-node, test-wasm, test-php, test-go). Python crate는 tuple 안의 업로드 파일 목록에 생성기가 쓰지 않는 `out_uploaded_file`도 부르며(E0425), 이것은 binding에 보고할 결함이다. 코어가 생성기가 넘기는 형태로 인자를 받거나, 이 저장소가 고정하는 binding이 코어가 받는 호출을 생성한다. T1.8~T1.11과 T1.13보다 먼저 온다 | `packages/rust/src`, `packages/*/Cargo.toml`, `Cargo.lock` | `make test-bindings test-go` | [ ] |
