@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-rust-core -->
-<!-- source-sha256: f759d65f7871a710d91de234c0c4c49a674f2f7251334b07ef7d894e3c077bc8 -->
+<!-- source-sha256: 11370a7652e3c9c1a69d885517bfc461d01e6006fc3982287ee2b4ed7b922046 -->
 # Rust 코어 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -25,3 +25,4 @@
 | T1.19 | 바인딩 패키지를 플랫폼별로 release한다. abi3 wheel, PHP 확장, platform package를 가진 npm package, Go 정적 라이브러리가 `config/release.json`의 행이고, `package.json`이 고정하는 kit 0.0.111 이후가 그것을 묶는다. binding이 이 패키지의 release recipe를 생성하므로(binding B2.262) 이 저장소는 자기 recipe를 쓰지 않는다. 그 binding 행과 T1.18을 기다린다 | `config/release.json`, `package.json`, `package-lock.json`, `Makefile` | `make release-coverage` | [ ] |
 | T1.20 | 계약의 record `form`을 그것을 주는 `parts`를 가진 `request_body` 옆, module `body`에 둔다. module `forms`에 있으면 `body`와 `forms`의 Go package가 서로 import하고 Go는 그것을 거부하므로, 더 뒤의 binding이 계약의 Go를 거부했다(GN-15a). 그렇게 두면 `forms`는 `body`만 import하고, 더 뒤의 binding이 다섯 target을 생성한다 | `packages/rust/interface.json` | `make bindings-check bindings-go` | [o] |
 | T1.21 | 새 checkout을 저장소 절차만으로 설치한다. `make bootstrap`은 다른 release의 npm이 폴더를 거부하므로(EBADDEVENGINES) `package.json`의 `devEngines`가 적는 npm으로 checkout 밖에서 `--prefix`로 `package-lock.json`을 설치하고, 다른 모든 install target처럼 그 다운로드를 `$(ONLINE)`으로 실행한다. `tests/scripts/ci.test.mts`가 그 recipe를 dry run으로 읽는다 | `Makefile`, `tests/scripts/ci.test.mts`, `AGENTS.md` | `make test-scripts` | [o] |
+| T1.22 | release의 브랜치를 `main`으로 만든다. `origin`에 `main`이 없고 `v1/rust-core`가 기본 브랜치이므로, release는 GitHub에서 `v1/rust-core`의 이름을 `main`으로 바꾸고(`gh api -X POST repos/polyspec/http-form/branches/v1%2Frust-core/rename -f new_name=main`) 그러면 `main`이 기본 브랜치가 된다. 로컬 브랜치와 그 upstream도 `main`으로 바꾼다(`git branch -m v1/rust-core main`, `git branch -u origin/main main`). 그다음 T1.13의 version commit push가 `ci.yml`이 도는 `main`의 push다 | `origin`의 기본 브랜치, 로컬 브랜치 `main` | `gh api repos/polyspec/http-form --jq .default_branch`가 `main`을 준다 | [ ] |
