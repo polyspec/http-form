@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.1
+
 - http-media-type is a released dependency. The core names the tag `v0.0.1` of http-media-type in place of its branch
   `v1/rust-core`, and `Cargo.lock` pins the commit of that tag; `binding check --release` reports nothing (T1.13).
 - `make bootstrap` runs its download through `$(ONLINE)`, as every other install target does; it installs

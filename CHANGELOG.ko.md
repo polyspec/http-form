@@ -1,7 +1,9 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3324e2942757224463bba4197640523252bf21de641fae640fd4b9bbf188dab9 -->
+<!-- source-sha256: b07f1bbe06348113d4c6dae79fd770b3b180a48076ba5b8474decc5a070b9cec -->
 
 ## Unreleased
+
+## 0.0.1
 
 - http-media-type은 release된 의존이다. 코어가 http-media-type의 브랜치 `v1/rust-core` 대신 tag `v0.0.1`을 적고,
   `Cargo.lock`이 그 tag의 commit을 고정한다. `binding check --release`는 아무것도 보고하지 않는다(T1.13).
