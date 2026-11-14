@@ -26,9 +26,8 @@ rules of this repository.
   packs and installs), PHPUnit and go test. A target that the generator does not take stays a failing target with its
   cause; no target is left out or skipped (binding BD-27).
 - `polyspec-binding-core` is a Git dependency of the core and of the binding crates on the tag `v0.0.2` of the binding
-  repository, its release, and `Cargo.lock` pins the commit of that tag; `polyspec-http-media-type` stays on the branch
-  `v1/rust-core` of http-media-type, at a commit whose binding crates name the same tag, until http-media-type releases
-  a tag (T1.13). binding itself is the npm package `@polyspec/binding` of the same release, which `package.json` names
+  repository, its release, and `Cargo.lock` pins the commit of that tag; `polyspec-http-media-type` is a Git dependency of the
+  core on the tag `v0.0.1` of http-media-type, its release, whose binding crates name the same tag of binding (T1.13). binding itself is the npm package `@polyspec/binding` of the same release, which `package.json` names
   by the URL of its release asset and `package-lock.json` pins by its integrity, so that the generator and
   `binding_core` are one version (G-6); binding check takes the tag of `Cargo.lock` as its own (CK-20). The recipes run
   `node_modules/@polyspec/binding/dist/cli.js`; the bootstrap and `make install-packages` install it, and `make
@@ -116,11 +115,11 @@ rules of this repository.
   `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make
   release-tag` creates and pushes the annotated tag `vX.Y.Z` at that commit, and `make release-publish` and `make
   release-undraft` create the GitHub Release. No tag is created by hand.
-- Open before the first release, which is not complete without them: `origin` has no `main`, so the release pushes
-  as `main` the merge of `v1/rust-core` with the history of the earlier API and makes `main` the default branch; and the packages of the bindings (the abi3 wheel, the
-  PHP extension, the npm package with its platform packages) are rows of `config/release.json` only when kit 0.0.111
-  and a release of binding exist, because kit 0.0.109 refuses their kinds; binding generates the release recipes of
-  these packages (binding B2.262), so this repository writes no recipe of its own (T1.19). The release also tags the Go module `packages/go` with `packages/go/vX.Y.Z` at the release commit (`goModules` of
+- The first release 0.0.1 holds the tag of the core and the tags of `config/release.json` and no package of a binding
+  (T1.13). `main` is the branch of the release: GitHub renames `v1/rust-core` to `main` (T1.22). The packages of the
+  bindings (the abi3 wheel, the PHP extension, the npm package with its platform packages) come in the version after
+  0.0.1, as rows of `config/release.json` packed by kit 0.0.111 or later, with the release recipes that binding 0.0.3
+  or later generates (B2.262), so this repository writes no recipe of its own (T1.19). The release also tags the Go module `packages/go` with `packages/go/vX.Y.Z` at the release commit (`goModules` of
   `config/release.json`), because Go takes a module below the root of a repository by the tag of that form (binding
   GN-15g). The first release also waits for the bindings (T1.13).
 

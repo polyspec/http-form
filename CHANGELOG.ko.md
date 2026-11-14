@@ -1,8 +1,10 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: eaeae118e17def97b437c06a68acf74cae296a210f015e6f3209473267b03bd3 -->
+<!-- source-sha256: 3324e2942757224463bba4197640523252bf21de641fae640fd4b9bbf188dab9 -->
 
 ## Unreleased
 
+- http-media-type은 release된 의존이다. 코어가 http-media-type의 브랜치 `v1/rust-core` 대신 tag `v0.0.1`을 적고,
+  `Cargo.lock`이 그 tag의 commit을 고정한다. `binding check --release`는 아무것도 보고하지 않는다(T1.13).
 - `make bootstrap`이 다른 모든 install target처럼 그 다운로드를 `$(ONLINE)`으로 실행한다. 다른 release의 npm은 폴더를
   거부하므로(EBADDEVENGINES) 그것은 `package.json`의 `devEngines`가 적는 npm으로 checkout 밖에서 `--prefix`로
   `package-lock.json`을 설치한다. `tests/scripts/ci.test.mts`의 새 시험이 `ONLINE`에 표시를 준 dry run으로 recipe를

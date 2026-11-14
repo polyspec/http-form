@@ -1,5 +1,5 @@
 <!-- doc-id: plan-rust-core -->
-<!-- source-sha256: 8a34f591b3359b9ff0ffaddf56246f4c4d316878c953d9b0c183dd0914a61979 -->
+<!-- source-sha256: 414e3d664970289e30acee5f8374d90670acb38cca9209e41cc6b035c21da3ad -->
 # Rust 코어
 
 [English](plan.md)
@@ -23,4 +23,6 @@ checklist는 각 단계가 앞 단계를 필요로 하는 순서를 따른다.
    생성 바인딩을 거친 `legacy/conformance`의 runner(T1.9), 이 저장소에 대한 binding의 end-to-end 검사(T1.10), Go
    바인딩(T1.11)이 있다. binding은 그 검사가 계약을 거부하는 동안 어떤 target도 생성하지 않으므로 넷은 binding을
    기다린다.
-5. checkout의 도구, GitHub의 검사, release(T1.12), 그다음 첫 release(T1.13). 첫 release는 바인딩(T1.8~T1.11)을 기다린다.
+5. checkout의 도구, GitHub의 검사, release(T1.12), 그다음 첫 release 0.0.1(T1.13). 첫 release는
+   http-media-type의 release 0.0.1에 그 tag로 의존하고 바인딩(T1.8~T1.11)을 기다린다. 플랫폼별 바인딩 패키지는 그다음
+   version에 온다(T1.19).

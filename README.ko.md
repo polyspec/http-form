@@ -1,5 +1,5 @@
 <!-- doc-id: readme -->
-<!-- source-sha256: 06166809fcd33135d0da200e1f24272f16f757e53c93220ef2949775f8bc6b51 -->
+<!-- source-sha256: cb6252a153f072c3db96d8b0ccf3c17a27f914a3ab09e0bad3d7a3f428cf6ed3 -->
 # http-form
 
 form 값과 `multipart/form-data` 본문을 읽는 라이브러리이다. Rust 구현 하나가 읽고, 모든 계약이 적는 다섯
@@ -44,6 +44,6 @@ make differential HYPER=<hyper>/packages/server/python/src   # 무작위 본문�
 make check         # clippy와 test
 ```
 
-요구 사항: `rust-toolchain.toml`의 Rust toolchain, 그리고 Git 의존성 `polyspec-http-media-type`과
-`polyspec-binding-core`(브랜치 `v1/rust-core`. 그 commit은 `Cargo.lock`이 고정한다). Linux와 macOS(docs/spec/forms.md,
+요구 사항: `rust-toolchain.toml`의 Rust toolchain, 그리고 Git 의존성 `polyspec-http-media-type`(tag
+`v0.0.1`)과 `polyspec-binding-core`(tag `v0.0.2`). 그 commit은 `Cargo.lock`이 고정한다. Linux와 macOS(docs/spec/forms.md,
 F-14). Windows는 지원하지 않는다.

@@ -43,6 +43,6 @@ make differential HYPER=<hyper>/packages/server/python/src   # random bodies aga
 make check         # clippy and test
 ```
 
-Requirements: the Rust toolchain of `rust-toolchain.toml`, and the Git dependencies `polyspec-http-media-type` and
-`polyspec-binding-core` (branch `v1/rust-core`, whose commit `Cargo.lock` pins). Linux and macOS (docs/spec/forms.md,
+Requirements: the Rust toolchain of `rust-toolchain.toml`, and the Git dependencies `polyspec-http-media-type` (tag
+`v0.0.1`) and `polyspec-binding-core` (tag `v0.0.2`), whose commits `Cargo.lock` pins. Linux and macOS (docs/spec/forms.md,
 F-14); Windows is not supported.
