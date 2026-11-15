@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The core depends on http-media-type 0.0.5, which depends on binding 0.0.9 (T1.19-5), so `Cargo.lock` pins one
+  `polyspec-binding-core`, 0.0.9: `make bindings-check` passes, and `make test-scripts` passes 19 of 19 tests.
+
 - Each file of a case of `file_over` is an instance value, `{"new": "uploaded_file.new", "args": {...}}`, the call of
   the constructor of `UploadedFile` with its arguments (binding GN-13f), in place of the object of those arguments,
   which no generator reads as an instance (T1.8). The Rust test reads the same form.

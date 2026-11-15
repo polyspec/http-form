@@ -25,7 +25,7 @@ fault-test = ["polyspec-binding-core/fault-test"]
 memchr = "2"
 # The wait token `Io` of a function that does blocking I/O (binding design I-2 (4), spec F-17).
 polyspec-binding-core = { git = "https://github.com/polyspec/binding.git", tag = "v0.0.9" }
-polyspec-http-media-type = { git = "https://github.com/polyspec/http-media-type.git", tag = "v0.0.4" }
+polyspec-http-media-type = { git = "https://github.com/polyspec/http-media-type.git", tag = "v0.0.5" }
 rustix = { version = "1", default-features = false, features = ["fs", "std"], optional = true }
 tempfile = { version = "3", optional = true }
 

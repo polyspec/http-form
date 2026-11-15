@@ -1,7 +1,11 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: aec2f43e45dd9f70855c36c0abc5712dfd10ad887ceec8bb58fccdbf33d11cfe -->
+<!-- source-sha256: 928406b1fb17de5f0afbac7d41d97c205b12ce69e54ab753d791b4e2b28835ee -->
 
 ## Unreleased
+
+- 코어는 binding 0.0.9에 의존하는 http-media-type 0.0.5에 의존한다(T1.19-5). 그래서 `Cargo.lock`은
+  `polyspec-binding-core`를 0.0.9 하나만 고정하고, `make bindings-check`가 통과하며 `make test-scripts`는 19개가 모두
+  통과한다.
 
 - `file_over` case의 각 파일은 instance 값 `{"new": "uploaded_file.new", "args": {...}}`, 즉 그 인자로 부르는
   `UploadedFile` 생성자 호출이다(binding GN-13f). 전에는 그 인자의 객체였고, 생성기는 그것을 instance로 읽지 않는다
