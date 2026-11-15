@@ -14,8 +14,6 @@ rules of this repository.
   manifest, so the lints of the root `Cargo.toml` hold for the core and the binding crates alike, and a use that a
   rule needs carries `#[allow(..., reason = "<rule id>")]`.
 - The bindings are generated from the interface contract `packages/rust/interface.json` and are not written by hand.
-  The hand-written bindings of an earlier API are in `legacy/`, which no target builds; they stay until the generated
-  bindings pass their tests.
 - `make bindings` generates, each target of the contract apart (`make bindings-<target>`, binding GN-1b), so that a
   target that the generator refuses fails its own make targets alone; every make target that builds or tests a binding
   runs the generation of its targets first. `make test-bindings` runs

@@ -1,7 +1,6 @@
 # Every check of this repository is a target here.
 #
-# The bindings are generated from the interface contract (plan G-6); the hand-written bindings of an earlier API are in
-# legacy/, which no target builds.
+# The bindings are generated from the interface contract (plan G-6).
 
 # The tools of the checkout: the utilities of the installed @polyspec/kit (node_modules/@polyspec/kit) install the
 # toolchains of mise.toml, rust-toolchain.toml and .php-version into var/tools, as the recipes of binding do.

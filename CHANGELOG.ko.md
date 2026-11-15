@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 928406b1fb17de5f0afbac7d41d97c205b12ce69e54ab753d791b4e2b28835ee -->
+<!-- source-sha256: 195ffdce4ed0494f32a0c9b5e97eae69d33f8111c6b8ba1bcc1ddd5e533be759 -->
 
 ## Unreleased
+
+- 코어, 바인딩 crate와 도구는 binding 0.0.10과, binding 0.0.10에 의존하는 http-media-type 0.0.6에 의존하므로
+  `Cargo.lock`은 `polyspec-binding-core` 하나를 고정한다(T1.8, CK-20). 다섯 target의 생성 시험은 모든 case를 통과한다.
+  Python 341개, Node 342개, WASM 227개, PHP 333개 시험과 Go 패키지 세 개가 통과하고, 파일이 instance 값(GN-13f)인
+  `file_over`의 case도 모든 target에서 통과한다. `legacy/`의 이전 API용 손으로 쓴 바인딩을 지웠다(T1.9). 그 runner는
+  생성된 바인딩에 없는 API를 불렀고, 생성 시험이 `contracts/fields.json`과 `contracts/forms.json`의 모든 case를 각
+  target으로 실행한다.
 
 - 코어는 binding 0.0.9에 의존하는 http-media-type 0.0.5에 의존한다(T1.19-5). 그래서 `Cargo.lock`은
   `polyspec-binding-core`를 0.0.9 하나만 고정하고, `make bindings-check`가 통과하며 `make test-scripts`는 19개가 모두

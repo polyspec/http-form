@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The core, the binding crates and the tool depend on binding 0.0.10 and http-media-type 0.0.6, which depends on
+  binding 0.0.10, so `Cargo.lock` pins one `polyspec-binding-core` (T1.8, CK-20). The generated tests of the five
+  targets pass every case: Python 341, Node 342, WASM 227 and PHP 333 tests, and the three Go packages; the cases of
+  `file_over` with files, whose files are instance values (GN-13f), pass in every target. The hand-written bindings of
+  an earlier API in `legacy/` are removed (T1.9): their runners called an API that the generated bindings do not have,
+  and the generated tests run every case of `contracts/fields.json` and `contracts/forms.json` through each target.
+
 - The core depends on http-media-type 0.0.5, which depends on binding 0.0.9 (T1.19-5), so `Cargo.lock` pins one
   `polyspec-binding-core`, 0.0.9: `make bindings-check` passes, and `make test-scripts` passes 19 of 19 tests.
 

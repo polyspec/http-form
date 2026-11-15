@@ -1,7 +1,4 @@
 /target/
-/legacy/python/http_forms/*.so
-/legacy/node/lib/
-/legacy/php/lib/
 __pycache__/
 # The sources that make bindings generates (binding design G-6).
 /packages/ts/generated/

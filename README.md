@@ -13,7 +13,6 @@ packages/ts/ packages/ts/wasm/ packages/python/ packages/php-ext/ packages/go/  
 docs/spec/       forms.md: the rules, the errors and the API
 contracts/       fields.json and forms.json: the cases of the rules
 conformance/     the differential test against hyper's Python reader
-legacy/          the hand-written bindings of an earlier API and their runners; not built
 ```
 
 ## Use
