@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- The core and the binding crates depend on binding 0.0.7 and http-media-type 0.0.4 (T1.19-5, T1.23). With binding
+  0.0.7 the generated binding crates compile and `make lint-bindings` passes; before, they failed with E0308 and
+  E0425. `Error::removal_kind` returns the kind as `&'static str`, the text that the generated code copies, because
+  the Node crate converted the owned `String` again and clippy refused the conversion. `Cargo.lock` still pins binding
+  0.0.5 beside 0.0.7 through http-media-type 0.0.4, so `binding check` reports CK-20 and `make test-scripts` passes 18
+  of 19 tests. The generated tests fail by defects of binding 0.0.7 (T1.8): Python and PHP fail 62 cases whose key
+  `files` the generator reads as the files of a case (GN-13i), Node fails to load its test, and Go is not
+  gofmt-formatted.
+
 - The core and the binding crates depend on http-media-type 0.0.3 and on binding 0.0.5, the release that
   http-media-type 0.0.3 depends on (T1.19-5): every Cargo manifest names the tags `v0.0.3` and `v0.0.5`, `package.json`
   names the release asset of binding 0.0.5 and of kit 0.0.113, and `Cargo.lock` pins one `polyspec-binding-core`.

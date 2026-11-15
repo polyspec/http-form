@@ -411,7 +411,7 @@ mod tests {
         assert_eq!((error.kind(), error.errno()), ("partial_target", Some(EIO)));
         assert_eq!(error.removal().map(IoFailure::errno), Some(Some(EACCES)));
         // F-11: the properties of the class of partial_target, which another kind does not have.
-        assert_eq!(error.removal_kind(), Ok("permission_denied".to_owned()));
+        assert_eq!(error.removal_kind(), Ok("permission_denied"));
         assert_eq!(error.removal_errno(), Ok(Some(i64::from(EACCES))));
         assert!(matches!(Error::Exists.removal_kind(), Err(Error::Internal(_))));
         assert!(matches!(Error::Exists.removal_errno(), Err(Error::Internal(_))));

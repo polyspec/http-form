@@ -1,7 +1,15 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4998c3ac6864ab906da98b27534284fdf97cfe75b7e0258107dc5491b865c2b3 -->
+<!-- source-sha256: 8424351d0490547b15a30451433bc79f7b4deaeb1d8ce635ee3df8ac88f124c5 -->
 
 ## Unreleased
+
+- 코어와 바인딩 crate는 binding 0.0.7과 http-media-type 0.0.4에 의존한다(T1.19-5, T1.23). binding 0.0.7에서 생성된
+  바인딩 crate는 컴파일되고 `make lint-bindings`가 통과한다. 전에는 E0308과 E0425로 실패했다. `Error::removal_kind`는
+  종류를 `&'static str`로 돌려준다. 생성 코드가 그 text를 복사하는데 Node crate가 소유한 `String`을 다시 변환해 clippy가
+  거부했기 때문이다. `Cargo.lock`은 http-media-type 0.0.4를 통해 0.0.7 옆에 binding 0.0.5를 여전히 고정하므로
+  `binding check`는 CK-20을 보고하고 `make test-scripts`는 19개 중 18개를 통과한다. 생성된 시험은 binding 0.0.7의
+  결함으로 실패한다(T1.8). Python과 PHP는 생성기가 case의 파일로 읽는 key `files`(GN-13i)를 가진 62개 case가 실패하고,
+  Node는 시험을 읽지 못하며, Go는 gofmt 형식이 아니다.
 
 - 코어와 바인딩 crate는 http-media-type 0.0.3과, http-media-type 0.0.3이 의존하는 binding 0.0.5에 의존한다
   (T1.19-5). 모든 Cargo manifest가 tag `v0.0.3`과 `v0.0.5`를 적고, `package.json`이 binding 0.0.5와 kit 0.0.113의

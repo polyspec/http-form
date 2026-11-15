@@ -146,7 +146,7 @@ fn a_copy_whose_target_stays_is_partial_target() {
         Err(error) => error,
     };
     assert_eq!((error.kind(), errno_symbol(error.errno())), ("partial_target", json!("ENOSPC")));
-    assert_eq!(error.removal_kind(), Ok("permission_denied".to_owned()));
+    assert_eq!(error.removal_kind(), Ok("permission_denied"));
     let removal = match error.removal() {
         Some(removal) => errno_symbol(removal.errno()),
         None => panic!("partial_target has its removal"),

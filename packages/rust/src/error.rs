@@ -215,9 +215,9 @@ impl Error {
 
     /// The kind of the failure of the removal of the new file of `partial_target` (spec F-11), the property
     /// `removalKind` of its error class; `internal` for another kind, whose class has no such property.
-    pub fn removal_kind(&self) -> Result<String, Error> {
+    pub fn removal_kind(&self) -> Result<&'static str, Error> {
         match self.removal() {
-            Some(removal) => Ok(removal.io_kind().kind().to_owned()),
+            Some(removal) => Ok(removal.io_kind().kind()),
             None => Err(Error::Internal("the removal of a failure that is not partial_target")),
         }
     }
