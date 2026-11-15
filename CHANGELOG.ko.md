@@ -1,7 +1,9 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 195ffdce4ed0494f32a0c9b5e97eae69d33f8111c6b8ba1bcc1ddd5e533be759 -->
+<!-- source-sha256: 65848c4bb7e8bc4a19ca922903a2456ca5ed8fd2cbcdc3b9469096e9a4fa9759 -->
 
 ## Unreleased
+
+## 0.0.1
 
 - 코어, 바인딩 crate와 도구는 binding 0.0.10과, binding 0.0.10에 의존하는 http-media-type 0.0.6에 의존하므로
   `Cargo.lock`은 `polyspec-binding-core` 하나를 고정한다(T1.8, CK-20). 다섯 target의 생성 시험은 모든 case를 통과한다.
@@ -99,8 +101,6 @@
   --release`가 CK-94를 보고했고, `make test-scripts`는 시험 15개 중 7개에서 실패했다. Green: `binding check --release`는
   CK-20만 보고하고, `make test-scripts`는 시험 15개 중 14개를 통과하며, `make docs-check`와 `make release-coverage`는
   통과한다(T1.19).
-
-## 0.0.1
 
 - http-media-type은 release된 의존이다. 코어가 http-media-type의 브랜치 `v1/rust-core` 대신 tag `v0.0.1`을 적고,
   `Cargo.lock`이 그 tag의 commit을 고정한다. `binding check --release`는 아무것도 보고하지 않는다(T1.13).

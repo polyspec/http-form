@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.1
+
 - The core, the binding crates and the tool depend on binding 0.0.10 and http-media-type 0.0.6, which depends on
   binding 0.0.10, so `Cargo.lock` pins one `polyspec-binding-core` (T1.8, CK-20). The generated tests of the five
   targets pass every case: Python 341, Node 342, WASM 227 and PHP 333 tests, and the three Go packages; the cases of
@@ -105,8 +107,6 @@
   test-scripts` failed 7 of 15 tests: three of `workflows.test.mts`, three of `binding.test.mts` and the test of the
   release configuration of `ci.test.mts`. Green: `binding check --release` reports CK-20
   alone, `make test-scripts` passes 14 of 15 tests, and `make docs-check` and `make release-coverage` pass (T1.19).
-
-## 0.0.1
 
 - http-media-type is a released dependency. The core names the tag `v0.0.1` of http-media-type in place of its branch
   `v1/rust-core`, and `Cargo.lock` pins the commit of that tag; `binding check --release` reports nothing (T1.13).
