@@ -8,7 +8,8 @@
   and the workflow had no PHP job. The broader script run passed 16 tests and failed the existing binding lock
   assertion because the unchanged dependency graph retains binding-core 0.0.2 beside 0.0.3 (T1.19-1, T1.19-5).
   Native asset and complete CI proof remain pending the published binding expected-minor recipe and dependency
-  updates (T1.13, T1.19).
+  updates (T1.13, T1.19). The original declared workflow command also passed all five tests on the committed
+  implementation; T1.19-6 records only this source-level verification.
 
 - The core functions take their arguments borrowed, as the generated code passes them (binding GN-6, spec F-18.1):
   `read_held_body` and `RequestBody::start` take `&BodyLimits`, and `UploadedFile::from_value` takes `&str` and

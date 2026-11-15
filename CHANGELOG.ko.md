@@ -1,5 +1,5 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: d75d39ba73a8d5b1005324b1b8dab29e12ab0c5ab27710514591787bb5ad4c4b -->
+<!-- source-sha256: 03c2c51414c164ea3ff1d354e5a40bf0b6b9322a87ccc88578c9ab2237a91212 -->
 
 ## Unreleased
 
@@ -8,7 +8,8 @@
   mutation을 포함해 test 다섯 개를 통과한다. Red: 이전 설정은 minor를 선언하지 않았고 workflow에는 PHP job이
   없었다. 더 넓은 script 실행은 test 16개를 통과했으며 변경하지 않은 의존성 graph에 binding-core 0.0.2와 0.0.3이
   함께 남아 기존 binding lock assertion 하나가 실패했다(T1.19-1, T1.19-5). native asset과 전체 CI 검증은 binding의
-  expected-minor recipe 공개와 의존성 갱신을 기다린다(T1.13, T1.19).
+  expected-minor recipe 공개와 의존성 갱신을 기다린다(T1.13, T1.19). 처음 선언한 workflow 명령도 commit된 구현에서
+  test 다섯 개를 모두 통과했다. T1.19-6는 이 source 수준의 검증만 기록한다.
 
 - 코어 함수는 생성 코드가 넘기는 대로 인자를 빌려 받는다(binding GN-6, spec F-18.1). `read_held_body`와
   `RequestBody::start`는 `&BodyLimits`를, `UploadedFile::from_value`는 `&str`과 `&[u8]`을 받는다. binding 0.0.2가 생성한
