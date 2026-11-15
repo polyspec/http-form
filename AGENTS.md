@@ -142,7 +142,7 @@ rules of this repository.
   `BINDING_RUN`, `NODE`, `NPM`, `UV` and `BINDING_DEP`. The file is generated and not tracked, so it cannot drift from the
   pinned binding, and the repository writes no release recipe of its own: `binding check` reports a Makefile without the
   include or with a recipe of its own for a target of the file (CK-94). The recipes need the napi CLI `@napi-rs/cli` of
-  `package.json`, the major release of LLVM of `config/toolchain.json` (`make install-llvm` installs it), the component
+  `package.json`, the major release of LLVM of `config/toolchain.json` (the job provisions it: the ubuntu-26.04 images at `/usr/lib/llvm-<major>`, install-llvm-action on macOS, whose `LLVM_PATH` `make ci-php` passes as `LLVM_ROOT`), the component
   `llvm-tools` and the musl targets of `rust-toolchain.toml`, and the uv of `mise.toml`.
 - `config/release.json` classifies every package file, which `make release-coverage` checks. A tag `vX.Y.Z` releases the
   core crate `packages/rust` as a Git tag, which a Cargo dependency names with `tag = "vX.Y.Z"`, and it is the version

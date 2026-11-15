@@ -188,7 +188,7 @@ test('assets.yml builds each platform on its runner and the job npm, and ci and 
   for (const [platform, runner] of Object.entries(PLATFORM_RUNNERS))
     assert.match(text, new RegExp(`- platform: ${platform}\\n +runner: ${runner.replaceAll('.', '\\.')}\\n`), `${platform} on ${runner}`);
   const runs = jobNames(text).flatMap((name) => runsOf(jobOf(text, name), read('Makefile')));
-  for (const target of ['release-recipes', 'release-binding-check', 'release-go-static', 'release-wheel', 'install-llvm', 'release-php-ext', 'release-npm-platform', 'install-wasm-bindgen', 'release-npm'])
+  for (const target of ['release-recipes', 'release-binding-check', 'release-go-static', 'release-wheel', 'release-php-ext', 'release-npm-platform', 'install-wasm-bindgen', 'release-npm'])
     assert.ok(runs.some((run) => run === `make ${target}` || run.startsWith(`make ${target} `)), target);
   for (const file of [CI, RELEASE]) assert.match(read(file), /^ {4}uses: \.\/\.github\/workflows\/assets\.yml$/m, file);
   assert.match(read(CI), /needs: \[[^\]]*\bassets\b[^\]]*\]/);
@@ -214,7 +214,8 @@ function entriesOf(job: string): Record<string, string>[] {
 /** The recipe of `target` in the text of a Makefile: its lines, each with its continuation lines joined. */
 function recipeOf(makefile: string, target: string): string[] {
   const lines = makefile.split('\n');
-  const start = lines.findIndex((line) => new RegExp(`^${target.replaceAll('.', '\\.')} *:(?!=)`).test(line));
+  // A line that assigns a target-specific variable, such as ci-php: LD_LIBRARY_PATH :=, is no rule of the recipe.
+  const start = lines.findIndex((line) => new RegExp(`^${target.replaceAll('.', '\\.')} *:(?!=)(?!.*=)`).test(line));
   if (start < 0) return [];
   const recipe: string[] = [];
   for (let at = start + 1; at < lines.length && (lines[at] as string).startsWith('\t'); at += 1) {
@@ -355,7 +356,7 @@ test('T1.19-6: asset ownership rejects missing, duplicate and misidentified jobs
   assert.ok(makefile.includes(builds), 'ci-platform builds release-go-static, release-wheel and release-npm-platform');
   assert.ok(assetFindings(text, makefile.replace(builds, builds + ' release-wheel'), minors).some(finding => finding.includes('release-wheel must run once')));
   assert.ok(assetFindings(text, makefile.replace(builds, ' release-go-static release-npm-platform'), minors).some(finding => finding.includes('release-wheel must run once')));
-  const phpBuild = '\t$(MAKE) --no-print-directory release-php-ext PHP=php EXPECTED_PHP_MINOR=$(EXPECTED_PHP_MINOR)\n';
+  const phpBuild = '\t$(MAKE) --no-print-directory release-php-ext PHP=php EXPECTED_PHP_MINOR=$(EXPECTED_PHP_MINOR) $(if $(LLVM_PATH),LLVM_ROOT=$(LLVM_PATH))\n';
   assert.ok(makefile.includes(phpBuild), 'ci-php builds the extension');
   assert.ok(assetFindings(text, makefile.replace(phpBuild, phpBuild + phpBuild), minors).some(finding => finding.includes('expected minor')));
   assert.ok(assetFindings(text, makefile.replace(phpBuild, phpBuild.replace('PHP=php ', '')), minors).some(finding => finding.includes('expected minor')));

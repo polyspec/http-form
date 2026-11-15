@@ -1,7 +1,20 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8424351d0490547b15a30451433bc79f7b4deaeb1d8ce635ee3df8ac88f124c5 -->
+<!-- source-sha256: 0524fc44bd1d8876d1c3ddc0de10c54678fe624b1097a8a34862f6b79ee1c732 -->
 
 ## Unreleased
+
+- 코어, 바인딩 crate와 도구는 binding 0.0.9와 kit 0.0.114에 의존한다(T1.8, T1.23). binding 0.0.9에서 다섯 target의
+  생성 시험이 실행되고 case 세 개를 뺀 모든 case가 통과한다. Python은 341개 중 338개, Node는 342개 중 339개, WASM은
+  227개 중 224개, PHP는 333개 중 330개가 통과하고 Go도 같은 세 개만 실패한다. 세 개는 파일이 있는 `file_over`의
+  case이며, 그 인자는 `UploadedFile`의 list이다. binding 0.0.9는 이 class의 case 값을 쓰지 않으므로(G-5) 생성 시험이 그
+  이유로 실패한다. `file_over`의 case는 member의 매개변수가 아닌 key `limits`와 `over`를 주었다. 이제 각 case는 한
+  호출의 매개변수 `files`, `limit`과 `result`를 주고, Rust 시험은 `UploadedFile::from_value`로 파일을 만든다.
+  `make node-package`의 WASM crate는 `panic-test` 옆에 feature `fault-test`로 build된다. 생성된 fault 시험이 부르는
+  `__armFaults`를 그 feature만 내보내기 때문이다. binding 0.0.7이 `make install-llvm`을 없앴으므로 PHP 확장 job은
+  Linux에서 image의 LLVM을, macOS에서 install-llvm-action의 LLVM을 읽고, `make ci-php`는 그 `LLVM_PATH`를
+  `LLVM_ROOT`로 넘기며 `DYLD_LIBRARY_PATH`와 `LD_LIBRARY_PATH`를 비운다. `Cargo.lock`은 http-media-type 0.0.4를 통해
+  binding 0.0.9 옆에 0.0.5도 고정하므로 `make bindings-check`와 `make release-binding-check`가 CK-20을 보고하고
+  `make test-scripts`는 19개 중 18개가 통과한다.
 
 - 코어와 바인딩 crate는 binding 0.0.7과 http-media-type 0.0.4에 의존한다(T1.19-5, T1.23). binding 0.0.7에서 생성된
   바인딩 crate는 컴파일되고 `make lint-bindings`가 통과한다. 전에는 E0308과 E0425로 실패했다. `Error::removal_kind`는

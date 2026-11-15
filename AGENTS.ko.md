@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: dba1fdfb45951b6a955f7633101f810cf210fbc4172e1903bad9a9e187ddd1c9 -->
+<!-- source-sha256: f51a9fe2ba77a621bb58306ba328529b8ea5ffead96a254dcafbdf45a156b957 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -131,8 +131,9 @@
   실행해 `packages/release.mk`를 쓰고, Makefile은 `BINDING_RUN`, `NODE`, `NPM`, `UV`, `BINDING_DEP`를 정의한 뒤 그 파일을
   include한다. 그 파일은 생성되고 추적되지 않으므로 고정된 binding과 어긋날 수 없고, 이 저장소는 자기 release recipe를
   쓰지 않는다. `binding check`는 include가 없거나 그 파일의 target에 자기 recipe를 가진 Makefile을 보고한다(CK-94).
-  recipe에는 `package.json`의 napi CLI `@napi-rs/cli`, `config/toolchain.json`의 LLVM major release(`make install-llvm`이
-  설치한다), `rust-toolchain.toml`의 component `llvm-tools`와 musl target, `mise.toml`의 uv가 필요하다.
+  recipe에는 `package.json`의 napi CLI `@napi-rs/cli`, `config/toolchain.json`의 LLVM major release(job이 준비한다. ubuntu-26.04
+  image는 `/usr/lib/llvm-<major>`에 두고, macOS에서는 install-llvm-action이 설치하며 `make ci-php`가 그 `LLVM_PATH`를
+  `LLVM_ROOT`로 넘긴다), `rust-toolchain.toml`의 component `llvm-tools`와 musl target, `mise.toml`의 uv가 필요하다.
 - `config/release.json`은 모든 package 파일을 분류하고, `make release-coverage`가 그것을 검사한다. tag `vX.Y.Z`는 코어
   crate `packages/rust`를 Git tag로 release한다. Cargo 의존은 그것을 `tag = "vX.Y.Z"`로 가리킨다. 그 tag는 binding
   manifest의 version이기도 하며, binding scaffold가 코어의 version으로 그 manifest를 쓴다. kit은 PHP 확장
