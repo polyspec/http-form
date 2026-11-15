@@ -1,7 +1,11 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0524fc44bd1d8876d1c3ddc0de10c54678fe624b1097a8a34862f6b79ee1c732 -->
+<!-- source-sha256: aec2f43e45dd9f70855c36c0abc5712dfd10ad887ceec8bb58fccdbf33d11cfe -->
 
 ## Unreleased
+
+- `file_over` case의 각 파일은 instance 값 `{"new": "uploaded_file.new", "args": {...}}`, 즉 그 인자로 부르는
+  `UploadedFile` 생성자 호출이다(binding GN-13f). 전에는 그 인자의 객체였고, 생성기는 그것을 instance로 읽지 않는다
+  (T1.8). Rust 시험도 같은 형식을 읽는다.
 
 - 코어, 바인딩 crate와 도구는 binding 0.0.9와 kit 0.0.114에 의존한다(T1.8, T1.23). binding 0.0.9에서 다섯 target의
   생성 시험이 실행되고 case 세 개를 뺀 모든 case가 통과한다. Python은 341개 중 338개, Node는 342개 중 339개, WASM은

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Each file of a case of `file_over` is an instance value, `{"new": "uploaded_file.new", "args": {...}}`, the call of
+  the constructor of `UploadedFile` with its arguments (binding GN-13f), in place of the object of those arguments,
+  which no generator reads as an instance (T1.8). The Rust test reads the same form.
+
 - The core, the binding crates and the tool depend on binding 0.0.9 and kit 0.0.114 (T1.8, T1.23). With binding 0.0.9
   the generated tests of the five targets run and pass every case but three: Python 338 of 341, Node 339 of 342, WASM
   224 of 227, PHP 330 of 333 and Go fails only the same three. The three are the cases of `file_over` with files,

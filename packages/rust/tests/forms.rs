@@ -136,7 +136,10 @@ fn files_over_a_limit() {
                 let Some(made) = field[1].as_array() else { panic!("{label}: files of {field}") };
                 let made = made
                     .iter()
-                    .map(|file| {
+                    .map(|value| {
+                        // An instance value (binding GN-13f): the constructor uploaded_file.new with its arguments.
+                        assert_eq!(value["new"], json!("uploaded_file.new"), "{label}: {value}");
+                        let file = &value["args"];
                         let text = |key: &str| match file[key].as_str() {
                             Some(text) => text,
                             None => panic!("{label}: {key} of {file}"),
