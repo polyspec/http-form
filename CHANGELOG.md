@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- T1.19-6 defines independent PHP platform/minor asset jobs and the declared supported minors 8.4 and 8.5,
+  whose lower bound matches the PHP requirement. Red: the current configuration names no minors and the workflow
+  has no PHP job. Native asset proof waits for the published binding expected-minor recipe and actual execution.
+
 - The core functions take their arguments borrowed, as the generated code passes them (binding GN-6, spec F-18.1):
   `read_held_body` and `RequestBody::start` take `&BodyLimits`, and `UploadedFile::from_value` takes `&str` and
   `&[u8]`. The binding crates that binding 0.0.2 generated passed `&limits`, `&name` and `&content` to functions that
