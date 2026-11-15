@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: b71940bd8c99c9c3250b0e0eef6276ce19c0e80384e9eb4596bafd0af19ff24a -->
+<!-- source-sha256: dba1fdfb45951b6a955f7633101f810cf210fbc4172e1903bad9a9e187ddd1c9 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -153,9 +153,9 @@
   release-platform-assets`가 각 플랫폼의 asset을 label `polyspec-http-form-<runtime>-<version>-<platform>`으로
   올리며(binding GN-19g), `make release-undraft`가 release를 공개한다. tag를 손으로 만들지 않는다.
 - 첫 release 0.0.1은 코어의 tag와 함께 플랫폼별 바인딩 package를 갖는다(T1.13, T1.19). release의 브랜치는 `main`이다.
-  GitHub이 `v1/rust-core`를 `main`으로 이름을 바꿨다(T1.22). binding 0.0.3에 의존하는 http-media-type 0.0.2가 나오기
-  전까지 `Cargo.lock`은 `polyspec-binding-core`의 두 release를 고정하고 `binding check`는 CK-20을 보고한다. 그래서
-  version commit은 그 release를 기다린다(T1.19-5). 첫 release는 바인딩도 기다린다(T1.8~T1.11, T1.23).
+  GitHub이 `v1/rust-core`를 `main`으로 이름을 바꿨다(T1.22).
+  코어와 바인딩 crate는 http-media-type 0.0.3과, http-media-type 0.0.3이 의존하는 binding 0.0.5에 의존한다. 그래서
+  `Cargo.lock`은 `polyspec-binding-core` 하나를 고정한다(T1.19-5). 첫 release는 바인딩도 기다린다(T1.8~T1.11, T1.23).
 
 ## Commit과 변경
 

@@ -165,9 +165,9 @@ rules of this repository.
   of each platform under the label `polyspec-http-form-<runtime>-<version>-<platform>` (binding GN-19g), and `make
   release-undraft` makes the release public. No tag is created by hand.
 - The first release 0.0.1 holds the packages of the bindings per platform with the tag of the core (T1.13, T1.19).
-  `main` is the branch of the release: GitHub renamed `v1/rust-core` to `main` (T1.22). Until http-media-type releases
-  0.0.2, which depends on binding 0.0.3, `Cargo.lock` pins two releases of `polyspec-binding-core` and `binding check`
-  reports CK-20, so the version commit waits for that release (T1.19-5). The first release also waits for the
+  `main` is the branch of the release: GitHub renamed `v1/rust-core` to `main` (T1.22).
+  The core and the binding crates depend on http-media-type 0.0.3 and binding 0.0.5, the release that http-media-type
+  0.0.3 depends on, so `Cargo.lock` pins one `polyspec-binding-core` (T1.19-5). The first release also waits for the
   bindings (T1.8 to T1.11, T1.23).
 
 ## Commits and changes
