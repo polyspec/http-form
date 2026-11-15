@@ -1,11 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6472b800f70a855b1198b024f0d3f54f2fadbdd6aec1e424f81de5723be0f5f9 -->
+<!-- source-sha256: d75d39ba73a8d5b1005324b1b8dab29e12ab0c5ab27710514591787bb5ad4c4b -->
 
 ## Unreleased
 
-- T1.19-6는 PHP platform/minor별 독립 asset job과 지원 minor 8.4, 8.5의 선언을 정의하며 그 하한은 PHP 요구와
-  일치한다. Red: 현재 설정은 minor를 선언하지 않고 workflow에는 PHP job이 없다. native asset 검증은 binding의
-  expected-minor recipe 공개와 실제 실행을 기다린다.
+- PHP 확장 asset은 platform/minor별 독립 job을 가지며 setup 하나, expected-minor build 하나, 서로 다른 artifact를
+  가진다. `phpExtension.minors`는 8.4와 8.5를 선언하며 그 하한은 PHP 요구와 일치한다. workflow owner는 소유 관계
+  mutation을 포함해 test 다섯 개를 통과한다. Red: 이전 설정은 minor를 선언하지 않았고 workflow에는 PHP job이
+  없었다. 더 넓은 script 실행은 test 16개를 통과했으며 변경하지 않은 의존성 graph에 binding-core 0.0.2와 0.0.3이
+  함께 남아 기존 binding lock assertion 하나가 실패했다(T1.19-1, T1.19-5). native asset과 전체 CI 검증은 binding의
+  expected-minor recipe 공개와 의존성 갱신을 기다린다(T1.13, T1.19).
 
 - 코어 함수는 생성 코드가 넘기는 대로 인자를 빌려 받는다(binding GN-6, spec F-18.1). `read_held_body`와
   `RequestBody::start`는 `&BodyLimits`를, `UploadedFile::from_value`는 `&str`과 `&[u8]`을 받는다. binding 0.0.2가 생성한

@@ -2,9 +2,13 @@
 
 ## Unreleased
 
-- T1.19-6 defines independent PHP platform/minor asset jobs and the declared supported minors 8.4 and 8.5,
-  whose lower bound matches the PHP requirement. Red: the current configuration names no minors and the workflow
-  has no PHP job. Native asset proof waits for the published binding expected-minor recipe and actual execution.
+- PHP extension assets have independent platform/minor jobs with one setup, one expected-minor build and distinct
+  artifacts. `phpExtension.minors` declares 8.4 and 8.5, with its lower bound matching the PHP requirement. The
+  workflow owner passes five tests including ownership mutations. Red: the earlier configuration named no minors
+  and the workflow had no PHP job. The broader script run passed 16 tests and failed the existing binding lock
+  assertion because the unchanged dependency graph retains binding-core 0.0.2 beside 0.0.3 (T1.19-1, T1.19-5).
+  Native asset and complete CI proof remain pending the published binding expected-minor recipe and dependency
+  updates (T1.13, T1.19).
 
 - The core functions take their arguments borrowed, as the generated code passes them (binding GN-6, spec F-18.1):
   `read_held_body` and `RequestBody::start` take `&BodyLimits`, and `UploadedFile::from_value` takes `&str` and

@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: bd59395420c4a11a38f7cd97b0bba57ab94ac26ecadc1ac6397a7be7f657f618 -->
+<!-- source-sha256: 34d8bcfc8e81cf039d53d1ff7c6181b1a703f9d157758eca822242291002a3d7 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -94,7 +94,7 @@
 
 ## CI와 release
 
-- T1.19-6의 계획: `assets.yml`은 PHP 이외의 build를 platform마다 한 번씩 `platform`에 두고 `php`에 platform과
+- `assets.yml`은 PHP 이외의 build를 platform마다 한 번씩 `platform`에 두고 `php`에 platform과
   `phpExtension.minors`의 모든 조합을 둔다. 각 PHP 항목은 `matrix.php`의 setup 하나,
   `make release-php-ext PHP=php EXPECTED_PHP_MINOR=${{ matrix.php }}` 하나, 서로 다른 artifact
   `assets-php-${{ matrix.platform }}-${{ matrix.php }}`를 가진다. 두 job은 각각 자기 platform의 runner를 쓴다.
@@ -108,7 +108,7 @@
   끝까지 실행하고 보고서 `var/ci/<name>/`을 쓴다. job `assets`는 `.github/workflows/assets.yml`을 호출하고, 그것은
   release와 같이 각 플랫폼의 asset을 빌드한다. 그래서 빌드되지 않는 asset이 tag가 생기기 전에 release를 멈춘다. 마지막
   job `ci-passed`는 다른 모든 job이 통과했을 때만 통과한다. job은 `ubuntu-26.04-arm`에서 돈다. 다만 `assets.yml`의 job
-  `platform`은 `ubuntu-26.04`, `ubuntu-26.04-arm`, `macos-15`에서 돈다. 플랫폼의 asset은 그 플랫폼에서만 빌드되고
+  `platform`과 `php`는 `ubuntu-26.04`, `ubuntu-26.04-arm`, `macos-15`에서 돈다. 플랫폼의 asset은 그 플랫폼에서만 빌드되고
   로드되며, release의 어떤 도구도 다른 플랫폼용으로 컴파일하지 않기 때문이다(binding GN-19a).
   `.github/actions/bootstrap`은 모든 job의 bootstrap이다.
 - binding이 contract의 release recipe를 쓴다(binding GN-19h). `make release-recipes`가 `binding release-recipes --root .`을
@@ -122,7 +122,7 @@
   manifest의 version이기도 하며, binding scaffold가 코어의 version으로 그 manifest를 쓴다. kit은 PHP 확장
   `packages/php-ext`의 Composer package를 묶는다. 그 `composer.json`은 PIE에게 pre-packaged binary를 내려받게 한다.
   workflow `assets.yml`은 binding의 recipe로 각 플랫폼의 asset을 빌드한다. Go module의 정적 라이브러리, abi3 wheel,
-  PHP 8.4와 8.5용 PHP 확장, npm 플랫폼 package, 그리고 WASM module을 가진 npm package 자체다. Go module `packages/go`는
+  `phpExtension.minors`가 선언한 PHP minor 8.4와 8.5용 PHP 확장, npm 플랫폼 package, 그리고 WASM module을 가진 npm package 자체다. Go module `packages/go`는
   `goModules`에 없다. `make release-go-module`이 tag의 tree에 생성 파일과 정적 라이브러리를 더한 commit을 만들고, 그것을
   consumer로 증명하고, 그 commit에 `packages/go/vX.Y.Z`를 tag한다(binding GN-19f). 둘 다 없는 tag의 Go module은
   consumer가 빌드할 수 없기 때문이다.

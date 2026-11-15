@@ -101,7 +101,7 @@ rules of this repository.
 
 ## CI and release
 
-- Planned in T1.19-6: `assets.yml` keeps the non-PHP builds in `platform` once per platform and gives `php` the complete
+- `assets.yml` keeps the non-PHP builds in `platform` once per platform and gives `php` the complete
   platform by `phpExtension.minors` matrix. Each PHP entry has one setup of `matrix.php`, one
   `make release-php-ext PHP=php EXPECTED_PHP_MINOR=${{ matrix.php }}` and the distinct artifact
   `assets-php-${{ matrix.platform }}-${{ matrix.php }}`. Both jobs use the runner of their platform. The release merges
@@ -115,7 +115,7 @@ rules of this repository.
   target to its end and writes the report `var/ci/<name>/`. The job `assets` calls `.github/workflows/assets.yml`, which
   builds the assets of each platform as a release does, so that an asset that does not build stops the release before
   a tag exists. The last job `ci-passed` passes only when every other job passed. The jobs run on `ubuntu-26.04-arm`,
-  but for the job `platform` of `assets.yml`, which runs on `ubuntu-26.04`, `ubuntu-26.04-arm` and `macos-15`, because
+  but for the jobs `platform` and `php` of `assets.yml`, which runs on `ubuntu-26.04`, `ubuntu-26.04-arm` and `macos-15`, because
   the asset of a platform is built and loaded only on that platform and no tool of the release compiles for another
   (binding GN-19a). `.github/actions/bootstrap` is the bootstrap of every job.
 - binding writes the release recipes of the contract (binding GN-19h): `make release-recipes` runs `binding
@@ -130,7 +130,7 @@ rules of this repository.
   of the binding manifests, which binding scaffold writes from the version of the core. kit packs the Composer package
   of the PHP extension `packages/php-ext`, whose `composer.json` tells PIE to download a pre-packaged binary. The
   workflow `assets.yml` builds the assets of each platform with the recipes of binding: the static library of the Go
-  module, the abi3 wheel, the PHP extension for PHP 8.4 and 8.5, the npm platform package, and the npm package itself
+  module, the abi3 wheel, the PHP extension for the 8.4 and 8.5 minors declared in `phpExtension.minors`, the npm platform package, and the npm package itself
   with the WASM module. The Go module `packages/go` is not in `goModules`: `make release-go-module` makes the commit
   that adds the generated files and the static libraries to the tree of the tag, proves it with a consumer and tags it
   `packages/go/vX.Y.Z` (binding GN-19f), because a Go module whose tag holds neither cannot be built by a consumer.
