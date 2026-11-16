@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: f4f2cd4c027fa3ed9e577c8e303729f3406ef0ede03ff352e14d7e43d8de1421 -->
+<!-- source-sha256: 5957d4235633e73218c8e80b782d49d4d2915c1f99168dba0e78d9c78402d113 -->
 
 ## Unreleased
+
+- tag의 GitHub Release는 archive와 `packages.json` 옆에 `contracts/fields.json`과 `contracts/forms.json`을 가지며,
+  각 파일의 URL과 sha256을 경로별로 기록하는 `files.json`도 가진다. 그래서 소비자는 복사본 대신 tag의 case를 version과
+  무결성으로 고정한다(T1.25). `config/release.json`의 `files`가 두 파일을 적고, kit 0.0.116의 release 도구가 그것을
+  게시한다(kit K1267). 이 저장소는 upload나 무결성 코드를 갖지 않는다. 개발 도구는 kit 0.0.116에 의존한다. 전에는
+  release가 archive와 `packages.json`만 게시했다. `make test-scripts`는 20개 시험이 모두 통과하고
+  `make release-coverage`가 통과한다.
 
 - `contracts/fields.json`은 입력 열네 개의 case를 더 가지며, 각 case는 고정하는 규칙을 밝힌다(T1.26). `multipart`에서
   `Content-Type`이 없는 body는 값이 없다(F-4, F-21.4). 다른 disposition type의 part, `form-data`로 시작하기만 하는 type의

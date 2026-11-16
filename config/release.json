@@ -5,6 +5,10 @@
   "changelogTranslations": [
     "CHANGELOG.ko.md"
   ],
+  "files": [
+    "contracts/fields.json",
+    "contracts/forms.json"
+  ],
   "packages": [
     {
       "kind": "composer",

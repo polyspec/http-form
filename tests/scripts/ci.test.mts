@@ -94,3 +94,11 @@ test('make bootstrap installs the lock with the npm of devEngines, outside the c
   assert.match(recipe, /cd "\$\{TMPDIR:-\/tmp\}"/, `the recipe runs inside the checkout:\n${recipe}`);
   assert.match(recipe, /ONLINE-MARK /, `the download does not run through $(ONLINE):\n${recipe}`);
 });
+
+test('the release publishes the form cases with their digests through the release tooling (T1.25, kit K1267)', async () => {
+  const cases = ['contracts/fields.json', 'contracts/forms.json'];
+  const release = JSON.parse(read('config/release.json')) as { files?: string[] };
+  assert.deepEqual(release.files, cases, 'config/release.json: files does not name the two case files');
+  const kit = (await import(join(root, 'node_modules/@polyspec/kit/dist/release.mjs'))) as { loadConfig: (dir: string) => { files?: string[] } };
+  assert.deepEqual(kit.loadConfig(root).files, cases, 'the release tooling of the installed kit does not read files');
+});

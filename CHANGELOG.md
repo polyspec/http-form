@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The GitHub Release of a tag holds `contracts/fields.json` and `contracts/forms.json` beside the archives and
+  `packages.json`, with `files.json`, which records the URL and the sha256 of each by its path, so that a consumer pins
+  the cases of a tag by version and integrity in place of a copy (T1.25). `files` of `config/release.json` names the two
+  files, and the release tooling of kit 0.0.116 publishes them (kit K1267); this repository holds no upload or integrity
+  code. The development tools depend on kit 0.0.116. Before, a release published the archives and `packages.json` alone.
+  `make test-scripts` passes 20 of 20 tests and `make release-coverage` passes.
+
 - `contracts/fields.json` holds the cases of fourteen more inputs, each with the rule that it pins (T1.26). In
   `multipart`: a body without `Content-Type` has no values (F-4, F-21.4); a part of another disposition type, of a type
   that only starts with `form-data`, without `name`, without header lines, with a lone CR in a header line, with a
