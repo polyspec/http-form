@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5957d4235633e73218c8e80b782d49d4d2915c1f99168dba0e78d9c78402d113 -->
+<!-- source-sha256: 27aa1a9f10d975a986a576e4680b4581c9f0469f2e43fd43480ada0891dbebc5 -->
 
 ## Unreleased
+
+- `contracts/fields.json`과 `contracts/forms.json`에서 `then`의 모든 call step이 `args`를 준다(T1.27). 매개변수가 없는
+  method인 `request_body.remove`와 `request_body.finish`의 step 열여섯 개가 `"args": {}`를 준다. binding은 모든 call
+  step에 그것을 요구한다(binding CK-22). 전에는 이 step들이 `args`를 주지 않았다. `make bindings-check`, `make test`와
+  `make test-scripts`가 통과한다.
 
 - tag의 GitHub Release는 archive와 `packages.json` 옆에 `contracts/fields.json`과 `contracts/forms.json`을 가지며,
   각 파일의 URL과 sha256을 경로별로 기록하는 `files.json`도 가진다. 그래서 소비자는 복사본 대신 tag의 case를 version과

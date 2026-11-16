@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Every call step of a `then` in `contracts/fields.json` and `contracts/forms.json` gives its `args` (T1.27): the sixteen
+  steps `request_body.remove` and `request_body.finish`, whose methods take no parameters, give `"args": {}`, as binding
+  requires of every call step (binding CK-22). Before, these steps gave no `args`. `make bindings-check`, `make test` and
+  `make test-scripts` pass.
+
 - The GitHub Release of a tag holds `contracts/fields.json` and `contracts/forms.json` beside the archives and
   `packages.json`, with `files.json`, which records the URL and the sha256 of each by its path, so that a consumer pins
   the cases of a tag by version and integrity in place of a copy (T1.25). `files` of `config/release.json` names the two
