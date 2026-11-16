@@ -1,7 +1,17 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8424351d0490547b15a30451433bc79f7b4deaeb1d8ce635ee3df8ac88f124c5 -->
+<!-- source-sha256: b2b8ea3af2b47da049f58dc2c831ec681cacf89e86029d85428ec2ba3f35612d -->
 
 ## Unreleased
+
+- `contracts/fields.json`은 입력 열네 개의 case를 더 가지며, 각 case는 고정하는 규칙을 밝힌다(T1.26). `multipart`에서
+  `Content-Type`이 없는 body는 값이 없다(F-4, F-21.4). 다른 disposition type의 part, `form-data`로 시작하기만 하는 type의
+  part, `name`이 없는 part, header line이 없는 part, header line에 CR만 있는 part, parameter 앞에 no-break space가 있는
+  part, parameter를 두 번 준 part는 body를 `invalid`로 실패시킨다(F-16, F-23.1, F-23.2). 끝이 없는 quoted value는
+  `invalid`로 실패한다(F-6). 따옴표로 감싼 빈 boundary는 `no_boundary`로 실패한다(F-7). 뒤에 line feed가 붙은 urlencoded
+  type은 `malformed_content_type`으로 실패한다(F-12, MT-1.3). `streamed`에서 part limit과 정확히 같은 body는 읽히고, part
+  limit 2를 넘는 세 번째 part는 그 파일 전에 읽기를 멈추며, 하나의 값으로 보관된 body는 value limit이 제한하고 part limit과
+  file limit은 제한하지 않는다(F-25.2, F-25.3, F-9). boundary가 없는 multipart type은 case
+  `a_multipart_type_without_a_boundary_fails`(F-7)를 유지한다. 코어는 이미 모든 기대 결과를 냈고 `make test`가 통과한다.
 
 - 코어와 바인딩 crate는 binding 0.0.7과 http-media-type 0.0.4에 의존한다(T1.19-5, T1.23). binding 0.0.7에서 생성된
   바인딩 crate는 컴파일되고 `make lint-bindings`가 통과한다. 전에는 E0308과 E0425로 실패했다. `Error::removal_kind`는

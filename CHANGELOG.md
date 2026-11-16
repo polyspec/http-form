@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `contracts/fields.json` holds the cases of fourteen more inputs, each with the rule that it pins (T1.26). In
+  `multipart`: a body without `Content-Type` has no values (F-4, F-21.4); a part of another disposition type, of a type
+  that only starts with `form-data`, without `name`, without header lines, with a lone CR in a header line, with a
+  no-break space before its parameter or with a parameter given twice fails the body with `invalid` (F-16, F-23.1,
+  F-23.2); a quoted value without its end fails with `invalid` (F-6); a quoted empty boundary fails with `no_boundary`
+  (F-7); an urlencoded type followed by a line feed fails with `malformed_content_type` (F-12, MT-1.3). In `streamed`: a
+  body of exactly the part limit is read, a third part past a part limit of two stops the reading before its file, and
+  a body held as one value is bounded by the value limit and not by the part or the file limit (F-25.2, F-25.3, F-9). A
+  multipart type without a boundary keeps its case `a_multipart_type_without_a_boundary_fails` (F-7). The core already
+  gave every expected result, and `make test` passes.
+
 - The core and the binding crates depend on binding 0.0.7 and http-media-type 0.0.4 (T1.19-5, T1.23). With binding
   0.0.7 the generated binding crates compile and `make lint-bindings` passes; before, they failed with E0308 and
   E0425. `Error::removal_kind` returns the kind as `&'static str`, the text that the generated code copies, because
