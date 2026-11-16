@@ -1,7 +1,6 @@
 # Every check of this repository is a target here.
 #
-# The bindings are generated from the interface contract (plan G-6); the hand-written bindings of an earlier API are in
-# legacy/, which no target builds.
+# The bindings are generated from the interface contract (plan G-6).
 
 # The tools of the checkout: the utilities of the installed @polyspec/kit (node_modules/@polyspec/kit) install the
 # toolchains of mise.toml, rust-toolchain.toml and .php-version into var/tools, as the recipes of binding do.
@@ -194,7 +193,7 @@ NODE_ADDON := http-form.$(PLATFORM).node
 WASM_BINDGEN_RELEASE := $(shell sed -n 's/^wasm-bindgen = "=\(.*\)"$$/\1/p' packages/ts/wasm/Cargo.toml)
 node-package: bindings-node bindings-wasm
 	test "$$($(WASM_BINDGEN) --version)" = "wasm-bindgen $(WASM_BINDGEN_RELEASE)"
-	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-wasm --locked --target wasm32-unknown-unknown --features panic-test
+	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-wasm --locked --target wasm32-unknown-unknown --features panic-test,fault-test
 	$(WASM_BINDGEN) --target web --out-dir packages/ts/wasm/generated --out-name http_form_wasm \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/debug/polyspec_http_form_wasm.wasm
 	$(CARGO) build $(CARGOFLAGS) -p $(CORE)-node --locked --features panic-test,fault-test
@@ -298,15 +297,21 @@ ci-platform:
 	$(MAKE) --no-print-directory -k release-go-static release-wheel release-npm-platform
 
 # ci-php builds the extension for the PHP minor EXPECTED_PHP_MINOR with the php of PATH, which the job selects with
-# setup-php for its matrix entry before the recipe runs.
+# setup-php for its matrix entry before the recipe runs. The job provisions the LLVM of config/toolchain.json before the
+# recipe (binding GN-19i): the ubuntu-26.04 images hold it at /usr/lib/llvm-<major>, the default LLVM_ROOT of
+# packages/release.mk, and on macOS install-llvm-action installs it and sets LLVM_PATH, which the build takes as
+# LLVM_ROOT. install-llvm-action appends DYLD_LIBRARY_PATH and LD_LIBRARY_PATH with /usr/lib first to GITHUB_ENV, and the
+# PHP of Homebrew then loads the libsqlite3 of the system and aborts, so the recipe and its sub-makes run with both
+# empty and the build reads LLVM through LLVM_ROOT alone.
+ci-php: DYLD_LIBRARY_PATH :=
+ci-php: LD_LIBRARY_PATH :=
 ci-php:
 	@test -n "$(EXPECTED_PHP_MINOR)" || { echo 'ci-php: EXPECTED_PHP_MINOR is required, for example make ci-php EXPECTED_PHP_MINOR=8.4' >&2; exit 2; }
 	$(MAKE) --no-print-directory install-tools TOOLS=rust
 	$(MAKE) --no-print-directory install-binding
 	$(MAKE) --no-print-directory release-recipes
 	$(if $(filter true,$(RELEASE)),$(MAKE) --no-print-directory release-binding-check)
-	$(MAKE) --no-print-directory install-llvm
-	$(MAKE) --no-print-directory release-php-ext PHP=php EXPECTED_PHP_MINOR=$(EXPECTED_PHP_MINOR)
+	$(MAKE) --no-print-directory release-php-ext PHP=php EXPECTED_PHP_MINOR=$(EXPECTED_PHP_MINOR) $(if $(LLVM_PATH),LLVM_ROOT=$(LLVM_PATH))
 
 ci-npm:
 	$(MAKE) --no-print-directory install-tools TOOLS=rust

@@ -1,5 +1,5 @@
 <!-- doc-id: readme -->
-<!-- source-sha256: dcc7e76c28534b2ea2f3849e2f228ee2e868b1a2f03570e11fdb39e56c670b8e -->
+<!-- source-sha256: 9076cbf883d0e3160ef57d8ccdb0902cf773acfbd587b57339d756e4f80d9e0d -->
 # http-form
 
 form 값과 `multipart/form-data` 본문을 읽는 라이브러리이다. Rust 구현 하나가 읽고, 모든 계약이 적는 다섯
@@ -14,7 +14,6 @@ packages/ts/ packages/ts/wasm/ packages/python/ packages/php-ext/ packages/go/  
 docs/spec/       forms.md: 규칙, 오류, API
 contracts/       fields.json과 forms.json: 규칙의 case
 conformance/     hyper의 Python reader와 비교하는 differential 시험
-legacy/          이전 API의 손으로 쓴 바인딩과 그 runner. 빌드하지 않는다
 ```
 
 ## 사용

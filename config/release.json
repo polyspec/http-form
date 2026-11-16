@@ -29,11 +29,6 @@
   "notReleased": {
     "package.json": "the private development root: the TypeScript compiler, @polyspec/kit, @polyspec/binding and the napi CLI of the checkout",
     "composer.json": "the private development root: PHPUnit, which runs the tests of the PHP extension",
-    "legacy/node/Cargo.toml": "a hand-written binding of an earlier API in legacy/, which no target builds and no release holds; legacy/ is removed when the generated bindings pass their tests",
-    "legacy/node/package.json": "a hand-written binding of an earlier API in legacy/, which no target builds and no release holds; legacy/ is removed when the generated bindings pass their tests",
-    "legacy/php/Cargo.toml": "a hand-written binding of an earlier API in legacy/, which no target builds and no release holds; legacy/ is removed when the generated bindings pass their tests",
-    "legacy/python/Cargo.toml": "a hand-written binding of an earlier API in legacy/, which no target builds and no release holds; legacy/ is removed when the generated bindings pass their tests",
-    "legacy/python/pyproject.toml": "a hand-written binding of an earlier API in legacy/, which no target builds and no release holds; legacy/ is removed when the generated bindings pass their tests",
     "packages/go/go.mod": "the Go module of the binding: make release-go-module carries it in a commit with the generated files and the static library of each platform and creates the tag packages/go/vX.Y.Z of that commit (binding GN-19f), which kit does not make, so goModules names no module and no tag of kit releases it"
   },
   "goModules": {},

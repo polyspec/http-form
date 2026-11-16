@@ -10,7 +10,7 @@ use common::{
 };
 use polyspec_http_form::{
     file_over, is_urlencoded, media_type, multipart_boundary, read_body, read_held_body, Collector, Error, Form,
-    Limits, MultipartReader, ReadError, RequestBody,
+    Limits, MultipartReader, ReadError, RequestBody, UploadedFile,
 };
 use serde_json::{json, Value};
 
@@ -121,25 +121,43 @@ fn held() {
     failures.check("held");
 }
 
+/// F-27: each case gives the files and the limit of one call and the result.
 #[test]
 fn files_over_a_limit() {
     let cases = contract("forms.json");
     let mut failures = Failures::default();
     for case in group(&cases, "file_over") {
         let label = id(case);
-        let Some(limits) = case["limits"].as_array() else { panic!("{label}: limits") };
-        let form = match read_body(content_type(case).as_deref(), &bytes(&case["body"])) {
-            Ok(form) => form,
-            Err(error) => panic!("{label}: {error}"),
-        };
-        let over: Vec<bool> = limits
+        let Some(fields) = case["files"].as_array() else { panic!("{label}: files") };
+        let files: Vec<(String, Vec<UploadedFile>)> = fields
             .iter()
-            .map(|limit| match limit.as_u64() {
-                Some(limit) => file_over(&form.files, limit),
-                None => panic!("{label}: {limit}"),
+            .map(|field| {
+                let Some(name) = field[0].as_str() else { panic!("{label}: name of {field}") };
+                let Some(made) = field[1].as_array() else { panic!("{label}: files of {field}") };
+                let made = made
+                    .iter()
+                    .map(|value| {
+                        // An instance value (binding GN-13f): the constructor uploaded_file.new with its arguments.
+                        assert_eq!(value["new"], json!("uploaded_file.new"), "{label}: {value}");
+                        let file = &value["args"];
+                        let text = |key: &str| match file[key].as_str() {
+                            Some(text) => text,
+                            None => panic!("{label}: {key} of {file}"),
+                        };
+                        UploadedFile::from_value(
+                            text("name"),
+                            text("filename"),
+                            text("content_type"),
+                            &bytes(&file["content"]),
+                        )
+                        .unwrap_or_else(|error| panic!("{label}: {error}"))
+                    })
+                    .collect();
+                (name.to_owned(), made)
             })
             .collect();
-        failures.compare(case, "over", &json!(over));
+        let Some(limit) = case["limit"].as_u64() else { panic!("{label}: limit") };
+        failures.compare(case, "result", &json!(file_over(&files, limit)));
     }
     failures.check("file_over");
 }

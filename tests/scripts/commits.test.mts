@@ -1,7 +1,7 @@
 // No tracked file names a Git commit (AGENTS.md, "Commits and changes"): a commit id says nothing to a reader without
 // the repository and names nothing after a history is joined or written again, so a record states the fact. The files
 // that pin by a commit or hold other hexadecimal data are left out by name: the lock files, the workflows, whose
-// actions are pinned by commit, the digests of config/toolchain.json, the bytes of the contract cases and legacy/.
+// actions are pinned by commit, the digests of config/toolchain.json, and the bytes of the contract cases.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -9,7 +9,7 @@ import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 const root = resolve(import.meta.dirname, '../..');
-const LEFT_OUT = /(^|\/)(Cargo\.lock|package-lock\.json|composer\.lock|mise\.lock|aube-lock\.yaml)$|^legacy\/|^\.github\/|^config\/toolchain\.json$|^contracts\//;
+const LEFT_OUT = /(^|\/)(Cargo\.lock|package-lock\.json|composer\.lock|mise\.lock|aube-lock\.yaml)$|^\.github\/|^config\/toolchain\.json$|^contracts\//;
 // An abbreviated or full commit id: 7 to 40 hexadecimal characters with a digit and a letter, not part of a longer word.
 const COMMIT = /(?<![0-9A-Za-z/#"_.-])(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![0-9A-Za-z"_-])/g;
 

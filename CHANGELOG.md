@@ -13,6 +13,36 @@
   multipart type without a boundary keeps its case `a_multipart_type_without_a_boundary_fails` (F-7). The core already
   gave every expected result, and `make test` passes.
 
+## 0.0.1
+
+- The core, the binding crates and the tool depend on binding 0.0.10 and http-media-type 0.0.6, which depends on
+  binding 0.0.10, so `Cargo.lock` pins one `polyspec-binding-core` (T1.8, CK-20). The generated tests of the five
+  targets pass every case: Python 341, Node 342, WASM 227 and PHP 333 tests, and the three Go packages; the cases of
+  `file_over` with files, whose files are instance values (GN-13f), pass in every target. The hand-written bindings of
+  an earlier API in `legacy/` are removed (T1.9): their runners called an API that the generated bindings do not have,
+  and the generated tests run every case of `contracts/fields.json` and `contracts/forms.json` through each target.
+
+- The core depends on http-media-type 0.0.5, which depends on binding 0.0.9 (T1.19-5), so `Cargo.lock` pins one
+  `polyspec-binding-core`, 0.0.9: `make bindings-check` passes, and `make test-scripts` passes 19 of 19 tests.
+
+- Each file of a case of `file_over` is an instance value, `{"new": "uploaded_file.new", "args": {...}}`, the call of
+  the constructor of `UploadedFile` with its arguments (binding GN-13f), in place of the object of those arguments,
+  which no generator reads as an instance (T1.8). The Rust test reads the same form.
+
+- The core, the binding crates and the tool depend on binding 0.0.9 and kit 0.0.114 (T1.8, T1.23). With binding 0.0.9
+  the generated tests of the five targets run and pass every case but three: Python 338 of 341, Node 339 of 342, WASM
+  224 of 227, PHP 330 of 333 and Go fails only the same three. The three are the cases of `file_over` with files,
+  whose argument is a list of `UploadedFile`, a class of which binding 0.0.9 writes no case value (G-5), so the
+  generated test fails with that reason. The cases of `file_over` gave the keys `limits` and `over`, which are no
+  parameters of the member; each case now gives the parameters `files` and `limit` and the `result` of one call, and
+  the Rust test builds the files with `UploadedFile::from_value`. The WASM crate of `make node-package` is built with
+  the feature `fault-test` beside `panic-test`, because the generated fault tests call `__armFaults`, which only that
+  feature exports. The job of the PHP extension reads LLVM from the image on Linux and from install-llvm-action on
+  macOS, whose `LLVM_PATH` `make ci-php` passes as `LLVM_ROOT`, with `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` empty,
+  since binding 0.0.7 removed `make install-llvm`. `Cargo.lock` still pins binding 0.0.5 beside 0.0.9 through
+  http-media-type 0.0.4, so `make bindings-check` and `make release-binding-check` report CK-20 and `make test-scripts`
+  passes 18 of 19 tests.
+
 - The core and the binding crates depend on binding 0.0.7 and http-media-type 0.0.4 (T1.19-5, T1.23). With binding
   0.0.7 the generated binding crates compile and `make lint-bindings` passes; before, they failed with E0308 and
   E0425. `Error::removal_kind` returns the kind as `&'static str`, the text that the generated code copies, because
@@ -88,8 +118,6 @@
   test-scripts` failed 7 of 15 tests: three of `workflows.test.mts`, three of `binding.test.mts` and the test of the
   release configuration of `ci.test.mts`. Green: `binding check --release` reports CK-20
   alone, `make test-scripts` passes 14 of 15 tests, and `make docs-check` and `make release-coverage` pass (T1.19).
-
-## 0.0.1
 
 - http-media-type is a released dependency. The core names the tag `v0.0.1` of http-media-type in place of its branch
   `v1/rust-core`, and `Cargo.lock` pins the commit of that tag; `binding check --release` reports nothing (T1.13).
