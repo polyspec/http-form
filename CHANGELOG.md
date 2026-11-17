@@ -4,6 +4,8 @@
 
 ## 0.0.3
 
+- The release wheel of `make release-wheel` runs the maturin of `mise.toml`: the Makefile names the pip requirement of the test of python `MATURIN_PIP`, so `MATURIN` is no longer set ahead of `packages/release.mk` (T1.42). The tool test no longer reads the generated `packages/release.mk` (T1.42).
+
 - `mise.toml` pins maturin 1.16.0, the tool that `make release-wheel` installs with mise, and `mise.lock` locks it on every platform of `toolchain-lock`, so the release job of each platform installs it from the lock (T1.41).
 
 - binding 0.0.21 and http-media-type 0.0.9 (T1.40): the core uses the release of http-media-type that pins binding 0.0.21,

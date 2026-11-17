@@ -37,12 +37,12 @@ BINDING := $(NODE) $(CURDIR)/node_modules/@polyspec/binding/dist/cli.js
 # The language runtimes. PHP is the binary whose headers the extension is built against (PHP_CONFIG) and that loads it.
 # Both are paths, because ext-php-rs reads PHP as the path of a file: the wrappers of var/tools/bin that make
 # install-tools writes for the PHP of .php-version. PYTHON is the Python of mise.toml, whose shim PATH names first, and
-# MATURIN the release of maturin that make test-python installs into the virtual environment of the test.
+# MATURIN_PIP the release of maturin that make test-python installs with pip into the virtual environment of the test.
 PYTHON ?= python3.14
 PHP ?= $(KIT_TOOLS)/bin/php
 PHP_CONFIG ?= $(KIT_TOOLS)/bin/php-config
 PHPUNIT ?= vendor/bin/phpunit
-MATURIN := maturin==1.16.0
+MATURIN_PIP := maturin==1.16.0
 # The Go of the go directive of packages/go/go.mod and the wasm-bindgen CLI of the release of the wasm-bindgen crate of
 # packages/ts/wasm/Cargo.toml (binding GN-15, GN-18), both of mise.toml, which make install-tools installs into
 # var/tools/mise; test-go and node-package compare both releases before they use them.
@@ -218,7 +218,7 @@ test-crates: bindings-node bindings-python bindings-php
 # The wheel with the test features, installed into a virtual environment, where the generated tests (G-5) run.
 test-python: bindings-python
 	$(PYTHON) -m venv --clear $(VAR)/venv
-	$(ONLINE) $(VAR)/venv/bin/pip install -q $(MATURIN)
+	$(ONLINE) $(VAR)/venv/bin/pip install -q $(MATURIN_PIP)
 	rm -rf $(VAR)/wheels
 	cd packages/python && $(VAR)/venv/bin/maturin build --locked --features $(PYTHON_FEATURES) \
 		--interpreter $(VAR)/venv/bin/python --out $(VAR)/wheels $(CARGOFLAGS)
