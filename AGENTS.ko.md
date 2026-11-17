@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: e0c07c3d0e40239c93af7af89c60d114dfdec6d1440e20386b2f9cbe16111ef6 -->
+<!-- source-sha256: fbff2eb956cf5ac329284bd567d2a07f314c7837be5ab96351431c2293092c20 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -122,6 +122,7 @@
   test-bindings`의 대상을 실행한다. 각 job은 `make ci-check NAME=<name>`을 실행한다. 그 recipe는 항목의 도구를 설치하고(`CI_CHECK_INSTALLS_<name>`), 항목의
   대상(`CI_CHECK_TARGETS_<name>`)을 `make ci-targets`로 실행하며, `make ci-summary`로 job의 요약을 쓴다. `make ci-targets`는
   모든 대상을 끝까지 실행하고 보고서 `var/ci/<name>/`을 쓴다. job `assets`는 `.github/workflows/assets.yml`을 호출하고, 그것은
+  각 job에서 go를 설치하고 release가 `make release-binding-check`를 도는 자리에서 `make bindings-check`를 돈 뒤
   release와 같이 각 플랫폼의 asset을 빌드한다. 그래서 빌드되지 않는 asset이 tag가 생기기 전에 release를 멈춘다. 마지막
   job `ci-passed`는 다른 모든 job이 통과했을 때만 통과한다. job은 `ubuntu-26.04-arm`에서 돈다. 다만 `assets.yml`의 job
   `platform`과 `php`는 `ubuntu-26.04`, `ubuntu-26.04-arm`, `macos-15`에서 돈다. 플랫폼의 asset은 그 플랫폼에서만 빌드되고

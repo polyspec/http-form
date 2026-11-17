@@ -1,7 +1,11 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 948b8996def5561c39872b630d25130fe3fcd16b2b6777993008f8102861f033 -->
+<!-- source-sha256: 65f2ec3bfd082bac4879a3d716dfc7fa6471f12bd8e46ab8167ea6c338db2d32 -->
 
 ## Unreleased
+
+- `assets.yml`의 job은 binding의 검사 앞에서 go를 설치하고, release하지 않을 때 `bindings-check`를 돈다(T1.29).
+  그래서 release가 도는 것을 CI가 release의 각 runner에서 돈다. 전에는 release하지 않는 job이 binding의 검사를 돌지
+  않았고, 어떤 job도 go를 설치하지 않았다. binding check는 go로 `packages/go`의 go.sum을 읽는다(binding CK-19).
 
 - kit을 release 0.0.120에 고정하고, `make release-candidate-assets`는 tag 없이 커밋된 HEAD에서 release의 archive를
   만든다. CI의 job check의 항목 core가 그것을 돈다(T1.28). kit이 `CHANGELOG.md`의 첫 절 `## X.Y.Z`에서 version을

@@ -1,6 +1,7 @@
 # The assets of each platform of the bindings of http-form (binding GN-19a, GN-19i). The workflow ci calls it for the
 # commit of its run, and the workflow release calls it for the tree of the tag that it releases, with release true, which
-# runs the release check of binding before a job builds (make release-binding-check).
+# runs the release check of binding before a job builds (make release-binding-check); without it each job runs the same
+# check without the release rules (make bindings-check).
 #
 # The jobs platform and php run on the runner of their platform, ubuntu-26.04, ubuntu-26.04-arm or macos-15, the one exception to the
 # runner rule of AGENTS.md: the asset of a platform is built and loaded only on that platform, because no tool of the
@@ -23,7 +24,7 @@ on:
         type: string
         default: ''
       release:
-        description: Whether each job runs the release check of binding before it builds
+        description: Whether each job runs the release check of binding before it builds, in place of the check without the release rules
         required: false
         type: boolean
         default: false

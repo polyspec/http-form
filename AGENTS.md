@@ -131,6 +131,7 @@ rules of this repository.
   `bindings` runs the targets of `make test-bindings`. Each job runs `make ci-check NAME=<name>`, whose recipe installs the tools of the entry
   (`CI_CHECK_INSTALLS_<name>`), runs its targets (`CI_CHECK_TARGETS_<name>`) with `make ci-targets`, which runs every
   target to its end and writes the report `var/ci/<name>/`, and writes the summary of the job with `make ci-summary`. The job `assets` calls `.github/workflows/assets.yml`, which
+  installs go and runs `make bindings-check` in each job, where a release runs `make release-binding-check`, and
   builds the assets of each platform as a release does, so that an asset that does not build stops the release before
   a tag exists. The last job `ci-passed` passes only when every other job passed. The jobs run on `ubuntu-26.04-arm`,
   but for the jobs `platform` and `php` of `assets.yml`, which runs on `ubuntu-26.04`, `ubuntu-26.04-arm` and `macos-15`, because

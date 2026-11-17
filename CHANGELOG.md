@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The jobs of `assets.yml` install go before the check of binding and run `bindings-check` when they do not release
+  (T1.29), so that CI runs on each runner of the release what the release runs. Before, a job that did not release ran
+  no check of binding, and no job installed go, with which binding check reads a go.sum of `packages/go` (binding
+  CK-19).
+
 - kit is pinned at its release 0.0.120, and `make release-candidate-assets` builds the archives of the release from the
   committed HEAD with no tag; the entry core of the job check of CI runs it (T1.28). kit reads the version from the
   first section `## X.Y.Z` of `CHANGELOG.md` (kit K1286), so the recipe names none. Before, the archives were first
