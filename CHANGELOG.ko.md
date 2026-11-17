@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 74874ada65b9de2def2aff2795152b48ebc20ed47ae69c904cc6f83e3e1892e1 -->
+<!-- source-sha256: 14d867e6953cd08e0d55da703dd378ea59b1acd2be8ec53e8eb1840cd41bbf81 -->
 
 ## Unreleased
+
+- `make cargo-lock CRATES="<crate> <crate>"`가 kit의 link script의 `--tracked-lock` 꼴로(kit K1287) `cargo update -p
+  <crate>`를 돌려 `Cargo.lock`을 쓰고, kit을 그 꼴을 가진 release 0.0.121에 고정한다(T1.32). `Cargo.lock`은 tag
+  `v0.0.17`의 `polyspec-binding-core` 하나와 tag `v0.0.8`의 http-media-type을 고정한다. 전에는 lock을 쓰는 recipe가
+  없었다. `make test-scripts`가 시험 28개 중 28개를 통과한다.
 
 - recipe는 각 binding crate의 test feature를 그 manifest에서 읽고(T1.31), `go test`의 build tag도 같은 목록에서
   `polyspec_http_form_<feature>` 꼴로 만든다. binding 0.0.17이 생성 Go 시험을 그 tag 아래에 쓴다. 전에는 recipe마다

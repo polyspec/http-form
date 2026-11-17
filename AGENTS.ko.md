@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: f37e034ccd42b8bfccbe8afc86982a06a18433cba6544483f8fc5f8d863a044f -->
+<!-- source-sha256: 0bb6ee8facdd203f843b87ddf665d4f62532602eba6a070574500d4cb30123ea -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -30,7 +30,8 @@
   자기 것으로 받는다(CK-20). recipe는 `node_modules/@polyspec/binding/dist/cli.js`를 실행한다. bootstrap과 `make
   install-packages`가 그것을 설치하고, `make install-binding`이 binding이 `cargo metadata --locked --offline`으로 읽는
   `Cargo.lock`의 crate를 받는다(`cargo fetch --locked`). `tests/scripts/binding.test.mts`가 tag, asset, 그 integrity, 이
-  recipe를 요구한다. 변수 `PYTHON`(3.14 이상), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`,
+  recipe를 요구한다. crate의 tag가 바뀌면 `make cargo-lock CRATES="<crate> <crate>"`가 kit의 link
+  script(`link.mjs cargo --tracked-lock`, kit K1287)로 `cargo update -p <crate>`를 돌려 `Cargo.lock`을 쓴다. 변수 `PYTHON`(3.14 이상), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT`,
   `WASM_BINDGEN`은 `var/tools`와 `vendor/`의 도구를 가리키고(도구 절 참고), `make test-python`은 `MATURIN`의 maturin을
   시험의 가상 환경에 설치한다. `make test-go`는
   `packages/go/go.mod`의 go 지시문과 다른 release의 Go를 실패시키고 `GOTOOLCHAIN=local`로 실행해 toolchain을 받지

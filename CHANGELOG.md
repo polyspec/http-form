@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `make cargo-lock CRATES="<crate> <crate>"` writes `Cargo.lock` with `cargo update -p <crate>` through the link script
+  of kit in its form `--tracked-lock` (kit K1287), and kit is pinned at its release 0.0.121, which holds that form
+  (T1.32). `Cargo.lock` pins one `polyspec-binding-core`, at the tag `v0.0.17`, and http-media-type at the tag `v0.0.8`.
+  Before, no recipe wrote the lock. `make test-scripts` passes 28 of 28 tests.
+
 - The recipes read the test features of each binding crate from its manifest (T1.31), and the build tags of `go test`
   come from the same list in the form `polyspec_http_form_<feature>`, under which binding 0.0.17 writes the generated
   Go tests. Before, each recipe named its features: the Go crate was built with `panic-test,codec-test`, without the

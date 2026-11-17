@@ -31,7 +31,8 @@ rules of this repository.
   `node_modules/@polyspec/binding/dist/cli.js`; the bootstrap and `make install-packages` install it, and `make
   install-binding` fetches the crates of `Cargo.lock` (`cargo fetch --locked`), which binding reads with `cargo
   metadata --locked --offline`. `tests/scripts/binding.test.mts` requires the tag, the asset, its integrity and these
-  recipes. The variables `PYTHON` (3.14 or
+  recipes. After a change of the tag of a crate, `make cargo-lock CRATES="<crate> <crate>"` writes `Cargo.lock` with
+  `cargo update -p <crate>` through the link script of kit (`link.mjs cargo --tracked-lock`, kit K1287). The variables `PYTHON` (3.14 or
   later), `PHP`, `PHP_CONFIG`, `PHPUNIT`, `GO`, `GOFMT` and `WASM_BINDGEN` name the tools of `var/tools` and `vendor/`
   (see Tools), and `make test-python` installs the maturin of `MATURIN` into the virtual environment of the test. `make test-go` fails a Go of
   another release than the go directive of `packages/go/go.mod` and runs it with `GOTOOLCHAIN=local`, so that it

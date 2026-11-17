@@ -125,6 +125,16 @@ install-packages:
 install-binding:
 	$(ONLINE) $(CARGO) fetch --locked
 
+# Cargo.lock is written by cargo: after a change of the tag of a crate in a Cargo.toml, cargo-lock runs
+# `cargo update -p <crate>` for the crates of CRATES, which fetches the tag. The recipe starts the link script of kit
+# with --tracked-lock (kit K1287): it runs cargo as given, with no patch and no copy of the lock, in a checkout with or
+# without a link declaration, where a linked run would write its own copy of the lock and leave the tracked one. cargo
+# then reads only the sources that the manifests name.
+.PHONY: cargo-lock
+cargo-lock:
+	@test -n "$(strip $(CRATES))" || { echo 'cargo-lock: CRATES is empty; name the crates whose pin changed: make cargo-lock CRATES="<crate> <crate>"' >&2; exit 2; }
+	$(ONLINE) $(NODE) $(KIT)/link.mjs cargo --tracked-lock $(CURDIR) update $(foreach crate,$(CRATES),-p $(crate))
+
 # toolchain-lock writes mise.lock with the mise of var/tools for the platforms of the deployment targets.
 TOOLCHAIN_LOCK_PLATFORMS := linux-x64,linux-arm64,macos-arm64
 toolchain-lock:
