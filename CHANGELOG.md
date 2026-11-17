@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The cases hold the keys that the check of binding 0.0.17 reads (T1.34, CK-96): the 254 cases of
+  `contracts/fields.json` and `contracts/forms.json` give their description under `note`, the key of G-5, instead of
+  `label`, and each case row of `packages/rust/interface.json` names the key of its result in `result`, where a case
+  holds it in the form of the return type, and the keys that only the core tests read in `reads`. No case changes an
+  input or an expected value. The generated tests now compare the results that `result` names. The core tests read
+  `rules`: each is a non-empty list of rule ids. Before, `make bindings-check` reported 763 findings CK-96; it passes.
+
 - `make bindings-scaffold` writes the tracked binding packages with binding scaffold, through `$(ONLINE)` (T1.33).
   Before, no recipe ran the scaffold. On binding 0.0.17 it changes no tracked file and writes no `packages/go/go.sum`,
   because `packages/go/go.mod` requires no module.

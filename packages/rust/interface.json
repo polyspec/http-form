@@ -1687,172 +1687,215 @@
     {
       "member": "forms.parse_urlencoded",
       "file": "contracts/fields.json",
-      "group": "urlencoded"
+      "group": "urlencoded",
+      "result": "fields",
+      "reads": ["names"]
     },
     {
       "member": "forms.media_type",
       "file": "contracts/forms.json",
-      "group": "content_type"
+      "group": "content_type",
+      "result": "media_type",
+      "reads": ["rules", "urlencoded", "boundary"]
     },
     {
       "member": "forms.is_urlencoded",
       "file": "contracts/forms.json",
-      "group": "content_type"
+      "group": "content_type",
+      "result": "urlencoded",
+      "reads": ["rules", "media_type", "boundary"]
     },
     {
       "member": "forms.multipart_boundary",
       "file": "contracts/forms.json",
-      "group": "content_type"
+      "group": "content_type",
+      "result": "boundary",
+      "reads": ["rules", "media_type", "urlencoded"]
     },
     {
       "member": "forms.fields_from_body",
       "file": "contracts/fields.json",
-      "group": "multipart"
+      "group": "multipart",
+      "result": "fields",
+      "reads": ["rules", "files"]
     },
     {
       "member": "forms.files_from_body",
       "file": "contracts/fields.json",
-      "group": "multipart"
+      "group": "multipart",
+      "reads": ["rules", "fields", "files"]
     },
     {
       "member": "forms.read_body",
       "file": "contracts/forms.json",
-      "group": "multipart"
+      "group": "multipart",
+      "reads": ["rules", "fields", "files"]
     },
     {
       "member": "forms.read_held_body",
       "file": "contracts/forms.json",
-      "group": "held"
+      "group": "held",
+      "reads": ["rules", "fields", "files"]
     },
     {
       "member": "forms.file_over",
       "file": "contracts/forms.json",
-      "group": "file_over"
+      "group": "file_over",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.remove",
       "file": "contracts/fields.json",
-      "group": "request_body.remove"
+      "group": "request_body.remove",
+      "reads": ["rules"]
     },
     {
       "member": "uploaded_file.new",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.content",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.move_to",
       "file": "contracts/fields.json",
-      "group": "uploaded_file.move_to"
+      "group": "uploaded_file.move_to",
+      "reads": ["rules"]
     },
     {
       "member": "uploaded_file.content",
       "file": "contracts/fields.json",
-      "group": "uploaded_file.content"
+      "group": "uploaded_file.content",
+      "reads": ["rules"]
     },
     {
       "member": "uploaded_file.held_content",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.held_content",
       "file": "contracts/fields.json",
-      "group": "uploaded_file.content"
+      "group": "uploaded_file.content",
+      "reads": ["rules"]
     },
     {
       "member": "forms.multipart_boundary",
       "file": "contracts/forms.json",
-      "group": "boundary"
+      "group": "boundary",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.start",
       "file": "contracts/forms.json",
-      "group": "request_body.start"
+      "group": "request_body.start",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.feed",
       "file": "contracts/forms.json",
-      "group": "request_body.feed"
+      "group": "request_body.feed",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.finish",
       "file": "contracts/forms.json",
-      "group": "request_body.finish"
+      "group": "request_body.finish",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.parts",
       "file": "contracts/forms.json",
-      "group": "request_body.parts"
+      "group": "request_body.parts",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.held",
       "file": "contracts/forms.json",
-      "group": "request_body.properties"
+      "group": "request_body.properties",
+      "result": "held",
+      "reads": ["rules", "size", "streamed", "directory"]
     },
     {
       "member": "request_body.size",
       "file": "contracts/forms.json",
-      "group": "request_body.properties"
+      "group": "request_body.properties",
+      "result": "size",
+      "reads": ["rules", "held", "streamed", "directory"]
     },
     {
       "member": "request_body.streamed",
       "file": "contracts/forms.json",
-      "group": "request_body.properties"
+      "group": "request_body.properties",
+      "result": "streamed",
+      "reads": ["rules", "held", "size", "directory"]
     },
     {
       "member": "request_body.directory",
       "file": "contracts/forms.json",
-      "group": "request_body.properties"
+      "group": "request_body.properties",
+      "result": "directory",
+      "reads": ["rules", "held", "size", "streamed"]
     },
     {
       "member": "uploaded_file.name",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.filename",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.content_type",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "uploaded_file.size",
       "file": "contracts/fields.json",
-      "group": "uploaded"
+      "group": "uploaded",
+      "reads": ["file"]
     },
     {
       "member": "request_body.feed",
       "file": "contracts/forms.json",
-      "group": "request_body.feed.made"
+      "group": "request_body.feed.made",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.finish",
       "file": "contracts/forms.json",
-      "group": "request_body.finish.made"
+      "group": "request_body.finish.made",
+      "reads": ["rules"]
     },
     {
       "member": "uploaded_file.content",
       "file": "contracts/fields.json",
-      "group": "uploaded_file.content.stored"
+      "group": "uploaded_file.content.stored",
+      "reads": ["rules"]
     },
     {
       "member": "uploaded_file.move_to",
       "file": "contracts/fields.json",
-      "group": "uploaded_file.move_to.stored"
+      "group": "uploaded_file.move_to.stored",
+      "reads": ["rules"]
     },
     {
       "member": "request_body.parts",
       "file": "contracts/forms.json",
-      "group": "request_body.parts.made"
+      "group": "request_body.parts.made",
+      "reads": ["rules"]
     }
   ]
 }

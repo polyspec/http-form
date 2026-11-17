@@ -303,7 +303,7 @@ fn bodies() {
             if case.get("raises").is_none() {
                 assert!(whole.get("raises").is_none(), "{label}: failed with {whole}");
             }
-            assert!(!string(case, "label").is_empty(), "{label}");
+            assert!(!string(case, "note").is_empty(), "{label}");
         }
     }
     failures.check("body");

@@ -1,7 +1,14 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: ffaab4206009b9639883f8de0ba722d368bc6347965c4808e7c71a03947772f4 -->
+<!-- source-sha256: b38d3e043e4f63be76c29b9eca451ed2cf7a13b3c05459771722cce69d06dbfa -->
 
 ## Unreleased
+
+- case가 binding 0.0.17의 검사가 읽는 key를 가진다(T1.34, CK-96). `contracts/fields.json`과 `contracts/forms.json`의
+  case 254개가 설명을 `label` 대신 G-5의 key인 `note`에 적는다. `packages/rust/interface.json`의 각 case row는 case가
+  결과를 반환 type의 꼴로 가진 곳에서 그 key를 `result`에, 코어 시험만 읽는 key를 `reads`에 적는다. 어떤 case도
+  입력이나 기대값을 바꾸지 않는다. 생성된 시험은 이제 `result`가 적는 결과를 비교한다. 코어 시험은 `rules`를
+  읽는다: 각각 비어 있지 않은 rule id의 목록이다. 전에는 `make bindings-check`가 CK-96 finding 763개를 보고했고,
+  지금은 통과한다.
 
 - `make bindings-scaffold`가 binding scaffold로 추적되는 binding package를 `$(ONLINE)`으로 쓴다(T1.33). 전에는
   scaffold를 돌리는 recipe가 없었다. binding 0.0.17에서 그것은 추적되는 파일을 바꾸지 않고, `packages/go/go.mod`가
