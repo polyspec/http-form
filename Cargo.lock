@@ -1009,7 +1009,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "memchr",
  "polyspec-binding-core",
@@ -1022,7 +1022,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form-go"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "polyspec-binding-core",
  "polyspec-http-form",
@@ -1030,7 +1030,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form-node"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "napi",
  "napi-build",
@@ -1041,7 +1041,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form-php-ext"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "ext-php-rs",
  "polyspec-binding-core",
@@ -1050,7 +1050,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form-python"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "polyspec-binding-core",
  "polyspec-http-form",
@@ -1059,7 +1059,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-http-form-wasm"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "js-sys",
  "polyspec-binding-core",

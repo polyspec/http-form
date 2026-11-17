@@ -1,7 +1,13 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: b36bc5ecc9decf8d32a58621b5ccd5a3f5e0b116f9915a1e57dfdcba2a1d947e -->
+<!-- source-sha256: 0fc7bedd127e495831dcab58370254c0d1a845386241a0f5b24f52b00f2e4e25 -->
 
 ## Unreleased
+
+## 0.0.2
+
+- 코어, binding manifest, `Cargo.lock`의 로컬 package의 version이 0.0.2다(T1.36). 이 release는 GitHub Release가 폼
+  case `contracts/fields.json`과 `contracts/forms.json`을 `files.json`과 함께 가지는 첫 release이고(T1.25), 그
+  binding은 binding 0.0.17이 생성한 것이다(T1.30).
 
 - Makefile의 binding target 목록이 `BINDING_TARGETS`다(T1.35). 전에는 `TARGETS`였고, 그것은 `make ci-check`가
   `ci-targets`에 target들을 주는 명령줄 변수의 이름이다. kit 0.0.121의 도구는 자기를 부른 make의 명령줄 변수와 함께

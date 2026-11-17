@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.0.2
+
+- The version of the core, of the binding manifests and of the local packages of `Cargo.lock` is 0.0.2 (T1.36). The
+  release is the first whose GitHub Release holds the form cases `contracts/fields.json` and `contracts/forms.json`
+  with `files.json` (T1.25), and its bindings are those that binding 0.0.17 generates (T1.30).
+
 - The list of the binding targets of the Makefile is `BINDING_TARGETS` (T1.35). Before, it was `TARGETS`, the name of
   the command-line variable with which `make ci-check` gives `ci-targets` its targets; the utility of kit 0.0.121
   starts the make of each target with the command-line variables of its caller, so the job `bindings` of CI made the
