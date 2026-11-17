@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The test of binding reads the version of binding from the release asset that `package.json` names, and the release of
+  http-media-type from the core manifest, and checks that every Cargo manifest and `Cargo.lock` name those releases, so a pin of
+  binding changes no expected value of the test (T1.39).
+
 ## 0.0.2
 
 - The version of the core, of the binding manifests and of the local packages of `Cargo.lock` is 0.0.2 (T1.36). The

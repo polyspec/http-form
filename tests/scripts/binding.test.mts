@@ -11,11 +11,16 @@ import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 const root = resolve(import.meta.dirname, '../..');
-const VERSION = '0.0.17';
-// The release of http-media-type whose Cargo.lock pins the same polyspec-binding-core.
-const MEDIA_TYPE = '0.0.8';
-const ASSET = `https://github.com/polyspec/binding/releases/download/v${VERSION}/polyspec-binding-${VERSION}.tgz`;
 const read = (file: string): string => readFileSync(join(root, file), 'utf8');
+// The one source of the version of binding is the asset that package.json names: every other place must name that release.
+const ASSET_OF_RELEASE = /^https:\/\/github\.com\/polyspec\/binding\/releases\/download\/v(\d+\.\d+\.\d+)\/polyspec-binding-\1\.tgz$/;
+const declared = (JSON.parse(read('package.json')) as { devDependencies?: Record<string, string> }).devDependencies?.['@polyspec/binding'] ?? '';
+const VERSION = ASSET_OF_RELEASE.exec(declared)?.[1] ?? '';
+assert.ok(VERSION !== '', `package.json names no release asset of binding: ${declared}`);
+const ASSET = declared;
+// The release of http-media-type that the core names (its tag in packages/rust/Cargo.toml) is the one whose Cargo.lock pins the same binding.
+const MEDIA_TYPE = /polyspec-http-media-type = \{[^}]*tag = "v(\d+\.\d+\.\d+)"/.exec(read('packages/rust/Cargo.toml'))?.[1] ?? '';
+assert.ok(MEDIA_TYPE !== '', 'packages/rust/Cargo.toml names no release of http-media-type');
 const dryRun = (...goals: string[]): string[] =>
   execFileSync('make', ['--dry-run', '--no-print-directory', ...goals], {
     cwd: root,

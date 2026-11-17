@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+- 시험 `binding.test.mts`는 binding의 version을 `package.json`이 이름 붙인 release asset에서, http-media-type의 release를 core manifest에서 읽고, 모든 Cargo manifest와 `Cargo.lock`이 그 release들을 가리키는지 확인한다. 그래서 binding의 pin이 시험의 기대값을 바꾸지 않는다(T1.39).
+
 ## 0.0.2
 
 - 코어, binding manifest, `Cargo.lock`의 로컬 package의 version이 0.0.2다(T1.36). 이 release는 GitHub Release가 폼
