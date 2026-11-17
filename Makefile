@@ -151,14 +151,15 @@ differential:
 # check, which also compares the tracked binding packages with what binding scaffold writes (binding L-2, CK-19) and the
 # polyspec-binding-core that Cargo.lock pins with the version of binding (CK-20).
 # Each target of the contract is generated apart (binding GN-1b), so that a target that the generator refuses fails
-# its own make targets alone, with status 1, and the others build and test.
+# its own make targets alone, with status 1, and the others build and test. binding takes the cargo command of the
+# repository, --cargo "$(CARGO)", for every command that runs Cargo (binding GN-1d).
 bindings: $(addprefix bindings-,$(TARGETS))
 
 $(addprefix bindings-,$(TARGETS)): bindings-%:
-	$(BINDING) generate --root . --target $*
+	$(BINDING) generate --root . --target $* --cargo "$(CARGO)"
 
 bindings-check:
-	$(BINDING) check packages/rust/interface.json
+	$(BINDING) check packages/rust/interface.json --cargo "$(CARGO)"
 
 # The lint of the binding crates, after make bindings writes their generated folders.
 lint-bindings: bindings-node bindings-python bindings-php

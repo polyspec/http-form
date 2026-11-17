@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- binding 0.0.17 and http-media-type 0.0.8 (T1.30): `polyspec-binding-core` of every Cargo manifest names
+  `tag = "v0.0.17"`, `polyspec-http-media-type` of the core names `tag = "v0.0.8"`, the release of http-media-type on
+  binding 0.0.17, and `package.json` names the release asset of `@polyspec/binding` 0.0.17, whose integrity
+  `package-lock.json` pins, so that a repository on binding 0.0.17 that depends on this core pins one
+  `polyspec-binding-core` (CK-20). binding check and generate take `--cargo` (GN-1d). `Cargo.lock` still pins binding
+  0.0.10 and http-media-type 0.0.6: no recipe writes it, and `tests/scripts/binding.test.mts` fails on it until Cargo
+  writes it again.
+
 - The jobs of `assets.yml` install go before the check of binding and run `bindings-check` when they do not release
   (T1.29), so that CI runs on each runner of the release what the release runs. Before, a job that did not release ran
   no check of binding, and no job installed go, with which binding check reads a go.sum of `packages/go` (binding

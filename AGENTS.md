@@ -23,9 +23,9 @@ rules of this repository.
   node --test (Node, and WASM through the subpath `./wasm` of the same installed package, which `make node-package`
   packs and installs), PHPUnit and go test. A target that the generator does not take stays a failing target with its
   cause; no target is left out or skipped (binding BD-27).
-- `polyspec-binding-core` is a Git dependency of the core and of the binding crates on the tag `v0.0.3` of the binding
+- `polyspec-binding-core` is a Git dependency of the core and of the binding crates on the tag `v0.0.17` of the binding
   repository, its release, and `Cargo.lock` pins the commit of that tag; `polyspec-http-media-type` is a Git dependency of the
-  core on the tag `v0.0.1` of http-media-type, its release, whose binding crates name the same tag of binding (T1.13). binding itself is the npm package `@polyspec/binding` of the same release, which `package.json` names
+  core on the tag `v0.0.8` of http-media-type, its release, whose crates name the same tag of binding (T1.30). binding itself is the npm package `@polyspec/binding` of the same release, which `package.json` names
   by the URL of its release asset and `package-lock.json` pins by its integrity, so that the generator and
   `binding_core` are one version (G-6); binding check takes the tag of `Cargo.lock` as its own (CK-20). The recipes run
   `node_modules/@polyspec/binding/dist/cli.js`; the bootstrap and `make install-packages` install it, and `make
@@ -156,7 +156,7 @@ rules of this repository.
 - A release is the commit of a successful push or manual run of `ci.yml` on `main`. The version-bump commit
   `chore(release): Release X.Y.Z` sets the version of the core (`version` of `[workspace.package]` of the root
   `Cargo.toml`), writes the binding manifests again with binding scaffold (`node node_modules/@polyspec/binding/dist/cli.js scaffold --contract
-  packages/rust/interface.json`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
+  packages/rust/interface.json --cargo cargo`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
   of both changelogs to `## X.Y.Z`, with a new empty `## Unreleased` above it. When the CI run of that push succeeds,
   `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make
   release-tag` creates and pushes the annotated tag `vX.Y.Z` at that commit, `assets.yml` builds the assets of each

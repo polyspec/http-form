@@ -1,7 +1,15 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 65f2ec3bfd082bac4879a3d716dfc7fa6471f12bd8e46ab8167ea6c338db2d32 -->
+<!-- source-sha256: ef840e25735e067686cef40e326a21ad54a873cb30ae968440de3a912331b087 -->
 
 ## Unreleased
+
+- binding 0.0.17과 http-media-type 0.0.8(T1.30): 모든 Cargo manifest의 `polyspec-binding-core`가
+  `tag = "v0.0.17"`을 적고, 코어의 `polyspec-http-media-type`이 binding 0.0.17 위의 http-media-type release인
+  `tag = "v0.0.8"`을 적는다. `package.json`은 `@polyspec/binding` 0.0.17의 release asset을 적고 `package-lock.json`이
+  그 integrity를 고정한다. 그래서 binding 0.0.17을 쓰고 이 코어에 의존하는 저장소가 `polyspec-binding-core` 하나를
+  고정한다(CK-20). binding check와 generate는 `--cargo`를 받는다(GN-1d). `Cargo.lock`은 아직 binding 0.0.10과
+  http-media-type 0.0.6을 고정한다. 그것을 쓰는 recipe가 없고, Cargo가 그것을 다시 쓸 때까지
+  `tests/scripts/binding.test.mts`가 거기서 실패한다.
 
 - `assets.yml`의 job은 binding의 검사 앞에서 go를 설치하고, release하지 않을 때 `bindings-check`를 돈다(T1.29).
   그래서 release가 도는 것을 CI가 release의 각 runner에서 돈다. 전에는 release하지 않는 job이 binding의 검사를 돌지

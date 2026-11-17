@@ -11,7 +11,9 @@ import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 const root = resolve(import.meta.dirname, '../..');
-const VERSION = '0.0.10';
+const VERSION = '0.0.17';
+// The release of http-media-type whose Cargo.lock pins the same polyspec-binding-core.
+const MEDIA_TYPE = '0.0.8';
 const ASSET = `https://github.com/polyspec/binding/releases/download/v${VERSION}/polyspec-binding-${VERSION}.tgz`;
 const read = (file: string): string => readFileSync(join(root, file), 'utf8');
 const dryRun = (...goals: string[]): string[] =>
@@ -52,7 +54,25 @@ test('package.json names the release asset of the tool and package-lock.json pin
 
 test('the recipes run the installed tool, and make install-binding fetches the crates of Cargo.lock', () => {
   const check = dryRun('bindings-check');
-  assert.ok(check.some((line) => line.endsWith('node_modules/@polyspec/binding/dist/cli.js check packages/rust/interface.json')), check.join('\n'));
+  assert.ok(check.some((line) => line.endsWith('node_modules/@polyspec/binding/dist/cli.js check packages/rust/interface.json --cargo "cargo"')), check.join('\n'));
+  // binding takes the cargo command of the repository for every command that runs Cargo (binding GN-1d).
+  for (const target of ['php', 'python', 'node', 'go', 'wasm']) {
+    const generate = dryRun(`bindings-${target}`);
+    assert.ok(generate.some((line) => line.endsWith(`node_modules/@polyspec/binding/dist/cli.js generate --root . --target ${target} --cargo "cargo"`)), generate.join('\n'));
+  }
   const install = dryRun('install-binding');
   assert.ok(install.some((line) => / fetch --locked( |$)/.test(line)), install.join('\n'));
+});
+
+// Cargo holds two releases of one Git dependency as two crates, so the core names the release of http-media-type that
+// depends on the same binding, and Cargo.lock pins one polyspec-binding-core (binding CK-20).
+test('the core names the release of http-media-type on the same binding, and Cargo.lock pins one polyspec-binding-core', () => {
+  const lines = read('packages/rust/Cargo.toml').split('\n').filter((line) => /^polyspec-http-media-type\s*=/.test(line));
+  assert.equal(lines.length, 1, 'packages/rust/Cargo.toml names polyspec-http-media-type once');
+  assert.match(lines[0] ?? '', new RegExp(`tag = "v${MEDIA_TYPE.replaceAll('.', '\\.')}"`), lines[0]);
+  const lock = read('Cargo.lock');
+  assert.equal(lock.split('name = "polyspec-binding-core"').length - 1, 1, 'Cargo.lock holds one polyspec-binding-core');
+  const sources = lock.split('\n').filter((line) => line.startsWith('source = "git+https://github.com/polyspec/http-media-type.git'));
+  assert.equal(sources.length, 1, 'Cargo.lock holds one source of http-media-type');
+  assert.match(sources[0] ?? '', new RegExp(`\\?tag=v${MEDIA_TYPE.replaceAll('.', '\\.')}#[0-9a-f]{40}"$`), sources[0]);
 });
