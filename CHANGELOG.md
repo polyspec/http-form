@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- kit is pinned at its release 0.0.120, and `make release-candidate-assets` builds the archives of the release from the
+  committed HEAD with no tag; the entry core of the job check of CI runs it (T1.28). kit reads the version from the
+  first section `## X.Y.Z` of `CHANGELOG.md` (kit K1286), so the recipe names none. Before, the archives were first
+  built after the release had created and pushed the tag. `tests/scripts/recipes.test.mts` requires the target, the
+  entry and the pin.
+
 - Every call step of a `then` in `contracts/fields.json` and `contracts/forms.json` gives its `args` (T1.27): the sixteen
   steps `request_body.remove` and `request_body.finish`, whose methods take no parameters, give `"args": {}`, as binding
   requires of every call step (binding CK-22). Before, these steps gave no `args`. `make bindings-check`, `make test` and

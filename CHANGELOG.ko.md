@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 27aa1a9f10d975a986a576e4680b4581c9f0469f2e43fd43480ada0891dbebc5 -->
+<!-- source-sha256: 948b8996def5561c39872b630d25130fe3fcd16b2b6777993008f8102861f033 -->
 
 ## Unreleased
+
+- kit을 release 0.0.120에 고정하고, `make release-candidate-assets`는 tag 없이 커밋된 HEAD에서 release의 archive를
+  만든다. CI의 job check의 항목 core가 그것을 돈다(T1.28). kit이 `CHANGELOG.md`의 첫 절 `## X.Y.Z`에서 version을
+  읽으므로(kit K1286) recipe는 version을 적지 않는다. 전에는 release가 tag를 만들어 push한 뒤에야 archive를 처음
+  만들었다. `tests/scripts/recipes.test.mts`가 그 target, 그 항목, 그 고정을 요구한다.
 
 - `contracts/fields.json`과 `contracts/forms.json`에서 `then`의 모든 call step이 `args`를 준다(T1.27). 매개변수가 없는
   method인 `request_body.remove`와 `request_body.finish`의 step 열여섯 개가 `"args": {}`를 준다. binding은 모든 call

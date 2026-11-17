@@ -1,7 +1,7 @@
 # The checks of http-form on GitHub: the push of main and every manual run (workflow_dispatch) run one job per entry of the
 # matrix of the job check, and each entry runs `make ci-check NAME=<name>`, whose recipe holds the installs and the targets
 # of the entry. The entries together run every target of `make check` and `make test-bindings`, each once, `make
-# bindings-check` and `make release-coverage`. A failure never stops the run: the matrix does not cancel the other entries (fail-fast: false), and
+# bindings-check`, `make release-coverage` and `make release-candidate-assets`. A failure never stops the run: the matrix does not cancel the other entries (fail-fast: false), and
 # the recipe runs every target to its end. Each matrix job writes the job summary and uploads its report var/ci/<name>/:
 # the status, the first failure lines and the full log of each target. The last job, ci-passed, passes only when every
 # other job of this workflow passed; a release takes the id of such a run and tags its commit (.github/workflows/release.yml).

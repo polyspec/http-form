@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 5b89e911c9760d9e8ec869f381503c215967d12621ccb966c4e8c7604eb053d6 -->
+<!-- source-sha256: e0c07c3d0e40239c93af7af89c60d114dfdec6d1440e20386b2f9cbe16111ef6 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -117,7 +117,8 @@
   검사(B2.275)를 가진 binding recipe의 공개, 재생성, 실제 실행을 기다린다. 건너뛴 setup action은 runtime 선택을
   증명하지 않는다.
 - `.github/workflows/ci.yml`은 `main`의 push와 수동 실행에서 돈다. matrix 항목마다 job 하나다. `core`는 `fmt`, `clippy`,
-  `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts`, `release-coverage`를 실행하고, `bindings`는 `make
+  `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts`, `release-coverage`, 그리고 tag 없이 커밋된
+  HEAD에서 release의 archive를 만드는 `release-candidate-assets`를 실행하고, `bindings`는 `make
   test-bindings`의 대상을 실행한다. 각 job은 `make ci-check NAME=<name>`을 실행한다. 그 recipe는 항목의 도구를 설치하고(`CI_CHECK_INSTALLS_<name>`), 항목의
   대상(`CI_CHECK_TARGETS_<name>`)을 `make ci-targets`로 실행하며, `make ci-summary`로 job의 요약을 쓴다. `make ci-targets`는
   모든 대상을 끝까지 실행하고 보고서 `var/ci/<name>/`을 쓴다. job `assets`는 `.github/workflows/assets.yml`을 호출하고, 그것은

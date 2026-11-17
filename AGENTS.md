@@ -126,7 +126,8 @@ rules of this repository.
   recipe with its expected-minor check (B2.275), regeneration and actual execution. A skipped setup action proves no
   runtime selection.
 - `.github/workflows/ci.yml` runs on the push of `main` and on a manual run, one job per matrix entry: `core` runs
-  `fmt`, `clippy`, `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts` and `release-coverage`, and
+  `fmt`, `clippy`, `test`, `wasm-core`, `bindings-check`, `docs-check`, `test-scripts`, `release-coverage` and
+  `release-candidate-assets`, which builds the archives of the release from the committed HEAD with no tag, and
   `bindings` runs the targets of `make test-bindings`. Each job runs `make ci-check NAME=<name>`, whose recipe installs the tools of the entry
   (`CI_CHECK_INSTALLS_<name>`), runs its targets (`CI_CHECK_TARGETS_<name>`) with `make ci-targets`, which runs every
   target to its end and writes the report `var/ci/<name>/`, and writes the summary of the job with `make ci-summary`. The job `assets` calls `.github/workflows/assets.yml`, which
