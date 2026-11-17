@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+## 0.0.3
+
+- binding 0.0.21과 http-media-type 0.0.9(T1.40): core는 binding 0.0.21을 핀한 http-media-type release를 쓰므로, `Cargo.lock`은 `polyspec-binding-core`를 0.0.21 하나만 핀하고 binding manifest가 그것을 가리킨다.
+
 - 시험 `binding.test.mts`는 binding의 version을 `package.json`이 이름 붙인 release asset에서, http-media-type의 release를 core manifest에서 읽고, 모든 Cargo manifest와 `Cargo.lock`이 그 release들을 가리키는지 확인한다. 그래서 binding의 pin이 시험의 기대값을 바꾸지 않는다(T1.39).
 
 ## 0.0.2
