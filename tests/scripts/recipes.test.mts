@@ -102,3 +102,23 @@ test('make cargo-lock writes Cargo.lock for the crates of CRATES through the tra
   assert.equal(empty.status, 2, empty.stderr);
   assert.match(empty.stderr, /cargo-lock: CRATES is empty/);
 });
+
+// make ci-check gives ci-targets its targets as the command-line variable TARGETS, and the utility of kit starts the make
+// of each target with the command-line variables of the make that called it, so each target of an entry is made with
+// TARGETS set to the targets of its entry. A variable of the Makefile of that name would take that value: the rules
+// bindings-<target> were made from such a list, so no rule bindings-node existed in the job bindings of CI.
+test('each target of an entry of ci-check is made with the TARGETS of its entry on the command line', () => {
+  const makefile = readFileSync(resolve(root, 'Makefile'), 'utf8');
+  const names = /^CI_CHECK_NAMES := (.*)$/m.exec(makefile)?.[1]?.split(' ') ?? [];
+  assert.deepEqual(names, ['core', 'bindings']);
+  for (const name of names) {
+    const targets = new RegExp(`^CI_CHECK_TARGETS_${name} := (.*)$`, 'm').exec(makefile)?.[1] ?? '';
+    assert.ok(targets !== '', `the entry ${name} has no targets`);
+    for (const target of targets.split(' ')) {
+      const run = spawnSync('make', ['--dry-run', '--no-print-directory', target, `TARGETS=${targets}`], { cwd: root, encoding: 'utf8', env: { ...process.env, MAKEFLAGS: '', MAKELEVEL: '' } });
+      assert.equal(run.status, 0, `make ${target} TARGETS="${targets}": ${run.stderr}`);
+      assert.ok(run.stdout.trim() !== '', `make ${target} TARGETS="${targets}" would run nothing`);
+    }
+  }
+  assert.doesNotMatch(makefile, /^TARGETS\s*[:?+]?=/m, 'the Makefile assigns TARGETS, the variable that ci-check gives ci-targets');
+});

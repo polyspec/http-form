@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The list of the binding targets of the Makefile is `BINDING_TARGETS` (T1.35). Before, it was `TARGETS`, the name of
+  the command-line variable with which `make ci-check` gives `ci-targets` its targets; the utility of kit 0.0.121
+  starts the make of each target with the command-line variables of its caller, so the job `bindings` of CI made the
+  rules `bindings-<target>` from the targets of its entry, and each of its seven targets failed with `No rule to make
+  target 'bindings-node'`. `make test-scripts` passes 30 of 30 tests.
+
 - The cases hold the keys that the check of binding 0.0.17 reads (T1.34, CK-96): the 254 cases of
   `contracts/fields.json` and `contracts/forms.json` give their description under `note`, the key of G-5, instead of
   `label`, and each case row of `packages/rust/interface.json` names the key of its result in `result`, where a case

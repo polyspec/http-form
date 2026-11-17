@@ -57,11 +57,13 @@ CDYLIB := $(if $(filter Darwin,$(shell uname -s)),dylib,so)
 
 # The core crate is named, because the binding crates of the workspace need make bindings first (plan 9c, binding L-2).
 CORE := polyspec-http-form
-# The five targets of the contract (binding BD-27).
-TARGETS := php python node go wasm
+# The five targets of the contract (binding BD-27). The name is not TARGETS: make ci-check gives ci-targets its targets
+# as the command-line variable TARGETS, which the make of each of those targets inherits, and a command-line variable
+# takes the place of a variable of this file.
+BINDING_TARGETS := php python node go wasm
 BINDING_CRATES := polyspec-http-form-node polyspec-http-form-python polyspec-http-form-php-ext
 
-.PHONY: bootstrap install-binding docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(TARGETS)) bindings-check lint-bindings test-bindings test-crates \
+.PHONY: bootstrap install-binding docs-check documents-stamp test clippy fmt wasm-core check differential bindings $(addprefix bindings-,$(BINDING_TARGETS)) bindings-check lint-bindings test-bindings test-crates \
 	test-python node-package test-node test-wasm test-php test-go test-scripts install install-tools install-packages toolchain-lock install-php-tools ci-targets \
 	ci-summary ci-passed release-tag release-prepare release-tools release-tools-path release-assets \
 	release-publish release-undraft release-coverage release-tag-output
@@ -163,9 +165,9 @@ differential:
 # Each target of the contract is generated apart (binding GN-1b), so that a target that the generator refuses fails
 # its own make targets alone, with status 1, and the others build and test. binding takes the cargo command of the
 # repository, --cargo "$(CARGO)", for every command that runs Cargo (binding GN-1d).
-bindings: $(addprefix bindings-,$(TARGETS))
+bindings: $(addprefix bindings-,$(BINDING_TARGETS))
 
-$(addprefix bindings-,$(TARGETS)): bindings-%:
+$(addprefix bindings-,$(BINDING_TARGETS)): bindings-%:
 	$(BINDING) generate --root . --target $* --cargo "$(CARGO)"
 
 bindings-check:

@@ -1,7 +1,13 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: b38d3e043e4f63be76c29b9eca451ed2cf7a13b3c05459771722cce69d06dbfa -->
+<!-- source-sha256: b36bc5ecc9decf8d32a58621b5ccd5a3f5e0b116f9915a1e57dfdcba2a1d947e -->
 
 ## Unreleased
+
+- Makefile의 binding target 목록이 `BINDING_TARGETS`다(T1.35). 전에는 `TARGETS`였고, 그것은 `make ci-check`가
+  `ci-targets`에 target들을 주는 명령줄 변수의 이름이다. kit 0.0.121의 도구는 자기를 부른 make의 명령줄 변수와 함께
+  각 target의 make를 시작한다. 그래서 CI의 job `bindings`가 규칙 `bindings-<target>`을 그 항목의 target들로
+  만들었고, 일곱 target이 각각 `No rule to make target 'bindings-node'`로 실패했다. `make test-scripts`가 시험 30개
+  중 30개를 통과한다.
 
 - case가 binding 0.0.17의 검사가 읽는 key를 가진다(T1.34, CK-96). `contracts/fields.json`과 `contracts/forms.json`의
   case 254개가 설명을 `label` 대신 G-5의 key인 `note`에 적는다. `packages/rust/interface.json`의 각 case row는 case가
