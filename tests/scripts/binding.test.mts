@@ -76,3 +76,13 @@ test('the core names the release of http-media-type on the same binding, and Car
   assert.equal(sources.length, 1, 'Cargo.lock holds one source of http-media-type');
   assert.match(sources[0] ?? '', new RegExp(`\\?tag=v${MEDIA_TYPE.replaceAll('.', '\\.')}#[0-9a-f]{40}"$`), sources[0]);
 });
+
+// The tracked binding packages, go.mod and go.sum among them, are what binding scaffold writes (binding L-2), and binding
+// check compares them (CK-19), so a change of the pin of binding writes them again with make bindings-scaffold. The
+// recipe downloads, because go.sum holds the sums that go mod download gives (binding GN-15l), so it runs through
+// $(ONLINE).
+test('make bindings-scaffold writes the tracked binding packages with the installed tool, through ONLINE', () => {
+  const recipe = dryRun('bindings-scaffold', 'ONLINE=ONLINE-MARK');
+  assert.equal(recipe.length, 1, recipe.join('\n'));
+  assert.match(recipe[0] ?? '', /^ONLINE-MARK \/\S+\/node \/\S+\/node_modules\/@polyspec\/binding\/dist\/cli\.js scaffold --root \. --cargo "cargo"$/);
+});

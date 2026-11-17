@@ -159,8 +159,7 @@ rules of this repository.
   `packages/go/vX.Y.Z` (binding GN-19f), because a Go module whose tag holds neither cannot be built by a consumer.
 - A release is the commit of a successful push or manual run of `ci.yml` on `main`. The version-bump commit
   `chore(release): Release X.Y.Z` sets the version of the core (`version` of `[workspace.package]` of the root
-  `Cargo.toml`), writes the binding manifests again with binding scaffold (`node node_modules/@polyspec/binding/dist/cli.js scaffold --contract
-  packages/rust/interface.json --cargo cargo`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
+  `Cargo.toml`), writes the binding manifests again with binding scaffold (`make bindings-scaffold`), updates the versions of the local packages in `Cargo.lock` and renames `## Unreleased`
   of both changelogs to `## X.Y.Z`, with a new empty `## Unreleased` above it. When the CI run of that push succeeds,
   `.github/workflows/release.yml` starts by itself, and `gh workflow run release.yml -f run=<id>` starts it again: `make
   release-tag` creates and pushes the annotated tag `vX.Y.Z` at that commit, `assets.yml` builds the assets of each

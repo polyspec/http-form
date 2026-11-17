@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `make bindings-scaffold` writes the tracked binding packages with binding scaffold, through `$(ONLINE)` (T1.33).
+  Before, no recipe ran the scaffold. On binding 0.0.17 it changes no tracked file and writes no `packages/go/go.sum`,
+  because `packages/go/go.mod` requires no module.
+
 - `make cargo-lock CRATES="<crate> <crate>"` writes `Cargo.lock` with `cargo update -p <crate>` through the link script
   of kit in its form `--tracked-lock` (kit K1287), and kit is pinned at its release 0.0.121, which holds that form
   (T1.32). `Cargo.lock` pins one `polyspec-binding-core`, at the tag `v0.0.17`, and http-media-type at the tag `v0.0.8`.

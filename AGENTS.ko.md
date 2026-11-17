@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: 0bb6ee8facdd203f843b87ddf665d4f62532602eba6a070574500d4cb30123ea -->
+<!-- source-sha256: 8aa97b264a9e52eeedc9baf54682b838afa851c1075b5f12f20e39f912b76a48 -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -149,7 +149,7 @@
   consumer가 빌드할 수 없기 때문이다.
 - release는 `main`에서 성공한 `ci.yml`의 push 실행이나 수동 실행의 commit이다. version-bump commit `chore(release):
   Release X.Y.Z`는 코어의 version(루트 `Cargo.toml`의 `[workspace.package]`의 `version`)을 정하고, binding
-  scaffold(`node node_modules/@polyspec/binding/dist/cli.js scaffold --contract packages/rust/interface.json --cargo cargo`)로 binding manifest를 다시 쓰며,
+  scaffold(`make bindings-scaffold`)로 binding manifest를 다시 쓰며,
   `Cargo.lock`의 로컬 package version을 맞추고, 두 changelog의 `## Unreleased`를 `## X.Y.Z`로 바꾸고 그 위에 빈
   `## Unreleased`를 둔다. 그 push의 CI 실행이 성공하면 `.github/workflows/release.yml`이 스스로 시작하고, `gh workflow run
   release.yml -f run=<id>`가 그것을 다시 시작한다. `make release-tag`가 그 commit에 annotated tag `vX.Y.Z`를 만들어

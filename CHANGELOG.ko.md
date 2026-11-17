@@ -1,7 +1,11 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: 14d867e6953cd08e0d55da703dd378ea59b1acd2be8ec53e8eb1840cd41bbf81 -->
+<!-- source-sha256: ffaab4206009b9639883f8de0ba722d368bc6347965c4808e7c71a03947772f4 -->
 
 ## Unreleased
+
+- `make bindings-scaffold`가 binding scaffold로 추적되는 binding package를 `$(ONLINE)`으로 쓴다(T1.33). 전에는
+  scaffold를 돌리는 recipe가 없었다. binding 0.0.17에서 그것은 추적되는 파일을 바꾸지 않고, `packages/go/go.mod`가
+  module을 require하지 않으므로 `packages/go/go.sum`도 쓰지 않는다.
 
 - `make cargo-lock CRATES="<crate> <crate>"`가 kit의 link script의 `--tracked-lock` 꼴로(kit K1287) `cargo update -p
   <crate>`를 돌려 `Cargo.lock`을 쓰고, kit을 그 꼴을 가진 release 0.0.121에 고정한다(T1.32). `Cargo.lock`은 tag

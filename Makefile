@@ -171,6 +171,15 @@ $(addprefix bindings-,$(TARGETS)): bindings-%:
 bindings-check:
 	$(BINDING) check packages/rust/interface.json --cargo "$(CARGO)"
 
+# bindings-scaffold writes the tracked binding packages again, go.mod and go.sum among them (binding L-2), after a
+# change of the pin of binding or of the version of the core. binding reads the contracts of the libraries that the
+# contract names through $(CARGO) and, for go.sum, the sums that `go mod download` of the Go of the checkout gives
+# (binding GN-15f, GN-15l), which Go downloads when its module cache does not hold them, so the recipe runs through
+# $(ONLINE).
+.PHONY: bindings-scaffold
+bindings-scaffold:
+	$(ONLINE) $(BINDING) scaffold --root . --cargo "$(CARGO)"
+
 # The test features of a binding crate are the names of the [features] table of its manifest, which binding scaffold
 # writes (binding GN-5): a crate built without one has no entry point that a generated test calls. make reads the
 # manifests when a recipe runs.
