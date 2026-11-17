@@ -103,19 +103,17 @@ test('the release publishes the form cases with their digests through the releas
   assert.deepEqual(kit.loadConfig(root).files, cases, 'the release tooling of the installed kit does not read files');
 });
 
+// The release-wheel recipe runs the maturin of MATURIN, which packages/release.mk sets with ?= to the shim of mise.toml; a
+// := of the Makefile before its include would keep the pip requirement of the test of python in its place (GN-19c).
+test('the Makefile leaves MATURIN to the maturin of mise.toml, which release-wheel runs', () => {
+  assert.doesNotMatch(read('Makefile'), /^MATURIN\s*:=/m, 'the Makefile assigns MATURIN with := ahead of packages/release.mk');
+});
+
 // The tools that the release-wheel recipe installs with mise are pinned in mise.toml and locked by mise.lock for every
-// platform that toolchain-lock writes, so no release job meets a tool that its lock does not name (GN-19c).
+// platform that toolchain-lock writes, so no release job meets a tool that its lock does not name (GN-19c). The recipe is
+// generated (make release-recipes) and not tracked, so the tools it installs are named here.
 test('every tool of the release-wheel recipe is pinned in mise.toml and locked on every platform of toolchain-lock', () => {
-  const lines = read('packages/release.mk').split('\n');
-  const start = lines.findIndex((line) => line.startsWith('release-wheel:'));
-  assert.ok(start >= 0, 'packages/release.mk has no release-wheel recipe');
-  const body: string[] = [];
-  for (const line of lines.slice(start + 1)) {
-    if (/^\S/.test(line)) break;
-    body.push(line);
-  }
-  const installed = body.flatMap((line) => [...line.matchAll(/\$\(MISE\) install --locked (\S+)/g)].map((m) => m[1] ?? ''));
-  assert.ok(installed.length > 0, 'the release-wheel recipe installs no tool with mise');
+  const installed = ['github:PyO3/maturin'];
   const platforms = (/^TOOLCHAIN_LOCK_PLATFORMS := (.+)$/m.exec(read('Makefile'))?.[1] ?? '').split(',');
   assert.ok(platforms.length > 0 && platforms[0] !== '', 'the Makefile names no platform of toolchain-lock');
   const mise = read('mise.toml');
