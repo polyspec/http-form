@@ -37,7 +37,10 @@ rules of this repository.
   another release than the go directive of `packages/go/go.mod` and runs it with `GOTOOLCHAIN=local`, so that it
   fetches no toolchain, and `make node-package` fails a wasm-bindgen CLI of another release than the `wasm-bindgen`
   crate of `packages/ts/wasm/Cargo.toml`, because the CLI reads only a module of its own release (binding GN-18).
-  `CARGOFLAGS` adds arguments to every cargo build of a binding.
+  `CARGOFLAGS` adds arguments to every cargo build of a binding. The recipes read the test features of each binding
+  crate from the `[features]` table of its manifest, and `make test-go` gives `go test` the build tag
+  `polyspec_http_form_<feature>` of each feature of the Go crate, under which binding writes the generated tests
+  (`tests/scripts/recipes.test.mts`).
 - The generated folders `generated/` of the binding packages, `packages/ts/wasm/generated` and
   `packages/go/internal/ffi/generated` are not tracked, nor is `var/`, which holds the virtual environment, the wheel
   and the installed npm packages of the tests. In the Go module binding owns the files `zz_generated_*.go` (binding

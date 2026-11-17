@@ -1,7 +1,12 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: ef840e25735e067686cef40e326a21ad54a873cb30ae968440de3a912331b087 -->
+<!-- source-sha256: 74874ada65b9de2def2aff2795152b48ebc20ed47ae69c904cc6f83e3e1892e1 -->
 
 ## Unreleased
+
+- recipe는 각 binding crate의 test feature를 그 manifest에서 읽고(T1.31), `go test`의 build tag도 같은 목록에서
+  `polyspec_http_form_<feature>` 꼴로 만든다. binding 0.0.17이 생성 Go 시험을 그 tag 아래에 쓴다. 전에는 recipe마다
+  feature를 직접 적었다. Go crate는 manifest의 `fault-test` 없이 `panic-test,codec-test`로 빌드되었고, `go test`는
+  tag `polyspec_panic_test,polyspec_codec_test`를 받았다.
 
 - binding 0.0.17과 http-media-type 0.0.8(T1.30): 모든 Cargo manifest의 `polyspec-binding-core`가
   `tag = "v0.0.17"`을 적고, 코어의 `polyspec-http-media-type`이 binding 0.0.17 위의 http-media-type release인

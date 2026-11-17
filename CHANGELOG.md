@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The recipes read the test features of each binding crate from its manifest (T1.31), and the build tags of `go test`
+  come from the same list in the form `polyspec_http_form_<feature>`, under which binding 0.0.17 writes the generated
+  Go tests. Before, each recipe named its features: the Go crate was built with `panic-test,codec-test`, without the
+  `fault-test` of its manifest, and `go test` took the tags `polyspec_panic_test,polyspec_codec_test`.
+
 - binding 0.0.17 and http-media-type 0.0.8 (T1.30): `polyspec-binding-core` of every Cargo manifest names
   `tag = "v0.0.17"`, `polyspec-http-media-type` of the core names `tag = "v0.0.8"`, the release of http-media-type on
   binding 0.0.17, and `package.json` names the release asset of `@polyspec/binding` 0.0.17, whose integrity

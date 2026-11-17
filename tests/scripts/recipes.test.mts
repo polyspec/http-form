@@ -42,3 +42,50 @@ test('package.json names the release asset of kit 0.0.120 and package-lock.json 
   assert.equal(entry?.version, '0.0.120');
   assert.match(entry?.integrity ?? '', /^sha512-[A-Za-z0-9+/]+=*$/);
 });
+
+// The test features of each binding crate are the names of the [features] table of its manifest, which binding scaffold
+// writes: a crate built without one has no entry point that a generated test calls. The test reads what make would run,
+// so no recipe runs.
+const CRATES = [
+  { manifest: 'packages/python/Cargo.toml', target: 'test-python', build: /^cd packages\/python && .*maturin build .*--features (\S+)/ },
+  { manifest: 'packages/ts/Cargo.toml', target: 'node-package', build: / build .*-p polyspec-http-form-node .*--features (\S+)/ },
+  { manifest: 'packages/ts/wasm/Cargo.toml', target: 'node-package', build: / build .*-p polyspec-http-form-wasm .*--features (\S+)/ },
+  { manifest: 'packages/php-ext/Cargo.toml', target: 'test-php', build: / build .*-p polyspec-http-form-php-ext .*--features (\S+)/ },
+  { manifest: 'packages/go/internal/ffi/Cargo.toml', target: 'test-go', build: / build .*-p polyspec-http-form-go .*--features (\S+)/ },
+] as const;
+
+// The names of the [features] table of a manifest, without default.
+function featuresOf(manifest: string): string[] {
+  const table = /\n\[features\]\n([\s\S]*?)(?:\n\[|$)/.exec(readFileSync(resolve(root, manifest), 'utf8'))?.[1] ?? '';
+  return [...table.matchAll(/^([a-z][a-z0-9-]*) = /gm)].map((m) => m[1] ?? '').filter((name) => name !== 'default').sort();
+}
+
+test('each binding crate is built with every feature of its manifest', () => {
+  const lines = dryRun(...new Set(CRATES.map((crate) => crate.target)));
+  for (const crate of CRATES) {
+    const declared = featuresOf(crate.manifest);
+    assert.ok(declared.includes('panic-test'), `${crate.manifest} declares no feature panic-test`);
+    const built = [...new Set(lines.map((line) => crate.build.exec(line)?.[1]).filter((found) => found !== undefined))];
+    assert.equal(built.length, 1, `the recipes build ${crate.manifest} with ${String(built.length)} lists of features: ${built.join(' ')}`);
+    assert.deepEqual(built[0]?.split(',').sort(), declared, `${crate.manifest} is built with the features ${built[0] ?? ''}, its manifest declares ${declared.join(',')}`);
+  }
+});
+
+// binding writes each generated Go test under the build tag polyspec_<library>_<feature>, the name of the library with
+// `_` for `-`, so go test builds the generated tests of a feature only with the tag of that feature of the Go crate.
+test('make test-go gives go test the build tag polyspec_http_form_<feature> of each feature of the Go crate', () => {
+  const expected = featuresOf('packages/go/internal/ffi/Cargo.toml').map((name) => `polyspec_http_form_${name.replaceAll('-', '_')}`).sort();
+  const goTest = dryRun('test-go').filter((line) => / test -count=1 /.test(line));
+  assert.equal(goTest.length, 1, `go test runs ${String(goTest.length)} times`);
+  const tags = /GOFLAGS=-tags=(\S+)/.exec(goTest[0] ?? '')?.[1]?.split(',').sort() ?? [];
+  assert.deepEqual(tags, expected, `go test runs with the tags ${tags.join(',')}`);
+});
+
+// A list of features that a recipe names itself is a second copy of the manifest, which a new feature of binding leaves
+// behind: every recipe of a binding crate takes its features from a variable that reads a manifest. The recipes of the
+// core (-p $(CORE)) name the feature of the core that they build: wasm-core builds it as the WASM crate does, without
+// the default features and with fault-test (binding GN-4a, GN-5), which no table of a manifest lists.
+test('no recipe of a binding crate names a feature itself', () => {
+  const literal = readFileSync(resolve(root, 'Makefile'), 'utf8').split('\n').filter((line) => (/--features (?!\$\()/.test(line) && !line.includes('-p $(CORE) ')) || /^[A-Z_]*FEATURES :?= *[a-z]/.test(line));
+  assert.deepEqual(literal, [], 'a recipe or a variable of the Makefile names features itself');
+});

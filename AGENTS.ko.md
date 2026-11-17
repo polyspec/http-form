@@ -1,5 +1,5 @@
 <!-- doc-id: agents -->
-<!-- source-sha256: c9873634ec9a46d67861b9d874ec4887c57e48e2ec1829497057edff6b37c071 -->
+<!-- source-sha256: f37e034ccd42b8bfccbe8afc86982a06a18433cba6544483f8fc5f8d863a044f -->
 # 개발
 
 모든 polyspec 저장소의 작업 원칙은 polyspec의 `PRINCIPLES.md`에 있다. 이 파일은 이 저장소의 규칙만 적는다.
@@ -36,7 +36,9 @@
   `packages/go/go.mod`의 go 지시문과 다른 release의 Go를 실패시키고 `GOTOOLCHAIN=local`로 실행해 toolchain을 받지
   않게 한다. `make node-package`는 `packages/ts/wasm/Cargo.toml`의 `wasm-bindgen` crate와 다른 release의
   wasm-bindgen CLI를 실패시킨다. CLI는 자기 release의 module만 읽기 때문이다(binding GN-18). `CARGOFLAGS`는 바인딩의
-  모든 cargo build에 인자를 더한다.
+  모든 cargo build에 인자를 더한다. recipe는 각 바인딩 crate의 test feature를 그 manifest의 `[features]` 표에서 읽고,
+  `make test-go`는 Go crate의 feature마다 build tag `polyspec_http_form_<feature>`를 `go test`에 준다. binding이 생성
+  시험을 그 tag 아래에 쓴다(`tests/scripts/recipes.test.mts`).
 - 바인딩 package의 생성 폴더 `generated/`, `packages/ts/wasm/generated`, `packages/go/internal/ffi/generated`는
   추적하지 않는다. 시험의 가상 환경, wheel, 설치한 npm package를 담는 `var/`도 추적하지 않는다. Go module에서
   binding은 `zz_generated_*.go` 파일을 소유하고(binding GN-3), `make bindings`가 그 파일을 쓴다. 이 파일들과
