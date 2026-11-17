@@ -997,16 +997,6 @@ checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 
 [[package]]
 name = "polyspec-binding-core"
-version = "0.0.17"
-source = "git+https://github.com/polyspec/binding.git?tag=v0.0.17#8db1add67c520673e07cfaf75038252ede40f282"
-dependencies = [
- "indexmap",
- "libc",
- "tokio-util",
-]
-
-[[package]]
-name = "polyspec-binding-core"
 version = "0.0.21"
 source = "git+https://github.com/polyspec/binding.git?tag=v0.0.21#253ce88906757a7a74b46245538d1af943b03736"
 dependencies = [
@@ -1022,7 +1012,7 @@ name = "polyspec-http-form"
 version = "0.0.2"
 dependencies = [
  "memchr",
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
  "polyspec-http-media-type",
  "rustix",
@@ -1034,7 +1024,7 @@ dependencies = [
 name = "polyspec-http-form-go"
 version = "0.0.2"
 dependencies = [
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
 ]
 
@@ -1045,7 +1035,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
 ]
 
@@ -1054,7 +1044,7 @@ name = "polyspec-http-form-php-ext"
 version = "0.0.2"
 dependencies = [
  "ext-php-rs",
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
 ]
 
@@ -1062,7 +1052,7 @@ dependencies = [
 name = "polyspec-http-form-python"
 version = "0.0.2"
 dependencies = [
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
  "pyo3",
 ]
@@ -1072,17 +1062,17 @@ name = "polyspec-http-form-wasm"
 version = "0.0.2"
 dependencies = [
  "js-sys",
- "polyspec-binding-core 0.0.21",
+ "polyspec-binding-core",
  "polyspec-http-form",
  "wasm-bindgen",
 ]
 
 [[package]]
 name = "polyspec-http-media-type"
-version = "0.0.8"
-source = "git+https://github.com/polyspec/http-media-type.git?tag=v0.0.8#d311d2acccc81845dd9ba935ac3e768713cea86f"
+version = "0.0.9"
+source = "git+https://github.com/polyspec/http-media-type.git?tag=v0.0.9#000722bb3f88e652983a1d3f170fafd40b00110e"
 dependencies = [
- "polyspec-binding-core 0.0.17",
+ "polyspec-binding-core",
 ]
 
 [[package]]
