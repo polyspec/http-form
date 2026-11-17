@@ -4,6 +4,8 @@
 
 ## 0.0.3
 
+- `mise.toml` pins maturin 1.16.0, the tool that `make release-wheel` installs with mise, and `mise.lock` locks it on every platform of `toolchain-lock`, so the release job of each platform installs it from the lock (T1.41).
+
 - binding 0.0.21 and http-media-type 0.0.9 (T1.40): the core uses the release of http-media-type that pins binding 0.0.21,
   so `Cargo.lock` pins one `polyspec-binding-core`, at 0.0.21, and the binding manifests name it.
 

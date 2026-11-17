@@ -102,3 +102,28 @@ test('the release publishes the form cases with their digests through the releas
   const kit = (await import(join(root, 'node_modules/@polyspec/kit/dist/release.mjs'))) as { loadConfig: (dir: string) => { files?: string[] } };
   assert.deepEqual(kit.loadConfig(root).files, cases, 'the release tooling of the installed kit does not read files');
 });
+
+// The tools that the release-wheel recipe installs with mise are pinned in mise.toml and locked by mise.lock for every
+// platform that toolchain-lock writes, so no release job meets a tool that its lock does not name (GN-19c).
+test('every tool of the release-wheel recipe is pinned in mise.toml and locked on every platform of toolchain-lock', () => {
+  const lines = read('packages/release.mk').split('\n');
+  const start = lines.findIndex((line) => line.startsWith('release-wheel:'));
+  assert.ok(start >= 0, 'packages/release.mk has no release-wheel recipe');
+  const body: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^\S/.test(line)) break;
+    body.push(line);
+  }
+  const installed = body.flatMap((line) => [...line.matchAll(/\$\(MISE\) install --locked (\S+)/g)].map((m) => m[1] ?? ''));
+  assert.ok(installed.length > 0, 'the release-wheel recipe installs no tool with mise');
+  const platforms = (/^TOOLCHAIN_LOCK_PLATFORMS := (.+)$/m.exec(read('Makefile'))?.[1] ?? '').split(',');
+  assert.ok(platforms.length > 0 && platforms[0] !== '', 'the Makefile names no platform of toolchain-lock');
+  const mise = read('mise.toml');
+  const lock = read('mise.lock');
+  for (const tool of installed) {
+    assert.ok(mise.includes(`"${tool}" = "`), `mise.toml does not pin ${tool}`);
+    for (const platform of platforms) {
+      assert.ok(lock.includes(`[tools."${tool}"."platforms.${platform}"]`), `mise.lock does not lock ${tool} for ${platform}`);
+    }
+  }
+});
