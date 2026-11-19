@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The core takes binding 0.0.22 and http-media-type 0.0.10, the release of http-media-type on that binding, so `Cargo.lock` pins one `polyspec-binding-core`, at 0.0.22, and the binding manifests name it. `package.json` names the release asset of `@polyspec/binding` 0.0.22, and `package-lock.json` pins its integrity (T1.43).
+
 ## 0.0.3
 
 - The release wheel of `make release-wheel` runs the maturin of `mise.toml`: the Makefile names the pip requirement of the test of python `MATURIN_PIP`, so `MATURIN` is no longer set ahead of `packages/release.mk` (T1.42). The tool test no longer reads the generated `packages/release.mk` (T1.42).
