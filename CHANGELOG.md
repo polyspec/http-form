@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.4
+
 - The core takes binding 0.0.22 and http-media-type 0.0.10, the release of http-media-type on that binding, so `Cargo.lock` pins one `polyspec-binding-core`, at 0.0.22, and the binding manifests name it. `package.json` names the release asset of `@polyspec/binding` 0.0.22, and `package-lock.json` pins its integrity (T1.43).
 
 ## 0.0.3

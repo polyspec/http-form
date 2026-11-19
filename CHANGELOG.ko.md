@@ -1,7 +1,9 @@
 <!-- doc-id: changelog -->
-<!-- source-sha256: f5e01abaa2ad1bbad0092e460316444c675cc4f8a105d89c5cf502b6b47d0298 -->
+<!-- source-sha256: 0c0e4ccf36cff991f0f046d54bf43e01dfa163122e81ea8a7402cd87fb85dda8 -->
 
 ## Unreleased
+
+## 0.0.4
 
 - core는 binding 0.0.22와, 그 binding을 쓰는 http-media-type release인 0.0.10을 쓴다. 그래서 `Cargo.lock`은 `polyspec-binding-core` 하나, 0.0.22를 고정하고 binding manifest가 그것을 적는다. `package.json`은 `@polyspec/binding` 0.0.22의 release asset을 적고, `package-lock.json`이 그 integrity를 고정한다(T1.43).
 
